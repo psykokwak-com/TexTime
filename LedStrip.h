@@ -139,6 +139,7 @@ void copyNumberToMatrix(int n, PixelsArray &dst, const RgbColor &color)
   ::copyCharToMatrix(_number[abs(n % 10)], dst, x, 0 + 6, color); // Display "Second number"
 }
 
+/*
 class MyNeoEsp8266UartWS2813
 {
 public:
@@ -148,11 +149,12 @@ public:
 };
 typedef NeoEsp8266UartMethodBase<MyNeoEsp8266UartWS2813, NeoEsp8266AsyncUart> MyNeoEsp8266AsyncUart800KbpsMethod;
 typedef NeoEsp8266UartMethodBase<MyNeoEsp8266UartWS2813, NeoEsp8266Uart> MyNeoEsp8266Uart800KbpsMethod;
+*/
 
-//#define NeoEsp8266Method NeoEsp8266AsyncUart800KbpsMethod
+#define NeoEsp8266Method NeoEsp8266AsyncUart800KbpsMethod
 //#define NeoEsp8266Method NeoEsp8266Uart800KbpsMethod
 
-#define NeoEsp8266Method MyNeoEsp8266AsyncUart800KbpsMethod
+//#define NeoEsp8266Method MyNeoEsp8266AsyncUart800KbpsMethod
 //#define NeoEsp8266Method MyNeoEsp8266Uart800KbpsMethod
 
 //#define NeoEsp8266Method NeoEsp8266BitBang800KbpsMethod
