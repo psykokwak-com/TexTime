@@ -42,6 +42,7 @@ const char PAGE_general[] PROGMEM = R"=====(
   <option value="6">Alphabet</option>
   <option value="7">Rainbow w/ bg</option>
   <option value="8">Rainbow w/o bg</option>
+  <option value="9">Redface</option>
 </select>
 </td></tr>
 

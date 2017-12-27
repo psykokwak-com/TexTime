@@ -12,6 +12,8 @@
 #define PIXELS ((NROW * NCOL) + NEDGE)
 
 #define BLACK RgbColor(0, 0, 0)
+#define RED RgbColor(255, 0, 0)
+#define WHITE RgbColor(255, 255, 255)
 
 const uint8_t matchingPixelsMatrix[NROW][NCOL] = {
   {  1,   2,   6,   7,  15,  16,  28,  29,  45,  46,  65},
@@ -27,6 +29,19 @@ const uint8_t matchingPixelsMatrix[NROW][NCOL] = {
 };
 
 const uint8_t matchingPixelsEdge[NEDGE] = { 113, 112, 111, 114 };
+
+const RgbColor redface[NROW][NCOL] = {
+    { BLACK, BLACK, BLACK, BLACK, RED, RED, RED, BLACK, BLACK, BLACK, BLACK },
+    { BLACK, BLACK, RED, RED, RED, RED, RED, RED, RED, BLACK, BLACK },
+    { BLACK, RED, WHITE, RED, WHITE, RED, WHITE, RED, WHITE, RED, BLACK },
+    { BLACK, RED, RED, WHITE, RED, RED, RED, WHITE, RED, RED, BLACK },
+    { RED, RED, RED, RED, RED, RED, RED, RED, RED, RED, RED },
+    { RED, RED, RED, RED, RED, WHITE, RED, RED, RED, RED, RED },
+    { BLACK, RED, RED, RED, WHITE, RED, WHITE, RED, RED, RED, BLACK },
+    { BLACK, RED, RED, RED, RED, WHITE, RED, RED, RED, RED, BLACK },
+    { BLACK, BLACK, RED, RED, RED, RED, RED, RED, RED, BLACK, BLACK },
+    { BLACK, BLACK, BLACK, BLACK, RED, RED, RED, BLACK, BLACK, BLACK, BLACK },
+};
 
 enum MyLedStripMode
 {
@@ -608,7 +623,8 @@ enum MyLedStripAnimatorMode
   AnimModePongManual,
   AnimModeAlphabet,
   AnimModeRainbowWithBg,
-  AnimModeRainbowWithoutBg
+  AnimModeRainbowWithoutBg,
+  AnimModeSmiley
 };
 
 enum MyLedStripAnimatorState
@@ -1047,6 +1063,74 @@ private:
     }
   }
 
+  void updateSmiley()
+  {
+    if (_animState == AnimStateEnd)
+      return;
+
+    if (_animState == AnimStateBegin)
+    { // Anim Start
+      //Serial.printf("updateSmiley() = AnimStateBegin\n");
+
+      _animFrame.init(0.25);
+      _animState = AnimStateExecute;
+
+      //randomSeed(analogRead(PIN_ALS));
+
+      _animPixelsList.clear();
+
+      for (int i = 0; i < NROW; i++)
+      {
+        for (int j = 0; j < NCOL; j++)
+        {
+          if (_pixels.pixelsArray.getPixel(i, j) == BLACK)
+            continue;
+
+          Pixel p;
+          p.row = i;
+          p.col = j;
+          p.edge = -1;
+          p.color = _pixels.pixelsArray.getPixel(i, j);
+
+          _animPixelsList.push_back(p);
+        }
+      }
+
+      //_pStrip->ClearTo(BLACK);
+    }
+
+    if (!_animFrame.next() || !_pStrip->CanShow())
+      return;
+
+    if (_animState == AnimStateExecute)
+    { // Anim Exec
+      //Serial.printf("updateSmiley() = AnimStateExecute Start\n");
+
+      for (int i = 0; i < NROW; i++)
+      {
+        for (int j = 0; j < NCOL; j++)
+        {
+          _pStrip->SetPixelColor(matchingPixelsMatrix[i][j] - 1, redface[i][j]);
+        }
+      }
+
+      /* // Do not display time
+      for (int i = 0; i < _animPixelsList.size(); i++)
+      {
+        Pixel p = _animPixelsList[i];
+        mySetPixel(matchingPixelsMatrix[p.row][p.col] - 1, p.color);
+      }
+      */
+
+      for (int i = 0; i < NEDGE; i++)
+        mySetPixel(matchingPixelsEdge[i] - 1, RED); // _pixels.pixelsEdge[i]);
+
+      myShow();
+
+      //Serial.printf("updateSmiley() = AnimStateExecute End\n");
+    }
+  }
+
   void updateAlphabet()
   {
     if (_animState == AnimStateEnd)
@@ -1279,6 +1363,9 @@ public:
       break;
     case AnimModeRainbowWithoutBg:
       updateRainbow(false);
+      break;
+    case AnimModeSmiley:
+      updateSmiley();
       break;
     default:
       updateSimple();
