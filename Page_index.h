@@ -7,11 +7,11 @@
 const char PAGE_index[] PROGMEM = R"=====(
 <html>
 <head>
-<title>MyQlockTwo</title>
+<title>TexTime</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body>
-<strong>MyQlockTwo</strong>
+<strong>TexTime</strong>
 <hr>
 <a href="/info.html" style="width:250px" class="btn btn--m btn--blue" >System Information</a><br>
 <a href="/general.html" style="width:250px" class="btn btn--m btn--blue" >General Configuration</a><br>

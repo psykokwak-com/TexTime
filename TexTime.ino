@@ -135,7 +135,7 @@ void setup() {
   {
     Serial.println("Setting AP mode");
 
-    String defaultSSID = "MyQlockTwo-" + String(ESP.getChipId(), HEX);
+    String defaultSSID = "TexTime-" + String(ESP.getChipId(), HEX);
 
     if (!CFG_saved)
     {
@@ -290,7 +290,7 @@ void setup() {
   SSDP.setName(_config.DeviceName);
   SSDP.setSerialNumber(String(ESP.getFlashChipId()));
   SSDP.setURL("index.html");
-  SSDP.setModelName("MyQlockTwo");
+  SSDP.setModelName("TexTime");
   SSDP.setModelNumber("Build : " + printDateTime(RtcDateTime(__DATE__, __TIME__)));
   SSDP.setModelURL("http://www.psykokwak.com/blog/index.php/2017/04/04/64");
   SSDP.setManufacturer("Psykokwak");

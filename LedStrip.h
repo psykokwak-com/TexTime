@@ -1,9 +1,9 @@
 //
-// Led Strip configuration for MyQlockTwo
+// Led Strip configuration for TexTime
 //
 
 #include "fonts.h"
-#include "qlocktwo.h"
+#include "textime.h"
 
 #define NROW 10
 #define NCOL 11
@@ -179,7 +179,7 @@ class MyLedStrip
 protected:
   NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266Method> *_pStrip;
   PixelsContainer _pixels;
-  QlockTwoFr _qlocktwo;
+  TextTimeFr _textime;
   RgbColor _color;
 
   bool myShow()
@@ -249,7 +249,7 @@ private:
 
     //randomSeed(analogRead(PIN_ALS));
 
-    QlockTwoBlobs b = _qlocktwo.getBlobsFromTime(h, m);
+    TextTimeBlobs b = _textime.getBlobsFromTime(h, m);
 
     if (!b.number)
       return; // TODO: Display something useful
@@ -1166,7 +1166,7 @@ private:
       for (int i = 0; i < NEDGE; i++)
         _pStrip->SetPixelColor(matchingPixelsEdge[i] - 1, _pixels.pixelsEdge[i]);
 
-      cl_Lst<QlockTwoPixel> l = _qlocktwo.getPixelsFromLetter(_aplhabetModeIndex + 'a');
+      cl_Lst<TextTimePixel> l = _textime.getPixelsFromLetter(_aplhabetModeIndex + 'a');
       for (int i = 0; i < l.size(); i++)
       {
         if (_pixels.pixelsArray.getPixel(l[i].row, l[i].col) != BLACK)

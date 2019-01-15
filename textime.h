@@ -1,43 +1,43 @@
-#define QLOCKTWOMAXBLOBSIZE 16
+#define TEXTIMEMAXBLOBSIZE 16
 
-struct QlockTwoPixel
+struct TextTimePixel
 {
   uint8_t row;
   uint8_t col;
 };
 
-struct QlockTwoBlob
+struct TextTimeBlob
 {
   uint8_t number;
-  QlockTwoPixel pixels[QLOCKTWOMAXBLOBSIZE];
+  TextTimePixel pixels[TEXTIMEMAXBLOBSIZE];
 };
 
-struct QlockTwoBlobs
+struct TextTimeBlobs
 {
   uint8_t number;
-  QlockTwoBlob *blobs[QLOCKTWOMAXBLOBSIZE];
+  TextTimeBlob *blobs[TEXTIMEMAXBLOBSIZE];
 };
 
-class QlockTwo
+class TextTime
 {
 protected:
-  QlockTwoBlob _it;
-  QlockTwoBlob _is;
-  QlockTwoBlob _hours[13];
-  QlockTwoBlob _hour1;
-  QlockTwoBlob _hour2;
-  QlockTwoBlob _minutes[13];
+  TextTimeBlob _it;
+  TextTimeBlob _is;
+  TextTimeBlob _hours[13];
+  TextTimeBlob _hour1;
+  TextTimeBlob _hour2;
+  TextTimeBlob _minutes[13];
 
 public:
-  virtual QlockTwoBlobs getBlobsFromTime(int hour, int minute) = 0;
-  virtual cl_Lst<QlockTwoPixel> getPixelsFromLetter(char c) = 0;
+  virtual TextTimeBlobs getBlobsFromTime(int hour, int minute) = 0;
+  virtual cl_Lst<TextTimePixel> getPixelsFromLetter(char c) = 0;
 };
 
-class QlockTwoFr: public QlockTwo
+class TextTimeFr: public TextTime
 {
 
 public:
-  QlockTwoFr()
+  TextTimeFr()
   {
     _it.number = 2;
     _it.pixels[0].row = 0; _it.pixels[0].col = 0; // I
@@ -266,9 +266,9 @@ public:
     _minutes[12].pixels[5].row = 9; _minutes[12].pixels[5].col = 6;  // I
   }
 
-  virtual QlockTwoBlobs getBlobsFromTime(int hour, int minute)
+  virtual TextTimeBlobs getBlobsFromTime(int hour, int minute)
   {
-    QlockTwoBlobs b;
+    TextTimeBlobs b;
 
     b.number = 0;
 
@@ -292,10 +292,10 @@ public:
     return b;
   }
 
-  virtual cl_Lst<QlockTwoPixel> getPixelsFromLetter(char c)
+  virtual cl_Lst<TextTimePixel> getPixelsFromLetter(char c)
   {
-    cl_Lst<QlockTwoPixel> l;
-    QlockTwoPixel p;
+    cl_Lst<TextTimePixel> l;
+    TextTimePixel p;
 
     if (c == 'a')
     {
