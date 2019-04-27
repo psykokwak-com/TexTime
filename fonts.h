@@ -1,7 +1,7 @@
 #define FONTROW 7
 #define FONTCOL 5
 
-const uint8_t _dot[FONTROW][FONTCOL] = {
+const uint8_t _font_dot[FONTROW][FONTCOL] = {
   { 0, 0, 0, 0, 0 },
   { 0, 0, 0, 0, 0 },
   { 0, 0, 0, 0, 0 },
@@ -11,7 +11,7 @@ const uint8_t _dot[FONTROW][FONTCOL] = {
   { 0, 1, 1, 0, 0 }
 };
 
-const uint8_t _minus[FONTROW][FONTCOL] = {
+const uint8_t _font_minus[FONTROW][FONTCOL] = {
   { 0, 0, 0, 0, 0 },
   { 0, 0, 0, 0, 0 },
   { 0, 0, 0, 0, 0 },
@@ -21,7 +21,7 @@ const uint8_t _minus[FONTROW][FONTCOL] = {
   { 0, 0, 0, 0, 0 }
 };
 
-const uint8_t _number[10][FONTROW][FONTCOL] =
+const uint8_t _font_number[10][FONTROW][FONTCOL] =
 {
   {
     { 0, 1, 1, 1, 0 },

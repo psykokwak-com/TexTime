@@ -30,6 +30,8 @@ struct strConfig {
   byte colorRandom;                     // 1 Byte - EEPROM 392
   byte brightnessAutoMinDay;            // 1 Byte - EEPROM 393
   byte brightnessAutoMinNight;          // 1 Byte - EEPROM 394
+  byte ledConfig;                       // 1 Byte - EEPROM 395
+  byte luxSensitivity;                  // 1 Byte - EEPROM 396
   
 } _config;
 
@@ -163,6 +165,8 @@ void WriteConfig(){
   EEPROM.write(392, _config.colorRandom);
   EEPROM.write(393, _config.brightnessAutoMinDay);
   EEPROM.write(394, _config.brightnessAutoMinNight);
+  EEPROM.write(395, _config.ledConfig);
+  EEPROM.write(396, _config.luxSensitivity);
 
   EEPROM.commit();
 }
@@ -209,6 +213,8 @@ boolean ReadConfig(){
     _config.colorRandom = EEPROM.read(392);
     _config.brightnessAutoMinDay = EEPROM.read(393);
     _config.brightnessAutoMinNight = EEPROM.read(394);
+    _config.ledConfig = EEPROM.read(395);
+    _config.luxSensitivity = EEPROM.read(396);
 
     return true;
 
@@ -252,6 +258,7 @@ void printConfig(){
   Serial.printf("Color Random:%d\n", _config.colorRandom);
   Serial.printf("Minimum brightness auto during the day:%d\n", _config.brightnessAutoMinDay);
   Serial.printf("Minimum brightness auto during the night:%d\n", _config.brightnessAutoMinNight);
+  Serial.printf("Led Configuration:%d\n", _config.ledConfig);
 }
 
 

@@ -7,60 +7,20 @@
 */
 
 #define ALS_PIN A0
-#define ALS_AVG_SIZE 200
+#define ALS_AVG_SIZE 50
 
 int _avg[ALS_AVG_SIZE];
-int _als = 0;
 
-int getALSLux()
-{
-  /*
-  double u = als;    // volts
-  double i = 0.0;    // amp
-  double l = 0.0;    // lux
-
-  u = u / 1024.0;    // U in volts between 0 and 1 Volt
-  i = u / 1960.0;    // i in amps with I = U / R, with R = 2000 ohm
-  l = i * 2000000.0; // l in lux according the ALS data sheet
-
-  return l;
-  */
-  return _als;
-}
-
-void updateAvgLux()
+void updateAvgLux(int als)
 {
   static int i = 0;
 
-  _avg[i++] = getALSLux();
+  _avg[i++] = als;
   if (i == ALS_AVG_SIZE) i = 0;
 }
 
 int getAvgLux()
 {
-
-  //return getALSLux();
-
-  //////////////////////////////////////////////////////////////////////////
-
-  /*
-  return random(-300, 800);
-
-  //////////////////////////////////////////////////////////////////////////
-
-  static int v = 0;
-  static int way = 10;
-
-  v = v + way;
-
-  if (v >= 600) way = -10;
-  if (v <= -200) way = 10;
-
-  return v;
-  
-  //////////////////////////////////////////////////////////////////////////
-  */
-
   int sum = 0;
 
   for (int i = 0; i < ALS_AVG_SIZE; i++)
@@ -83,8 +43,6 @@ void handleAmbiantLightSensor()
   pt = ct;
 
   yield();
-  _als = analogRead(ALS_PIN);
+  updateAvgLux(analogRead(ALS_PIN) * 0.6979 - 14.6); // Theoretical value 0,685333
   yield();
-
-  updateAvgLux();
 }

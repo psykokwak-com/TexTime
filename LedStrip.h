@@ -9,65 +9,36 @@
 #define NCOL 11
 #define NEDGE 4
 
-#define PIXELS ((NROW * NCOL) + NEDGE)
+#define pVOID  Pixel()
+#define pBLACK Pixel(RgbColor(0  ,   0,   0))
+#define pRED   Pixel(RgbColor(255,   0,   0))
+#define pGREEN Pixel(RgbColor(0  , 255,   0))
+#define pBLUE  Pixel(RgbColor(0  , 0  , 255))
+#define pWHITE Pixel(RgbColor(255, 255, 255))
 
-#define BLACK RgbColor(0, 0, 0)
-#define RED RgbColor(255, 0, 0)
-#define WHITE RgbColor(255, 255, 255)
 
-const uint8_t matchingPixelsMatrix[NROW][NCOL] = {
-  {  1,   2,   6,   7,  15,  16,  28,  29,  45,  46,  65},
-  {  3,   5,   8,  14,  17,  27,  30,  44,  47,  64,  66},
-  {  4,   9,  13,  18,  26,  31,  43,  48,  63,  67,  82},
-  { 10,  12,  19,  25,  32,  42,  49,  62,  68,  81,  83},
-  { 11,  20,  24,  33,  41,  50,  61,  69,  80,  84,  95},
-  { 21,  23,  34,  40,  51,  60,  70,  79,  85,  94,  96},
-  { 22,  35,  39,  52,  59,  71,  78,  86,  93,  97, 104},
-  { 36,  38,  53,  58,  72,  77,  87,  92,  98, 103, 105},
-  { 37,  54,  57,  73,  76,  88,  91,  99, 102, 106, 109},
-  { 55,  56,  74,  75,  89,  90, 100, 101, 107, 108, 110}
-};
-
-const uint8_t matchingPixelsEdge[NEDGE] = { 113, 112, 111, 114 };
-
-const RgbColor redface[NROW][NCOL] = {
-    { BLACK, BLACK, BLACK, BLACK, RED, RED, RED, BLACK, BLACK, BLACK, BLACK },
-    { BLACK, BLACK, RED, RED, RED, RED, RED, RED, RED, BLACK, BLACK },
-    { BLACK, RED, WHITE, RED, WHITE, RED, WHITE, RED, WHITE, RED, BLACK },
-    { BLACK, RED, RED, WHITE, RED, RED, RED, WHITE, RED, RED, BLACK },
-    { RED, RED, RED, RED, RED, RED, RED, RED, RED, RED, RED },
-    { RED, RED, RED, RED, RED, WHITE, RED, RED, RED, RED, RED },
-    { BLACK, RED, RED, RED, WHITE, RED, WHITE, RED, RED, RED, BLACK },
-    { BLACK, RED, RED, RED, RED, WHITE, RED, RED, RED, RED, BLACK },
-    { BLACK, BLACK, RED, RED, RED, RED, RED, RED, RED, BLACK, BLACK },
-    { BLACK, BLACK, BLACK, BLACK, RED, RED, RED, BLACK, BLACK, BLACK, BLACK },
-};
-
-enum MyLedStripMode
+class Pixel
 {
-  ModeInit = 0,
-  ModeNothing = 1,
-  ModeNormal = 2,
-  ModeSec = 3,
-  ModeDay = 4,
-  ModeTemp = 5,
-  ModeTest = 100,
-  ModeSpeedTest = 101,
-  ModeStressTest = 102
+public:
+  RgbColor color;
+  bool display;
+
+  Pixel()
+    : color(RgbColor(0, 0, 0))
+    , display(false)
+  {
+  }
+
+  Pixel(const RgbColor &c)
+  {
+    color = c;
+    display = true;
+  }
 };
 
-enum MyLedStripColorRandom
-{
-  ColorRandomNo = 0,
-  ColorRandomAll,
-  ColorRandomLetter,
-  ColorRandomWord
-};
-
-
-class PixelsArray{
+class PixelsArray {
 private:
-  RgbColor _pixels[NROW][NCOL];
+  Pixel _pixels[NROW][NCOL];
 
 public:
   PixelsArray()
@@ -75,38 +46,38 @@ public:
     clear();
   }
 
-  void fill(const RgbColor &c)
+  void fill(const Pixel &p)
   {
     for (int i = 0; i < NROW; i++)
     {
       for (int j = 0; j < NCOL; j++)
       {
-        _pixels[i][j] = c;
+        _pixels[i][j] = p;
       }
     }
   }
 
   void clear()
   {
-    fill(BLACK);
+    fill(pVOID);
   }
 
-  void setPixel(const RgbColor &c, int row, int col)
+  void setPixel(const Pixel &p, int row, int col)
   {
     if (row < 0) return;
     if (col < 0) return;
     if (row > NROW - 1) return;
     if (col > NCOL - 1) return;
 
-    _pixels[row][col] = c;
+    _pixels[row][col] = p;
   }
 
-  RgbColor getPixel(int row, int col)
+  Pixel getPixel(int row, int col)
   {
-    if (row < 0) return BLACK;
-    if (col < 0) return BLACK;
-    if (row > NROW - 1) return BLACK;
-    if (col > NCOL - 1) return BLACK;
+    if (row < 0) return pVOID;
+    if (col < 0) return pVOID;
+    if (row > NROW - 1) return pVOID;
+    if (col > NCOL - 1) return pVOID;
 
     return _pixels[row][col];
   }
@@ -115,8 +86,122 @@ public:
 struct PixelsContainer
 {
   PixelsArray pixelsArray;
-  RgbColor pixelsEdge[NEDGE];
+  Pixel pixelsEdge[NEDGE];
   bool hasChanged;
+};
+
+
+
+class LedConfiguration {
+public:
+  virtual int ledsByPixel() = 0;
+  virtual int ledsNumber() = 0;
+  virtual String getName() = 0;
+  virtual const uint8_t *getLedsMatrixId(int row, int col) = 0;
+  virtual const uint8_t *getLedsEdgeId(int n) = 0;
+  virtual ~LedConfiguration() {}
+};
+
+class LedConfiguration40x40 : public LedConfiguration {
+private:
+  const uint8_t _matchingPixelsMatrix[NROW][NCOL][1] = {
+    { { 0  }, { 1  }, { 5  }, { 6  }, { 14 }, { 15 }, { 27 }, { 28  }, { 44  }, { 45  }, { 64  } },
+    { { 2  }, { 4  }, { 7  }, { 13 }, { 16 }, { 26 }, { 29 }, { 43  }, { 46  }, { 63  }, { 65  } },
+    { { 3  }, { 8  }, { 12 }, { 17 }, { 25 }, { 30 }, { 42 }, { 47  }, { 62  }, { 66  }, { 81  } },
+    { { 9  }, { 11 }, { 18 }, { 24 }, { 31 }, { 41 }, { 48 }, { 61  }, { 67  }, { 80  }, { 82  } },
+    { { 10 }, { 19 }, { 23 }, { 32 }, { 40 }, { 49 }, { 60 }, { 68  }, { 79  }, { 83  }, { 94  } },
+    { { 20 }, { 22 }, { 33 }, { 39 }, { 50 }, { 59 }, { 69 }, { 78  }, { 84  }, { 93  }, { 95  } },
+    { { 21 }, { 34 }, { 38 }, { 51 }, { 58 }, { 70 }, { 77 }, { 85  }, { 92  }, { 96  }, { 103 } },
+    { { 35 }, { 37 }, { 52 }, { 57 }, { 71 }, { 76 }, { 86 }, { 91  }, { 97  }, { 102 }, { 104 } },
+    { { 36 }, { 53 }, { 56 }, { 72 }, { 75 }, { 87 }, { 90 }, { 98  }, { 101 }, { 105 }, { 108 } },
+    { { 54 }, { 55 }, { 73 }, { 74 }, { 88 }, { 89 }, { 99 }, { 100 }, { 106 }, { 107 }, { 109 } }
+  };
+  const uint8_t _matchingPixelsEdge[NEDGE][1] = { { 112 }, { 111 }, { 110 }, { 113 } };
+
+public:
+  virtual String getName()
+  {
+    return "40x40@1";
+  }
+
+  int ledsByPixel()
+  {
+    return 1;
+  }
+
+  int ledsNumber()
+  {
+    return (NROW * NCOL) + NEDGE;
+  }
+
+  const uint8_t *getLedsMatrixId(int row, int col)
+  {
+    if (row < 0) return NULL;
+    if (col < 0) return NULL;
+    if (row > NROW - 1) return NULL;
+    if (col > NCOL - 1) return NULL;
+
+    return _matchingPixelsMatrix[row][col];
+  }
+
+  const uint8_t *getLedsEdgeId(int n)
+  {
+    if (n < 0) return NULL;
+    if (n > NEDGE - 1) return NULL;
+
+    return _matchingPixelsEdge[n];
+  }
+};
+
+class LedConfiguration100x100 : public LedConfiguration {
+private:
+  const uint8_t _matchingPixelsMatrix[NROW][NCOL][1] = {
+    { { 21  }, { 19  }, { 17  }, { 15  }, { 13  }, { 11  }, { 9   }, { 7   }, { 5   }, { 3   }, { 1   } },
+    { { 24  }, { 26  }, { 28  }, { 30  }, { 32  }, { 34  }, { 36  }, { 38  }, { 40  }, { 42  }, { 44  } },
+    { { 67  }, { 65  }, { 63  }, { 61  }, { 59  }, { 57  }, { 55  }, { 53  }, { 51  }, { 49  }, { 47  } },
+    { { 70  }, { 72  }, { 74  }, { 76  }, { 78  }, { 80  }, { 82  }, { 84  }, { 86  }, { 88  }, { 90  } },
+    { { 113 }, { 111 }, { 109 }, { 107 }, { 105 }, { 103 }, { 101 }, { 99 }, { 97  }, { 95  }, { 93  } },
+    { { 116 }, { 118 }, { 120 }, { 122 }, { 124 }, { 126 }, { 128 }, { 130 }, { 132 }, { 134 }, { 136 } },
+    { { 159 }, { 157 }, { 155 }, { 153 }, { 151 }, { 149 }, { 147 }, { 145 }, { 143 }, { 141 }, { 139 } },
+    { { 162 }, { 164 }, { 166 }, { 168 }, { 170 }, { 172 }, { 174 }, { 176 }, { 178 }, { 180 }, { 182 } },
+    { { 205 }, { 203 }, { 201 }, { 199 }, { 197 }, { 195 }, { 193 }, { 191 }, { 189 }, { 187 }, { 185 } },
+    { { 208 }, { 210 }, { 212 }, { 214 }, { 216 }, { 218 }, { 220 }, { 222 }, { 224 }, { 226 }, { 228 } }
+  };
+  const uint8_t _matchingPixelsEdge[NEDGE][1] = { { 232 }, { 231 }, { 230 }, { 233 } };
+
+public:
+  virtual String getName()
+  {
+    return "100x100@1";
+  }
+
+  int ledsByPixel()
+  {
+    return 1;
+  }
+
+  int ledsNumber()
+  {
+    return (NROW * 23) + NEDGE;
+  }
+
+  const uint8_t *getLedsMatrixId(int row, int col)
+  {
+    if (row < 0) return NULL;
+    if (col < 0) return NULL;
+    if (row > NROW - 1) return NULL;
+    if (col > NCOL - 1) return NULL;
+
+    return _matchingPixelsMatrix[row][col];
+  }
+
+  const uint8_t *getLedsEdgeId(int n)
+  {
+    if (n < 0) return NULL;
+    if (n > NEDGE - 1) return NULL;
+
+    return _matchingPixelsEdge[n];
+  }
 };
 
 //  0         x
@@ -128,12 +213,12 @@ struct PixelsContainer
 //
 void copyCharToMatrix(const uint8_t src[FONTROW][FONTCOL], PixelsArray &dst, int posx, int posy, const RgbColor &color)
 {
-  for (int i = 0; i < FONTROW; i++)
+  for (int r = 0; r < FONTROW; r++)
   {
-    for (int j = 0; j < FONTCOL; j++)
+    for (int c = 0; c < FONTCOL; c++)
     {
-      if (src[i][j])
-        dst.setPixel(color, posx + i, posy + j);
+      if (src[r][c])
+        dst.setPixel(Pixel(color), posx + r, posy + c);
     }
   }
 }
@@ -144,317 +229,443 @@ void copyNumberToMatrix(int n, PixelsArray &dst, const RgbColor &color)
   int x = 1;
 
   if (n < 0)
-    ::copyCharToMatrix(_minus, dst, x, 0, color); // Display "-"
+    ::copyCharToMatrix(_font_minus, dst, x, 0, color); // Display "-"
   else
+  {
     if (n / 10 != 0)
-      ::copyCharToMatrix(_number[abs(n / 10)], dst, x, 0, color); // Display "First number"
+      ::copyCharToMatrix(_font_number[abs(n / 10)], dst, x, 0, color); // Display "First number"
     else
-      ::copyCharToMatrix(_number[0], dst, x, 0, color); // Display "First number"
-
-  ::copyCharToMatrix(_number[abs(n % 10)], dst, x, 0 + 6, color); // Display "Second number"
+      ::copyCharToMatrix(_font_number[0], dst, x, 0, color); // Display "First number"
+  }
+  ::copyCharToMatrix(_font_number[abs(n % 10)], dst, x, 0 + 6, color); // Display "Second number"
 }
 
-/*
-class MyNeoEsp8266UartWS2813
+
+enum RandomColorMode
 {
-public:
-  static const uint32_t ByteSendTimeUs = 10; // us it takes to send a single pixel element at 800khz speed
-  static const uint32_t UartBaud = 3636363; // 3200000; // 800khz, 4 serial bytes per NeoByte
-  static const uint32_t RESMinTimeUs = 300; // us it takes to wait before sending a new frame
+  ColorRandomNo = 0,
+  ColorRandomAll,
+  ColorRandomLetter,
+  ColorRandomWord
 };
-typedef NeoEsp8266UartMethodBase<MyNeoEsp8266UartWS2813, NeoEsp8266AsyncUart> MyNeoEsp8266AsyncUart800KbpsMethod;
-typedef NeoEsp8266UartMethodBase<MyNeoEsp8266UartWS2813, NeoEsp8266Uart> MyNeoEsp8266Uart800KbpsMethod;
-*/
 
-#define NeoEsp8266Method NeoEsp8266AsyncUart800KbpsMethod
-//#define NeoEsp8266Method NeoEsp8266Uart800KbpsMethod
 
-//#define NeoEsp8266Method MyNeoEsp8266AsyncUart800KbpsMethod
-//#define NeoEsp8266Method MyNeoEsp8266Uart800KbpsMethod
-
-//#define NeoEsp8266Method NeoEsp8266BitBang800KbpsMethod
-
-class MyLedStrip
+class LedStripMode
 {
 protected:
-  NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266Method> *_pStrip;
-  PixelsContainer _pixels;
-  TextTimeFr _textime;
+  String _name;
+  PixelsContainer *_pPixelContainer;
   RgbColor _color;
+  RandomColorMode _colorRandomMode;
 
-  bool myShow()
+  void setPixelsColor(const Pixel &p)
   {
-    if (!_pStrip->CanShow())
-      return false;
-
-    //interrupts();
-    _pStrip->Show();
-    //noInterrupts();
-
-    return true;
-  }
-
-  void mySetPixel(int index, Neo3Elements::ColorObject c)
-  {
-    _pStrip->SetPixelColor(index, c);
-  }
-
-private:
-  int _pixelcount;
-  int _automaticBrightness;
-  MyLedStripMode _mode, _pmode;
-  MyLedStripColorRandom _colorRandom;
-
-
-  virtual void update() = 0;
-
-  void fillColor(const RgbColor &c)
-  {
-    _pixels.pixelsArray.fill(c);
+    _pPixelContainer->pixelsArray.fill(p);
     for (int i = 0; i < NEDGE; i++)
-      _pixels.pixelsEdge[i] = c;
-    
-    _pixels.hasChanged = true;
+      _pPixelContainer->pixelsEdge[i] = p;
   }
 
-  void handleModeNothing()
+  void clearPixelsColor()
   {
-    if (_pmode == _mode)
-      return ;
-
-    fillColor(BLACK);
-
-    _pixels.hasChanged = true;
+    // Clear pixels
+    setPixelsColor(pVOID);
+  }
+  
+public:
+  LedStripMode(String name, PixelsContainer *pPixelContainer)
+    : _name(name)
+    , _pPixelContainer(pPixelContainer)
+    , _color(RgbColor(255, 255, 255))
+    , _colorRandomMode(ColorRandomNo)
+  {
   }
 
-  void handleModeNormal()
+  String getName()
   {
-    static int sm = 0;
-    static int sh = 0;
+    return _name;
+  }
 
-    if (_pmode != _mode)
-    {
-      sm = -1;
-      sh = -1;
-    }
+  void setColor(RgbColor c)
+  {
+    _color = c;
+  }
+
+  void setColorRandom(RandomColorMode c)
+  {
+    _colorRandomMode = c;
+  }
+
+  virtual void begin() = 0;
+  virtual void handle() = 0;
+};
+
+class LedStripModeNothing : public LedStripMode
+{
+public:
+  LedStripModeNothing(PixelsContainer *pPixelContainer)
+    : LedStripMode("Nothing", pPixelContainer)
+  {
+  }
+
+  void begin()
+  {
+    // Clear display
+    clearPixelsColor();
+
+    _pPixelContainer->hasChanged = true;
+  }
+
+  void handle()
+  {
+  }
+};
+
+class LedStripModeTime : public LedStripMode
+{
+private:
+  TextTimeFr _textime;
+  int _m;
+  int _h;
+
+public:
+  LedStripModeTime(PixelsContainer *pPixelContainer)
+    : LedStripMode("Time", pPixelContainer)
+    , _m(-1)
+    , _h(-1)
+  {
+  }
+
+  void begin()
+  {
+    _m = -1;
+    _h = -1;
+  }
+
+  void handle()
+  {
     int h = _dateTime.hour;
     int m = _dateTime.minute;
 
-    if (sm == m && sh == h)
+    if (_m == m && _h == h)
       return;
 
-    sm = m;
-    sh = h;
-
-
-    //randomSeed(analogRead(PIN_ALS));
+    _m = m;
+    _h = h;
 
     TextTimeBlobs b = _textime.getBlobsFromTime(h, m);
 
     if (!b.number)
       return; // TODO: Display something useful
 
+    // Clear display
+    clearPixelsColor();
+
     RgbColor c = _color;
 
-    fillColor(BLACK);
-    
-    if (_colorRandom == ColorRandomAll)
+    if (_colorRandomMode == ColorRandomAll)
       c = HslColor((float)random(256) / 255.0, 1.0, 0.5);
 
     for (int i = 0; i < b.number; i++)
     {
-      if (_colorRandom == ColorRandomWord)
+      if (_colorRandomMode == ColorRandomWord)
         c = HslColor((float)random(256) / 255.0, 1.0, 0.5);
 
       for (int j = 0; j < b.blobs[i]->number; j++)
       {
-        if (_colorRandom == ColorRandomLetter)
+        if (_colorRandomMode == ColorRandomLetter)
           c = HslColor((float)random(256) / 255.0, 1.0, 0.5);
 
-        _pixels.pixelsArray.setPixel(c, b.blobs[i]->pixels[j].row, b.blobs[i]->pixels[j].col);
+        Pixel p;
+        p.color = c;
+        p.display = true;
+        _pPixelContainer->pixelsArray.setPixel(p, b.blobs[i]->pixels[j].row, b.blobs[i]->pixels[j].col);
       }
     }
 
-    if (_colorRandom == ColorRandomWord)
+    if (_colorRandomMode == ColorRandomWord)
       c = HslColor((float)random(256) / 255.0, 1.0, 0.5);
 
     for (int i = 0; i < m % 5; i++)
     {
-      if (_colorRandom == ColorRandomLetter)
+      if (_colorRandomMode == ColorRandomLetter)
         c = HslColor((float)random(256) / 255.0, 1.0, 0.5);
 
-      _pixels.pixelsEdge[i] = c;
+      Pixel p;
+      p.color = c;
+      p.display = true;
+      _pPixelContainer->pixelsEdge[i] = p;
     }
 
-    _pixels.hasChanged = true;
+    _pPixelContainer->hasChanged = true;
+  }
+};
+
+
+class LedStripModeSeconds : public LedStripMode
+{
+private:
+  int _s;
+
+public:
+  LedStripModeSeconds(PixelsContainer *pPixelContainer)
+    : LedStripMode("Seconds", pPixelContainer)
+    , _s(-1)
+  {
   }
 
-  void handleModeSecond()
+  void begin()
   {
-    static int s = 0;
+    _s = -1;
+  }
 
-    if (_pmode != _mode)
-      s = -1;
-
-    if (s == (int)_dateTime.second)
+  void handle()
+  {
+    if (_s == (int)_dateTime.second)
       return;
 
-    s = _dateTime.second;
+    _s = _dateTime.second;
 
-    fillColor(BLACK);
-    ::copyNumberToMatrix(s, _pixels.pixelsArray, _color);
+    // Clear display
+    clearPixelsColor();
 
-    _pixels.hasChanged = true;
+    ::copyNumberToMatrix(_s, _pPixelContainer->pixelsArray, _color);
+
+    _pPixelContainer->hasChanged = true;
+  }
+};
+
+class LedStripModeDay : public LedStripMode
+{
+private:
+  int _s;
+
+public:
+  LedStripModeDay(PixelsContainer *pPixelContainer)
+    : LedStripMode("Day", pPixelContainer)
+    , _s(-1)
+  {
   }
 
-  void handleModeDay()
+  void begin()
   {
-    static int s = 0;
+    _s = -1;
+  }
 
-    if (_pmode != _mode)
-      s = -1;
-
-    if (s == (int)_dateTime.day)
+  void handle()
+  {
+    if (_s == (int)_dateTime.day)
       return;
 
-    s = _dateTime.day;
+    _s = _dateTime.day;
 
-    fillColor(BLACK);
-    ::copyNumberToMatrix(s, _pixels.pixelsArray, _color);
+    // Clear display
+    clearPixelsColor();
 
-    _pixels.hasChanged = true;
+    ::copyNumberToMatrix(_s, _pPixelContainer->pixelsArray, _color);
+
+    _pPixelContainer->hasChanged = true;
+  }
+};
+
+
+class LedStripModeTemperature : public LedStripMode
+{
+private:
+  int _s;
+
+public:
+  LedStripModeTemperature(PixelsContainer *pPixelContainer)
+    : LedStripMode("Temperature", pPixelContainer)
+    , _s(-1)
+  {
   }
 
-  void handleModeTemperature()
+  void begin()
   {
-    static int s = 0;
+    _s = -1;
+  }
 
-    if (_pmode != _mode)
-      s = 200000;
-
-    if (s == 0)
+  void handle()
+  {
+    if (_s == (int)_dateTime.second)
       return;
 
-    if (s == 200000)
-    {
-      // Display Temperature
-      if (!RTC.GetIsRunning())
-        return; // TODO: Display something useful
-      
-      int8_t t = RTC.GetTemperature().AsWholeDegrees();
+    _s = _dateTime.second;
 
-      fillColor(BLACK);
-      ::copyNumberToMatrix(t, _pixels.pixelsArray, _color);
+    // Clear display
+    clearPixelsColor();
 
-      _pixels.hasChanged = true;
-    }
+    // Display Temperature
+    if (!RTC.GetIsRunning())
+      return; // TODO: Display something useful
 
+    int8_t t = RTC.GetTemperature().AsWholeDegrees();
 
-    if (s == 000001)
-    { // Refresh
-      s = 200000;
-      return ;
-    }
+    ::copyNumberToMatrix(t, _pPixelContainer->pixelsArray, _color);
 
-    s--;
+    _pPixelContainer->hasChanged = true;
+  }
+};
+
+class LedStripModeTestColors : public LedStripMode
+{
+private:
+  int _t;
+
+public:
+  LedStripModeTestColors(PixelsContainer *pPixelContainer)
+    : LedStripMode("Test Colors", pPixelContainer)
+    , _t(0)
+  {
   }
 
-  bool handleModeStressTest()
+  void begin()
   {
-    static int s = 0;
-
-    if (_pmode != _mode)
-      s = 400000;
-
-    if (s == 0)
-    {
-      setMode(ModeNormal);
-      return true;
-    }
-
-    if (s % 2)
-      fillColor(RgbColor(255, 255, 255));
-    else
-      fillColor(RgbColor(0, 0, 0));
-
-    _pixels.hasChanged = true;
-
-    s--;
-
-    return false;
+    _t = 0;
   }
 
-
-  bool handleModeSpeedTest()
+  void handle()
   {
-    static int s = 0;
-    static int c = 0;
-    static int r = 0;
-
-    if (_pmode != _mode)
-      s = 400000;
-
-    if (s == 0)
+    switch (_t)
     {
-      setMode(ModeNormal);
-      return true;
+    case 0:
+      setPixelsColor(pRED);
+      _pPixelContainer->hasChanged = true;
+      break;
+    case 100000:
+      setPixelsColor(pGREEN);
+      _pPixelContainer->hasChanged = true;
+      break;
+    case 200000:
+      setPixelsColor(pBLUE);
+      _pPixelContainer->hasChanged = true;
+      break;
+    case 300000:
+      setPixelsColor(pWHITE);
+      _pPixelContainer->hasChanged = true;
+      break;
+    case 400000:
+      _t = -1;
+      break;
     }
+    _t++;
+  }
+};
+
+class LedStripModeTestSpeed : public LedStripMode
+{
+private:
+  int _r;
+  int _c;
+
+public:
+  LedStripModeTestSpeed(PixelsContainer *pPixelContainer)
+    : LedStripMode("Test Speed", pPixelContainer)
+    , _r(0)
+    , _c(0)
+  {
+  }
+
+  void begin()
+  {
+    _r = 0;
+    _c = 0;
+  }
+
+  void handle()
+  {
+    if (_pPixelContainer->hasChanged)
+      return;
+
+    if (_c == NCOL) {
+      _c = 0;
+      _r++;
+    }
+
+    if (_r == NROW) {
+      _c = 0;
+      _r = 0;
+    }
+
+    clearPixelsColor();
+    _pPixelContainer->pixelsArray.setPixel(pWHITE, _r, _c++);
+
+    _pPixelContainer->hasChanged = true;
+  }
+};
+
+
+class MyNeoEsp8266UartWS2813
+{
+public:
+  static const uint32_t ByteSendTimeUs = 10; // us it takes to send a single pixel element at 800khz speed
+  static const uint32_t UartBaud = 3636363;  // 3200000; // 800khz, 4 serial bytes per NeoByte
+  static const uint32_t RESMinTimeUs = 300;  // us it takes to wait before sending a new frame
+};
+typedef NeoEsp8266UartMethodBase<MyNeoEsp8266UartWS2813, NeoEsp8266AsyncUart> MyNeoEsp8266AsyncUart800KbpsMethod;
+#define NeoEsp8266Method MyNeoEsp8266AsyncUart800KbpsMethod
+
+class MyLedStrip
+{
+protected:
+  NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266Method> *_pStrip;
+  cl_Lst<LedConfiguration *> _ledConfiguration;
+  int _ledConfigurationIndex;
+  PixelsContainer _pixels;
+  bool _automaticBrightness;
+  cl_Lst<LedStripMode *> _modeList;
+  int _modeIndex;
+
+  bool refresh(PixelsContainer *pPixel)
+  {
+    if (!pPixel->hasChanged)
+      return false;
 
     if (!_pStrip->CanShow())
       return false;
 
-    fillColor(BLACK);
+    // Reset led strip
+    _pStrip->ClearTo(RgbColor(0, 0, 0));
 
-    _pixels.pixelsArray.setPixel(_color, r, c);
+    // Fill leds strip with matrix pixels
+    for (int r = 0; r < NROW; r++) {
+      for (int c = 0; c < NCOL; c++) {
+        Pixel p = pPixel->pixelsArray.getPixel(r, c);
+        const uint8_t *i = _ledConfiguration[_ledConfigurationIndex]->getLedsMatrixId(r, c);
 
-    _pixels.hasChanged = true;
+        if (!p.display) continue;
 
-    c++;
-
-    if (c == NCOL)
-    {
-      r++;
-      c = 0;
+        for (int l = 0; l < _ledConfiguration[_ledConfigurationIndex]->ledsByPixel(); l++)
+          _pStrip->SetPixelColor(i[l], p.color);
+      }
     }
 
-    if (r == NROW)
-    {
-      r = 0;
+    // Fill leds strip with edge pixels
+    for (int e = 0; e < NEDGE; e++) {
+      Pixel p = pPixel->pixelsEdge[e];
+      const uint8_t *i = _ledConfiguration[_ledConfigurationIndex]->getLedsEdgeId(e);
+
+      if (!p.display) continue;
+
+      for (int l = 0; l < _ledConfiguration[_ledConfigurationIndex]->ledsByPixel(); l++)
+        _pStrip->SetPixelColor(i[l], p.color);
     }
 
-    s--;
+    // Refresh display
+    _pStrip->Show();
 
-    return false;
-  }
+    pPixel->hasChanged = false;
 
-  // Return finished flag
-  bool handleModeTest()
-  {
-    static int s = 0;
-
-    if (_pmode != _mode)
-      s = 400000;
-
-    if (s == 0)
-    {
-      setMode(ModeNormal);
-      return true;
-    }
-
-    if (s == 400000) fillColor(RgbColor(255, 0, 0));
-    if (s == 300000) fillColor(RgbColor(0, 255, 0));
-    if (s == 200000) fillColor(RgbColor(0, 0, 255));
-    if (s == 100000) fillColor(RgbColor(255, 255, 255));
-
-    s--;
-
-    return false;
+    return true;
   }
 
   // Update brightness every 50ms
   void handleAutomaticBrightness()
   {
     static uint64_t p = 0;
+
+    if (!_automaticBrightness)
+      return;
 
     uint64_t v = millis64() / 50;
 
@@ -464,7 +675,7 @@ private:
       int sn = _config.brightnessAutoMinNight;    // minimum brightness during the night
       int sm = 255;                               // maximum brightness
       int lmin = 0;                               // minimum lux sensitivity allowed
-      int lmax = 400;                             // maximum lux sensitivity allowed
+      int lmax = _config.luxSensitivity * 10;     // maximum lux sensitivity allowed
 
       int s = sn;
 
@@ -474,68 +685,88 @@ private:
       if (_dateTime.hour == 21) s = map(_dateTime.minute, 0, 59, sd, sn); // during the 21th hour
       if (_dateTime.hour == 9) s = map(_dateTime.minute, 0, 59, sn, sd); // during the 9th hour
 
+      if (s == 0) s = 1;
+
       int l = getAvgLux();
       if (l < lmin) l = lmin;
       if (l > lmax) l = lmax;
-      setBrightness(map(l, lmin, lmax, s, sm)); // limit
+      _pStrip->SetBrightness(map(l, lmin, lmax, s, sm)); // limit
+
+      if (_pStrip->CanShow())
+        _pStrip->Show();
     }
 
     p = v;
   }
 
-public:
-  MyLedStrip() :
-    _pStrip(NULL),
-    _pixelcount(PIXELS),
-    _automaticBrightness(1),
-    _mode(ModeInit),
-    _pmode(ModeInit),
-    _colorRandom(ColorRandomNo)
+  void handleMode()
   {
-    _color.R = 255;
-    _color.G = 255;
-    _color.B = 255;
+    if (_modeIndex < 0) return;
+    if (_modeIndex > _modeList.size() - 1) return;
 
+    _modeList[_modeIndex]->handle();
+  }
+
+public:
+  MyLedStrip()
+    : _pStrip(NULL)
+    , _ledConfigurationIndex(0)
+    , _automaticBrightness(false)
+    , _modeIndex(0)
+  {
+
+    _ledConfiguration.push_back(new LedConfiguration40x40());
+    _ledConfiguration.push_back(new LedConfiguration100x100());
+
+    _modeList.push_back(new LedStripModeNothing(&_pixels));
+    _modeList.push_back(new LedStripModeTime(&_pixels));
+    _modeList.push_back(new LedStripModeSeconds(&_pixels));
+    _modeList.push_back(new LedStripModeDay(&_pixels));
+    _modeList.push_back(new LedStripModeTemperature(&_pixels));
+    _modeList.push_back(new LedStripModeTestColors(&_pixels));
+    _modeList.push_back(new LedStripModeTestSpeed(&_pixels));
   }
 
   ~MyLedStrip()
   {
     end();
+
+    _modeList.clear();
+  }
+
+  cl_Lst<LedStripMode *> *getModesList()
+  {
+    return &_modeList;
+  }
+
+  cl_Lst<LedConfiguration *> *getLedConfigurationList()
+  {
+    return &_ledConfiguration;
   }
 
   void begin()
   {
-    if (_pStrip)
-      return;
+    end();
 
-    // Cannot use DMA because DMA GPIO is already used by serial/USB bridge :(
-    _pStrip = new NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266Method>(_pixelcount, D4);
-    _pStrip->Begin();
+    if (!_pStrip)
+    { 
+      _ledConfigurationIndex = _config.ledConfig;
+      
+      // Cannot use DMA because DMA GPIO is already used by serial/USB bridge :(
+      _pStrip = new NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266Method>(_ledConfiguration[_ledConfigurationIndex]->ledsNumber(), D4);
+      _pStrip->Begin();
+    }
 
-    fillColor(BLACK);
-    update(); // Force update with "normal" animator mode
+    _pStrip->ClearTo(RgbColor(0, 0, 0));
+    _pStrip->Show();
   }
 
   void end()
   {
     if (_pStrip)
       delete _pStrip;
+
     _pStrip = NULL;
-  }
-
-  void setBrightness(uint8_t b)
-  {
-    if (b < 1) b = 1;
-    if (b > 255) b = 255;
-
-    _pStrip->SetBrightness(b);
-
-    myShow();
-  }
-
-  uint8_t getBrightness()
-  {
-    return _pStrip->GetBrightness();
   }
 
   void setAutomaticBrightness(int b)
@@ -543,833 +774,466 @@ public:
     _automaticBrightness = b;
   }
 
-  void setMode(MyLedStripMode m)
+  void setBrightness(uint8_t b)
   {
-    _mode = m;
-    _pmode = ModeInit;
+    if (b < 1) b = 1;
+    if (b > 255) b = 255;
 
-    Serial.printf("setMode(%d)\n", m);
+    if (_automaticBrightness)
+      return;
+
+    _pStrip->SetBrightness(b);
+
+    if (_pStrip->CanShow())
+      _pStrip->Show();
+
+    //refresh();
+  }
+
+  uint8_t getBrightness()
+  {
+    return _pStrip->GetBrightness();
   }
 
   void setColor(byte r, byte g, byte b)
   {
-    _color = RgbColor(r, g, b);
+    for (int i = 0; i < _modeList.size(); i++)
+      _modeList[i]->setColor(RgbColor(r, g, b));
 
-    setMode(_mode); // Used to force repaint
+    // Force redrawing to update the color now
+    setMode(_modeIndex);
   }
 
-  void setColorRandom(MyLedStripColorRandom c)
+  void setColorRandom(RandomColorMode c)
   {
-    _colorRandom = c;
+    for (int i = 0; i < _modeList.size(); i++)
+      _modeList[i]->setColorRandom(c);
 
-    setMode(_pmode); // Used to force repaint
+    // Force redrawing to update the color now
+    setMode(_modeIndex);
+  }
+
+  void setMode(int mode)
+  {
+    if (mode < 0) return;
+    if (mode > _modeList.size() - 1) return;
+
+    _modeIndex = mode;
+
+    _modeList[_modeIndex]->begin();
   }
 
   void handle()
   {
-    if (_automaticBrightness)
-      handleAutomaticBrightness();
-
-    switch (_mode)
-    {
-    case ModeInit:
-    case ModeNothing:
-      handleModeNothing();
-      break;
-    case ModeTest:
-      if (handleModeTest())
-        return ;
-      break;
-    case ModeNormal:
-      handleModeNormal();
-      break;
-    case ModeSec:
-      handleModeSecond();
-      break;
-    case ModeDay:
-      handleModeDay();
-      break;
-    case ModeTemp:
-      handleModeTemperature();
-      break;
-    case ModeSpeedTest:
-      if (handleModeSpeedTest())
-        return;
-      break;
-    case ModeStressTest:
-      if (handleModeStressTest())
-        return;
-      break;
-    default:
-      handleModeNormal();
-      ;
-    };
-
-    _pmode = _mode;
-
-    update();
+    handleAutomaticBrightness();
+    handleMode();
+    refresh(&_pixels);
   }
 };
 
 
 
-enum MyLedStripAnimatorMode
+
+class LedStripAnimation
 {
-  AnimModeNormal,
-  AnimModeBlinkRandom,
-  AnimModeFire,
-  AnimModeMatrix,
-  AnimModePongAuto,
-  AnimModePongManual,
-  AnimModeAlphabet,
-  AnimModeRainbowWithBg,
-  AnimModeRainbowWithoutBg,
-  AnimModeSmiley
+protected:
+  struct PixelPos
+  {
+    int r;
+    int c;
+    int e;
+    Pixel p;
+  };
+
+protected:
+  String _name;
+  PixelsContainer *_pPixelContainerInput;
+  PixelsContainer *_pPixelContainerOutput;
+
+  void setPixelsColor(const Pixel &p)
+  {
+    _pPixelContainerOutput->pixelsArray.fill(p);
+    for (int i = 0; i < NEDGE; i++)
+      _pPixelContainerOutput->pixelsEdge[i] = p;
+  }
+
+  void clearPixelsColor()
+  {
+    // Clear pixels
+    setPixelsColor(pVOID);
+  }
+
+public:
+  LedStripAnimation(String name, PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : _name(name)
+    , _pPixelContainerInput(pPixelContainerInput)
+    , _pPixelContainerOutput(pPixelContainerOutput)
+  {
+  }
+
+  String getName()
+  {
+    return _name;
+  }
+
+  virtual void begin() = 0;
+  virtual void handle() = 0;
 };
 
-enum MyLedStripAnimatorState
+class LedStripAnimationNormal : public LedStripAnimation
 {
-  AnimStateBegin,
-  AnimStateExecute,
-  AnimStateEnd
+public:
+  LedStripAnimationNormal(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimation("Normal", pPixelContainerInput, pPixelContainerOutput)
+  {
+  }
+
+  void begin()
+  {
+    // Force refresh of input pixels because
+    // we copy them to the output buffer only
+    // When they change. (To limit CPU usage)
+    _pPixelContainerInput->hasChanged = true;
+  }
+
+  void handle()
+  { // Just copy input pixels to output pixels if they change
+    if (_pPixelContainerInput->hasChanged)
+      *_pPixelContainerOutput = *_pPixelContainerInput;
+  }
 };
 
-struct Pixel
+class LedStripAnimationBlink : public LedStripAnimation
 {
-  int row;
-  int col;
-  int edge;
-  RgbColor color;
+private:
+  Frame _frame;
+  cl_Lst<PixelPos> _pixelPosition;
+
+  void initPixelsList()
+  {
+    // Clear the pixel list
+    _pixelPosition.clear();
+
+    // Fill on pixels from matrix to the list
+    for (int c = 0; c < NCOL; c++) {
+      for (int r = 0; r < NROW; r++) {
+        Pixel p = _pPixelContainerInput->pixelsArray.getPixel(r, c);
+        if (p.display) {
+          PixelPos pp;
+          pp.e = -1;
+          pp.c = c;
+          pp.r = r;
+          pp.p = p;
+          _pixelPosition.push_back(pp);
+        }
+      }
+    }
+
+    // Fill on pixels from edge to the list
+    for (int e = 0; e < NEDGE; e++) {
+      Pixel p = _pPixelContainerInput->pixelsEdge[e];
+      if (p.display) {
+        PixelPos pp;
+        pp.e = e;
+        pp.c = -1;
+        pp.r = -1;
+        pp.p = p;
+        _pixelPosition.push_back(pp);
+      }
+    }
+  }
+
+public:
+  LedStripAnimationBlink(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimation("Blink", pPixelContainerInput, pPixelContainerOutput)
+  {
+  }
+
+  void begin()
+  {
+    _frame.init(50);
+
+    initPixelsList();
+    clearPixelsColor();
+  }
+
+  void handle()
+  {
+    // If display has changed, reset the animation
+    if (_pPixelContainerInput->hasChanged)
+      begin();
+
+    if (!_frame.next())
+      return;
+
+    if (!_pixelPosition.size())
+      return;
+
+    int idx = random(_pixelPosition.size());
+    PixelPos pp = _pixelPosition[idx];
+    _pixelPosition.remove(idx);
+
+    if (pp.e == -1)
+      _pPixelContainerOutput->pixelsArray.setPixel(pp.p, pp.r, pp.c);
+    else
+      _pPixelContainerOutput->pixelsEdge[pp.e] = pp.p;
+
+    _pPixelContainerOutput->hasChanged = true;
+  }
 };
 
-struct PongBall
+class LedStripAnimationFire : public LedStripAnimation
 {
-  int row;
-  int col;
-  int drow;
-  int dcol;
+private:
+  Frame _frame;
+
+  RgbColor generateFireColor()
+  {
+    RgbColor c = RgbColor(58, 58, 6);;
+    c.Darken(random(15));
+    c.R += random(15);
+    return c;
+  }
+
+public:
+  LedStripAnimationFire(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimation("Fire", pPixelContainerInput, pPixelContainerOutput)
+  {
+  }
+
+  void begin()
+  {
+    _frame.init(8);
+  }
+
+  void handle()
+  {
+    if (!_frame.next())
+      return;
+
+    for (int c = 0; c < NCOL; c++) {
+      for (int r = 0; r < NROW; r++) {
+        Pixel pb;
+        pb.color = generateFireColor();
+        pb.display = true;
+
+        Pixel pf = _pPixelContainerInput->pixelsArray.getPixel(r, c);
+
+        _pPixelContainerOutput->pixelsArray.setPixel(pf.display ? pf : pb, r, c);
+      }
+    }
+
+    for (int e = 0; e < NEDGE; e++) {
+      Pixel pb;
+      pb.color = generateFireColor();
+      pb.display = true;
+
+      Pixel pf = _pPixelContainerInput->pixelsEdge[e];
+
+      _pPixelContainerOutput->pixelsEdge[e] = pf.display ? pf : pb;
+    }
+
+    _pPixelContainerOutput->hasChanged = true;
+  }
 };
+
+class LedStripAnimationMatrix : public LedStripAnimation
+{
+private:
+  Frame _frame;
+  int _matrixColumn[NCOL];
+  int _matrixColumnSize;
+
+public:
+  LedStripAnimationMatrix(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimation("Matrix", pPixelContainerInput, pPixelContainerOutput)
+    , _matrixColumnSize(9)
+  {
+  }
+
+  void begin()
+  {
+    _frame.init(8);
+
+    for (int i = 0; i < NCOL; i++)
+      _matrixColumn[i] = -1;
+  }
+
+  void handle()
+  {
+    if (!_frame.next())
+      return;
+
+    clearPixelsColor();
+
+    // Copy background matrix pixels
+
+    // Create a new column if possible (= -1)
+    for (int c = 0; c < NCOL; c++) {
+      if (_matrixColumn[c] == -1) {
+        if (random(30) == 0) {
+          _matrixColumn[c] = 0;
+        }
+      }
+    }
+
+    // Update display columns
+    for (int c = 0; c < NCOL; c++) {
+      if (_matrixColumn[c] == -1)
+        continue;
+
+      Pixel green = pGREEN;
+      for (int r = _matrixColumn[c]; r > _matrixColumn[c] - _matrixColumnSize; r--) {
+        _pPixelContainerOutput->pixelsArray.setPixel(green, r, c);
+        green.color.Darken(30);
+      }
+
+      _matrixColumn[c]++;
+
+      if (_matrixColumn[c] > NROW + _matrixColumnSize)
+        _matrixColumn[c] = -1;
+    }
+
+    // Copy foreground matrix pixels
+    for (int c = 0; c < NCOL; c++) {
+      for (int r = 0; r < NROW; r++) {
+        Pixel pf = _pPixelContainerInput->pixelsArray.getPixel(r, c);
+        if (pf.display)
+          _pPixelContainerOutput->pixelsArray.setPixel(pf, r, c);
+      }
+    }
+
+    // Copy foreground edge pixels
+    for (int e = 0; e < NEDGE; e++) {
+      Pixel pf = _pPixelContainerInput->pixelsEdge[e];
+      if (pf.display)
+        _pPixelContainerOutput->pixelsEdge[e] = pf;
+    }
+
+    _pPixelContainerOutput->hasChanged = true;
+  }
+};
+
+class LedStripAnimationRainbow : public LedStripAnimation
+{
+private:
+  Frame _frame;
+  double _rainbowIndex;
+
+public:
+  LedStripAnimationRainbow(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimation("Rainbow", pPixelContainerInput, pPixelContainerOutput)
+    , _rainbowIndex(0)
+  {
+  }
+
+  void begin()
+  {
+    _frame.init(10);
+  }
+
+  void handle()
+  {
+    if (!_frame.next())
+      return;
+
+    clearPixelsColor();
+
+    _rainbowIndex += 0.005;
+
+    if (_rainbowIndex > 1.0)
+      _rainbowIndex = 0.0;
+
+    // Copy foreground matrix pixels
+    for (int c = 0; c < NCOL; c++) {
+      for (int r = 0; r < NROW; r++) {
+
+        double hsl = ((double)((r * NCOL) + c) / (double)(NROW * NCOL)) * (120.0 / 360.0);
+        hsl += _rainbowIndex;
+        if (hsl > 1.0) hsl -= 1.0;
+
+        Pixel pf = _pPixelContainerInput->pixelsArray.getPixel(r, c);
+        pf.color = HslColor(hsl, 1.0, 0.5);
+
+        if (pf.display)
+          _pPixelContainerOutput->pixelsArray.setPixel(pf, r, c);
+
+        if (c == 0 && r == 0 && _pPixelContainerInput->pixelsEdge[0].display)
+          _pPixelContainerOutput->pixelsEdge[0] = Pixel(pf.color);
+
+        if (c == NCOL - 1 && r == 0 && _pPixelContainerInput->pixelsEdge[1].display)
+          _pPixelContainerOutput->pixelsEdge[1] = Pixel(pf.color);;
+
+        if (c == NCOL - 1 && r == NROW - 1 && _pPixelContainerInput->pixelsEdge[2].display)
+          _pPixelContainerOutput->pixelsEdge[2] = Pixel(pf.color);;
+
+        if (c == 0 && r == NROW - 1 && _pPixelContainerInput->pixelsEdge[3].display)
+          _pPixelContainerOutput->pixelsEdge[3] = Pixel(pf.color);;
+      }
+    }
+
+    _pPixelContainerOutput->hasChanged = true;
+  }
+};
+
 
 class MyLedStripAnimator : public MyLedStrip
 {
-private:
-  MyLedStripAnimatorMode _animMode;
-  MyLedStripAnimatorState _animState;
-  Frame _animFrame;
-  cl_Lst<Pixel> _animPixelsList;
+protected:
+  PixelsContainer _animatedPixels;
+  cl_Lst<LedStripAnimation *> _animationList;
+  int _animationIndex;
 
-  int _matrixModeColumns[NCOL];
-
-  PongBall _pongModeBall0, _pongModeBall1, _pongModeBall2;
-  int _pongModePlay1pos, _pongModePlay1posManual;
-
-  int _aplhabetModeIndex = 0;
-
-  double _rainbowModeIndex = 0.0;
-
-
-  void updateSimple()
+  void handleAnimation()
   {
-    if (_animState == AnimStateEnd)
-      return;
+    if (_animationIndex < 0) return;
+    if (_animationIndex > _animationList.size() - 1) return;
 
-    _animState = AnimStateExecute;
+    // check if the animated pixel buffer is displayed
+    // if not, do not update the animated pixel buffer
+    if (_animatedPixels.hasChanged) return;
 
-    //Serial.printf("updateSimple() = AnimStateExecute\n");
+    // update the animated pixel buffer
+    _animationList[_animationIndex]->handle();
 
-    for (int i = 0; i < NROW; i++)
-    {
-      for (int j = 0; j < NCOL; j++)
-      {
-        mySetPixel(matchingPixelsMatrix[i][j] - 1, _pixels.pixelsArray.getPixel(i, j));
-      }
-    }
-
-    for (int i = 0; i < NEDGE; i++)
-      mySetPixel(matchingPixelsEdge[i] - 1, _pixels.pixelsEdge[i]);
-
-    if (myShow())
-    {
-      _animState = AnimStateEnd;
-
-      //Serial.printf("updateSimple() = AnimStateEnd\n");
-    }
+    // if output pixels buffer is updated
+    // then simulate update of the input buffer
+    if (_animatedPixels.hasChanged)
+      _pixels.hasChanged = false;
   }
-
-  void updateBlinkRandom()
-  {
-    if (_animState == AnimStateEnd)
-      return;
-
-    if (_animState == AnimStateBegin)
-    { // Anim Start
-      //Serial.printf("updateBlinkRandom() = AnimStateBegin\n");
-
-      _animState = AnimStateExecute;
-      _animFrame.init(50);
-
-      //randomSeed(analogRead(PIN_ALS));
-
-      _animPixelsList.clear();
-
-      for (int i = 0; i < NROW; i++)
-      {
-        for (int j = 0; j < NCOL; j++)
-        {
-          if (_pixels.pixelsArray.getPixel(i, j) == BLACK)
-            continue;
-
-          Pixel p;
-          p.row = i;
-          p.col = j;
-          p.edge = -1;
-          p.color = _pixels.pixelsArray.getPixel(i, j);
-
-          _animPixelsList.push_back(p);
-        }
-      }
-
-      for (int i = 0; i < NEDGE; i++)
-      {
-        if (_pixels.pixelsEdge[i] == BLACK)
-          continue;
-
-        Pixel p;
-        p.row = -1;
-        p.col = -1;
-        p.edge = i;
-        p.color = _pixels.pixelsEdge[i];
-
-        _animPixelsList.push_back(p);
-      }
-
-      _pStrip->ClearTo(BLACK);
-    }
-
-    if (!_animFrame.next() || !_pStrip->CanShow())
-      return;
-
-    if (_animState == AnimStateExecute)
-    { // Anim Exec
-
-      if (_animPixelsList.size() > 0)
-      {
-        int idx = random(_animPixelsList.size());
-        Pixel p = _animPixelsList[idx];
-
-        if (p.edge == -1)
-          mySetPixel(matchingPixelsMatrix[p.row][p.col] - 1, p.color);
-        else
-          mySetPixel(matchingPixelsEdge[p.edge] - 1, p.color);
-
-        _animPixelsList.remove(idx);
-
-        myShow();
-      }
-
-      if (_animPixelsList.size() == 0)
-        _animState = AnimStateEnd;
-    }
-
-    if (_animState == AnimStateEnd)
-    { // Anim End
-      //Serial.printf("updateBlinkRandom() = AnimStateEnd\n");
-    }
-  }
-
-  void updateFire()
-  {
-    if (_animState == AnimStateEnd)
-      return;
-
-    if (_animState == AnimStateBegin)
-    { // Anim Start
-      //Serial.printf("updateFire() = AnimStateBegin\n");
-
-      _animFrame.init(8);
-      _animState = AnimStateExecute;
-
-      //randomSeed(analogRead(PIN_ALS));
-
-      _animPixelsList.clear();
-
-      for (int i = 0; i < NROW; i++)
-      {
-        for (int j = 0; j < NCOL; j++)
-        {
-          if (_pixels.pixelsArray.getPixel(i, j) == BLACK)
-            continue;
-
-          Pixel p;
-          p.row = i;
-          p.col = j;
-          p.edge = -1;
-          p.color = _pixels.pixelsArray.getPixel(i, j);
-
-          _animPixelsList.push_back(p);
-        }
-      }
-
-      //_pStrip->ClearTo(BLACK);
-    }
-
-    if (!_animFrame.next() || !_pStrip->CanShow())
-      return;
-
-    if (_animState == AnimStateExecute)
-    { // Anim Exec
-      //Serial.printf("updateFire() = AnimStateExecute Start\n");
-
-      for (int i = 0; i < PIXELS; i++)
-      {
-        RgbColor c = RgbColor(58, 58, 6);
-        c.Darken(random(15));
-        c.R += random(15);
-
-        mySetPixel(i, c);
-      }
-
-      for (int i = 0; i < _animPixelsList.size(); i++)
-      {
-        Pixel p = _animPixelsList[i];
-        mySetPixel(matchingPixelsMatrix[p.row][p.col] - 1, p.color);
-      }
-
-      for (int i = 0; i < NEDGE; i++)
-        mySetPixel(matchingPixelsEdge[i] - 1, _pixels.pixelsEdge[i]);
-
-      myShow();
-
-      //Serial.printf("updateFire() = AnimStateExecute End\n");
-    }
-  }
-
-#define MATRIXLEN 9
-  void updateMatrix()
-  {
-    if (_animState == AnimStateEnd)
-      return;
-
-    if (_animState == AnimStateBegin)
-    { // Anim Start
-      //Serial.printf("updateMatrix() = AnimStateBegin\n");
-
-      _animFrame.init(8);
-      _animState = AnimStateExecute;
-
-      //randomSeed(analogRead(PIN_ALS));
-
-      _animPixelsList.clear();
-
-      for (int i = 0; i < NROW; i++)
-      {
-        for (int j = 0; j < NCOL; j++)
-        {
-          if (_pixels.pixelsArray.getPixel(i, j) == BLACK)
-            continue;
-
-          Pixel p;
-          p.row = i;
-          p.col = j;
-          p.edge = -1;
-          p.color = _pixels.pixelsArray.getPixel(i, j);
-
-          _animPixelsList.push_back(p);
-        }
-      }
-
-      //_pStrip->ClearTo(BLACK);
-    }
-
-    if (!_animFrame.next() || !_pStrip->CanShow())
-      return;
-
-    if (_animState == AnimStateExecute)
-    { // Anim Exec
-      //Serial.printf("updateMatrix() = AnimStateExecute Start\n");
-
-      for (int i = 0; i < NCOL; i++)
-      {
-        if (_matrixModeColumns[i] == -1)
-        {
-          if (random(40) == 0)
-            _matrixModeColumns[i] = 0;
-
-          continue;
-        }
-        
-        if (_matrixModeColumns[i] == NROW + MATRIXLEN)
-        {
-          _matrixModeColumns[i] = -1;
-          continue;
-        }
-
-        _matrixModeColumns[i]++;
-      }
-
-      /*
-      for (int i = 0; i < NCOL; i++)
-        Serial.printf("%02d, ", _matrixModeColumns[i]);
-      Serial.printf("\n");
-      */
-
-      _pStrip->ClearTo(BLACK);
-
-      for (int i = 0; i < NCOL; i++)
-      {
-        RgbColor c = RgbColor(0, 255, 0);
-
-        int line = _matrixModeColumns[i];
-        if (line == -1) continue;
-
-        for (int l = line; line - l < MATRIXLEN; l--)
-        {
-          if (l >= 0 && l < NROW)
-            mySetPixel(matchingPixelsMatrix[l][i] - 1, c);
-
-          c.Darken(30);
-        }
-      }
-
-      for (int i = 0; i < _animPixelsList.size(); i++)
-      {
-        Pixel p = _animPixelsList[i];
-        mySetPixel(matchingPixelsMatrix[p.row][p.col] - 1, p.color);
-      }
-
-      for (int i = 0; i < NEDGE; i++)
-        _pStrip->SetPixelColor(matchingPixelsEdge[i] - 1, _pixels.pixelsEdge[i]);
-
-      myShow();
-
-      //Serial.printf("updateMatrix() = AnimStateExecute End\n");
-    }
-  }
-
-  void updatePong(boolean automatic)
-  {
-    if (_animState == AnimStateEnd)
-      return;
-
-    if (_animState == AnimStateBegin)
-    { // Anim Start
-      //Serial.printf("updatePong() = AnimStateBegin\n");
-
-      _animFrame.init(6);
-      _animState = AnimStateExecute;
-
-      _pongModePlay1posManual = (NCOL / 2) - 1;
-
-      //randomSeed(analogRead(PIN_ALS));
-
-      _animPixelsList.clear();
-
-      for (int i = 0; i < NROW - 2; i++) // Do not display the last two line
-      {
-        for (int j = 0; j < NCOL; j++)
-        {
-          if (_pixels.pixelsArray.getPixel(i, j) == BLACK)
-            continue;
-
-          Pixel p;
-          p.row = i;
-          p.col = j;
-          p.edge = -1;
-          p.color = _pixels.pixelsArray.getPixel(i, j);
-
-          _animPixelsList.push_back(p);
-        }
-      }
-
-      //_pStrip->ClearTo(BLACK);
-    }
-
-    if (!_animFrame.next() || !_pStrip->CanShow())
-      return;
-
-    if (_animState == AnimStateExecute)
-    { // Anim Exec
-      //Serial.printf("updatePong() = AnimStateExecute Start\n");
-
-      _pStrip->ClearTo(BLACK);
-
-      RgbColor c = RgbColor(255, 0, 0);
-
-      // Update ball position
-      _pongModeBall0.row += (_pongModeBall0.drow * (random(30) ? 1 : 0));
-      _pongModeBall0.col += (_pongModeBall0.dcol * (random(30) ? 1 : 0));
-
-      // Update player position
-      if (automatic)
-        _pongModePlay1pos = _pongModeBall0.col - 1;
-      else 
-        _pongModePlay1pos = _pongModePlay1posManual;
-
-      // Check walls
-      if (_pongModeBall0.row == 0 && _pongModeBall0.drow < 0) _pongModeBall0.drow = 1;
-      if (_pongModeBall0.row == (NROW - 1) && _pongModeBall0.drow > 0) _pongModeBall0.drow = -1;
-      if (_pongModeBall0.col == 0 && _pongModeBall0.dcol < 0) _pongModeBall0.dcol = 1;
-      if (_pongModeBall0.col == (NCOL - 1) && _pongModeBall0.dcol > 0) _pongModeBall0.dcol = -1;
-
-      // Check player
-      if (_pongModeBall0.row == (NROW - 2) && 
-        (_pongModeBall0.col == _pongModePlay1pos + 0 || _pongModeBall0.col == _pongModePlay1pos + 1 || _pongModeBall0.col == _pongModePlay1pos + 2))
-        _pongModeBall0.drow = -1;
-      
-      // Check time
-      for (int i = 0; i < _animPixelsList.size(); i++)
-      {
-        Pixel p = _animPixelsList[i];
-        if (p.row == _pongModeBall0.row && p.col == _pongModeBall0.col)
-        {
-          // time obstacle collision
-          //_pongModeBall0.drow = (_pongModeBall0.drow > 0) ? -1 : 1;
-          //_pongModeBall0.dcol = (_pongModeBall0.dcol > 0) ? -1 : 1;
-
-          _animPixelsList.remove(i);
-        }
-      }
-
-      // Display ball
-      _pStrip->SetPixelColor(matchingPixelsMatrix[_pongModeBall0.row][_pongModeBall0.col] - 1, c);
-      c.Darken(150);
-      _pStrip->SetPixelColor(matchingPixelsMatrix[_pongModeBall1.row][_pongModeBall1.col] - 1, c);
-      c.Darken(80);
-      _pStrip->SetPixelColor(matchingPixelsMatrix[_pongModeBall2.row][_pongModeBall2.col] - 1, c);
-
-      _pongModeBall2 = _pongModeBall1;
-      _pongModeBall1 = _pongModeBall0;
-
-
-      // Display player
-      if (_pongModePlay1pos < 0) _pongModePlay1pos = 0;
-      if (_pongModePlay1pos + 3 > NCOL - 1) _pongModePlay1pos = NCOL - 3;
-      for (int i = _pongModePlay1pos; i < _pongModePlay1pos + 3; i++)
-        _pStrip->SetPixelColor(matchingPixelsMatrix[NROW - 1][i] - 1, RgbColor(0, 255, 0));
-
-      // Display Text
-      for (int i = 0; i < _animPixelsList.size(); i++)
-      {
-        Pixel p = _animPixelsList[i];
-        _pStrip->SetPixelColor(matchingPixelsMatrix[p.row][p.col] - 1, p.color);
-      }
-
-      for (int i = 0; i < NEDGE; i++)
-        _pStrip->SetPixelColor(matchingPixelsEdge[i] - 1, _pixels.pixelsEdge[i]);
-
-      myShow();
-
-      //Serial.printf("updatePong() = AnimStateExecute End\n");
-    }
-  }
-
-  void updateSmiley()
-  {
-    if (_animState == AnimStateEnd)
-      return;
-
-    if (_animState == AnimStateBegin)
-    { // Anim Start
-      //Serial.printf("updateSmiley() = AnimStateBegin\n");
-
-      _animFrame.init(0.25);
-      _animState = AnimStateExecute;
-
-      //randomSeed(analogRead(PIN_ALS));
-
-      _animPixelsList.clear();
-
-      for (int i = 0; i < NROW; i++)
-      {
-        for (int j = 0; j < NCOL; j++)
-        {
-          if (_pixels.pixelsArray.getPixel(i, j) == BLACK)
-            continue;
-
-          Pixel p;
-          p.row = i;
-          p.col = j;
-          p.edge = -1;
-          p.color = _pixels.pixelsArray.getPixel(i, j);
-
-          _animPixelsList.push_back(p);
-        }
-      }
-
-      //_pStrip->ClearTo(BLACK);
-    }
-
-    if (!_animFrame.next() || !_pStrip->CanShow())
-      return;
-
-    if (_animState == AnimStateExecute)
-    { // Anim Exec
-      //Serial.printf("updateSmiley() = AnimStateExecute Start\n");
-
-      for (int i = 0; i < NROW; i++)
-      {
-        for (int j = 0; j < NCOL; j++)
-        {
-          _pStrip->SetPixelColor(matchingPixelsMatrix[i][j] - 1, redface[i][j]);
-        }
-      }
-
-      /* // Do not display time
-      for (int i = 0; i < _animPixelsList.size(); i++)
-      {
-        Pixel p = _animPixelsList[i];
-        mySetPixel(matchingPixelsMatrix[p.row][p.col] - 1, p.color);
-      }
-      */
-
-      for (int i = 0; i < NEDGE; i++)
-        mySetPixel(matchingPixelsEdge[i] - 1, RED); // _pixels.pixelsEdge[i]);
-
-      myShow();
-
-      //Serial.printf("updateSmiley() = AnimStateExecute End\n");
-    }
-  }
-
-  void updateAlphabet()
-  {
-    if (_animState == AnimStateEnd)
-      return;
-
-    if (_animState == AnimStateBegin)
-    { // Anim Start
-      //Serial.printf("updateAlphabet() = AnimStateBegin\n");
-
-      _animFrame.init(0.25);
-      _animState = AnimStateExecute;
-    }
-
-    if (!_animFrame.next() || !_pStrip->CanShow())
-      return;
-
-    if (_animState == AnimStateExecute)
-    { // Anim Exec
-      _pStrip->ClearTo(BLACK);
-
-      for (int i = 0; i < NROW; i++)
-      {
-        for (int j = 0; j < NCOL; j++)
-        {
-          RgbColor p = _pixels.pixelsArray.getPixel(i, j);
-
-          if (p == BLACK) continue;
-
-          _pStrip->SetPixelColor(matchingPixelsMatrix[i][j] - 1, p);
-        }
-      }
-
-      for (int i = 0; i < NEDGE; i++)
-        _pStrip->SetPixelColor(matchingPixelsEdge[i] - 1, _pixels.pixelsEdge[i]);
-
-      cl_Lst<TextTimePixel> l = _textime.getPixelsFromLetter(_aplhabetModeIndex + 'a');
-      for (int i = 0; i < l.size(); i++)
-      {
-        if (_pixels.pixelsArray.getPixel(l[i].row, l[i].col) != BLACK)
-          continue ;
-
-        _pStrip->SetPixelColor(matchingPixelsMatrix[l[i].row][l[i].col] - 1, _color);
-        break ;
-      }
-
-      _aplhabetModeIndex++;
-      if (_aplhabetModeIndex == 26)
-        _aplhabetModeIndex = 0;
-
-      myShow();
-
-      //Serial.printf("updateAlphabet() = AnimStateExecute End\n");
-    }
-  }
-
-  void updateRainbow(bool withbackground)
-  {
-    if (_animState == AnimStateEnd)
-      return;
-
-    if (_animState == AnimStateBegin)
-    { // Anim Start
-      //Serial.printf("updateRainbow() = AnimStateBegin\n");
-
-      _animFrame.init(8);
-      _animState = AnimStateExecute;
-
-      //randomSeed(analogRead(PIN_ALS));
-
-      _animPixelsList.clear();
-
-      for (int i = 0; i < NROW; i++)
-      {
-        for (int j = 0; j < NCOL; j++)
-        {
-          if (_pixels.pixelsArray.getPixel(i, j) == BLACK)
-            continue;
-
-          Pixel p;
-          p.row = i;
-          p.col = j;
-          p.edge = -1;
-          p.color = _pixels.pixelsArray.getPixel(i, j);
-
-          _animPixelsList.push_back(p);
-        }
-      }
-
-      //_pStrip->ClearTo(BLACK);
-    }
-
-    if (!_animFrame.next() || !_pStrip->CanShow())
-      return;
-
-    if (_animState == AnimStateExecute)
-    { // Anim Exec
-      //Serial.printf("updateRainbow() = AnimStateExecute Start\n");
-
-      _rainbowModeIndex += 0.005;
-
-      if (_rainbowModeIndex > 1.0)
-        _rainbowModeIndex = 0.0;
-
-      for (int i = 0; i < PIXELS; i++)
-      {
-        double p = ((double)i / (double)PIXELS) * (120.0 / 360.0);
-
-        p = p + _rainbowModeIndex;
-
-        if (p > 1.0) p = p - 1.0;
-
-        HslColor c = HslColor(p, 1.0, 0.5);
-
-        mySetPixel(i, c);
-      }
-
-      
-      for (int i = 0; i < _animPixelsList.size(); i++)
-      {
-        Pixel p = _animPixelsList[i];
-        HslColor c = _pStrip->GetPixelColor(matchingPixelsMatrix[p.row][p.col] - 1);
-
-        c.H += 0.5;
-        if (c.H > 1.0) c.H = c.H - 1.0;
-
-        _animPixelsList[i].color = c;
-      }
-
-      if (!withbackground)
-        _pStrip->ClearTo(BLACK);
-
-      for (int i = 0; i < _animPixelsList.size(); i++)
-      {
-        Pixel p = _animPixelsList[i];
-        mySetPixel(matchingPixelsMatrix[p.row][p.col] - 1, p.color);
-      }
-      
-
-      for (int i = 0; i < NEDGE; i++)
-      {
-        if (_pixels.pixelsEdge[i] == BLACK)
-          mySetPixel(matchingPixelsEdge[i] - 1, _pixels.pixelsEdge[i]);
-        else
-          mySetPixel(matchingPixelsEdge[i] - 1, _pStrip->GetPixelColor(matchingPixelsMatrix[0][0] - 1));
-      }
-
-      myShow();
-
-      //Serial.printf("updateRainbow() = AnimStateExecute End\n");
-    }
-  }
-
-
 
 public:
-  MyLedStripAnimator() :
-    MyLedStrip()
+  MyLedStripAnimator()
+    : MyLedStrip()
+    , _animationIndex(0)
   {
-    setAnimMode(AnimModeNormal);
+    _animationList.push_back(new LedStripAnimationNormal(&_pixels, &_animatedPixels));
+    _animationList.push_back(new LedStripAnimationBlink(&_pixels, &_animatedPixels));
+    _animationList.push_back(new LedStripAnimationFire(&_pixels, &_animatedPixels));
+    _animationList.push_back(new LedStripAnimationMatrix(&_pixels, &_animatedPixels));
+    _animationList.push_back(new LedStripAnimationRainbow(&_pixels, &_animatedPixels));
   }
 
-  void setAnimMode(MyLedStripAnimatorMode m)
+  void setAnimation(int mode)
   {
-    _animMode = m;
-    _animState = AnimStateBegin;
-    _pixels.hasChanged = true;
+    if (mode < 0) return;
+    if (mode > _animationList.size() - 1) return;
 
-    // Specific init for "matrix" effect
-    for (int i = 0; i < NCOL; i++)
-      _matrixModeColumns[i] = -1;
-
-    // Specific init for "pong" effect
-    _pongModeBall0.row = random(3, NROW - 2);
-    _pongModeBall0.col = random(3, NCOL - 2);
-    _pongModeBall0.drow = random(2) ? -1 : 1;
-    _pongModeBall0.dcol = random(2) ? -1 : 1;
-    _pongModeBall1 = _pongModeBall0;
-    _pongModeBall2 = _pongModeBall0;
-    _pongModePlay1pos = (NCOL / 2) - 1;
-    _pongModePlay1posManual = (NCOL / 2) - 1;
-
-    _aplhabetModeIndex = 0;
-
-    Serial.printf("setAnimMode(%d)\n", m);
+    _animationIndex = mode;
+    _animationList[_animationIndex]->begin();
   }
 
-  void setPongModePlay1posManual(int d)
+  cl_Lst<LedStripAnimation *> *getAnimationsList()
   {
-    int p = _pongModePlay1posManual + d;
-    if (p < 0) p = 0;
-    if (p > NROW - 2) p = NROW - 2;
-
-    _pongModePlay1posManual = p;
+    return &_animationList;
   }
 
-  // Update internal buffer and display pixels
-  virtual void update()
+  void handle()
   {
-    if (_pixels.hasChanged)
-    {
-      _animState = AnimStateBegin;
-      _pixels.hasChanged = false;
-    }
-
-    switch (_animMode)
-    {
-    case AnimModeNormal:
-      updateSimple();
-      break;
-    case AnimModeBlinkRandom:
-      updateBlinkRandom();
-      break;
-    case AnimModeFire:
-      updateFire();
-      break;
-    case AnimModeMatrix:
-      updateMatrix();
-      break;
-    case AnimModePongAuto:
-      updatePong(true);
-      break;
-    case AnimModePongManual:
-      updatePong(false);
-      break;
-    case AnimModeAlphabet:
-      updateAlphabet();
-      break;
-    case AnimModeRainbowWithBg:
-      updateRainbow(true);
-      break;
-    case AnimModeRainbowWithoutBg:
-      updateRainbow(false);
-      break;
-    case AnimModeSmiley:
-      updateSmiley();
-      break;
-    default:
-      updateSimple();
-    }
+    handleAutomaticBrightness();
+    handleMode();
+    handleAnimation();
+    refresh(&_animatedPixels);
   }
 };
 

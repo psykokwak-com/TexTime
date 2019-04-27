@@ -75,12 +75,44 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Booting");
 
-  // Start led strip
-  QTLed.begin(); // Must be called after Serial.begin()
-
   // Config load 
   EEPROM.begin(512); // define an EEPROM space of 512Bytes to store data
   CFG_saved = ReadConfig();
+  if (!CFG_saved)
+  {
+    // DEFAULT CONFIG
+    Serial.println("Set Default config");
+
+    _config.ssid = "";       // SSID of access point
+    _config.password = "";   // password of access point
+    _config.dhcp = true;
+    _config.IP[0] = 192; _config.IP[1] = 168; _config.IP[2] = 1; _config.IP[3] = 100;
+    _config.Netmask[0] = 255; _config.Netmask[1] = 255; _config.Netmask[2] = 255; _config.Netmask[3] = 0;
+    _config.Gateway[0] = 192; _config.Gateway[1] = 168; _config.Gateway[2] = 1; _config.Gateway[3] = 1;
+    _config.DNS[0] = 192; _config.DNS[1] = 168; _config.DNS[2] = 1; _config.DNS[3] = 1;
+    _config.DeviceName = "TexTime";
+
+    _config.ntpServerName = "0.ch.pool.ntp.org"; // to be adjusted to PT ntp.ist.utl.pt
+    _config.Update_Time_Via_NTP_Every = 86400;
+    _config.timeZone = 10;
+    _config.isDayLightSaving = true;
+
+    _config.brightnessAuto = true;
+    _config.brightness = 128; // [0:255]
+    _config.brightnessAutoMinDay = 30; // [0:255]
+    _config.brightnessAutoMinNight = 0; // [0:255]
+    _config.color[0] = 255; // R
+    _config.color[1] = 255; // G
+    _config.color[2] = 255; // B
+    _config.color[3] = 255; // W
+    _config.mode = 1;
+    _config.animation = 0;
+    _config.ledConfig = 0;
+    _config.luxSensitivity = 40;
+  }
+
+  // Start led strip
+  QTLed.begin(); // Must be called after Serial.begin() and EEPROM configuration
 
   // Start RTC
   RTC.Begin();
@@ -89,12 +121,12 @@ void setup() {
   handleTimeFromRTC();
   updateTime();
 
-  //  Connect to WiFi acess point or start as Acess point
-  if (CFG_saved)  //if no configuration yet saved, load defaults
-  {
-    // Connect the ESP8266 to local WIFI network in Station mode
-    //printConfig();
+  //  Connect to WiFi access point or start as Access point
+  // Connect the ESP8266 to local WIFI network in Station mode
+  //printConfig();
 
+  if (CFG_saved)
+  {
     WiFi.mode(WIFI_STA);
 
     char* devicename = &_config.DeviceName[0];
@@ -112,7 +144,7 @@ void setup() {
     {
       Serial.print("Connection Failed!\nError code : ");
       Serial.println(WIFI_connected);
-      Serial.println("activating to AP mode...");
+      Serial.println("Activating to AP mode...");
     }
     else
     {
@@ -137,37 +169,6 @@ void setup() {
 
     String defaultSSID = "TexTime-" + String(ESP.getChipId(), HEX);
 
-    if (!CFG_saved)
-    {
-      // DEFAULT CONFIG
-      Serial.println("Set Default config");
-
-      _config.ssid = defaultSSID;       // SSID of access point
-      _config.password = "";   // password of access point
-      _config.dhcp = true;
-      _config.IP[0] = 192; _config.IP[1] = 168; _config.IP[2] = 1; _config.IP[3] = 100;
-      _config.Netmask[0] = 255; _config.Netmask[1] = 255; _config.Netmask[2] = 255; _config.Netmask[3] = 0;
-      _config.Gateway[0] = 192; _config.Gateway[1] = 168; _config.Gateway[2] = 1; _config.Gateway[3] = 1;
-      _config.DNS[0] = 192; _config.DNS[1] = 168; _config.DNS[2] = 1; _config.DNS[3] = 1;
-      _config.DeviceName = defaultSSID;
-
-      _config.ntpServerName = "0.ch.pool.ntp.org"; // to be adjusted to PT ntp.ist.utl.pt
-      _config.Update_Time_Via_NTP_Every = 86400;
-      _config.timeZone = 1;
-      _config.isDayLightSaving = true;
-
-      _config.brightnessAuto = true;
-      _config.brightness = 128; // [0:255]
-      _config.brightnessAutoMinDay = 10; // [0:255]
-      _config.brightnessAutoMinNight = 0; // [0:255]
-      _config.color[0] = 255; // R
-      _config.color[1] = 255; // G
-      _config.color[2] = 255; // B
-      _config.color[3] = 255; // W
-      _config.mode = ModeNormal;
-      _config.animation = AnimModeNormal;
-    }
-
     // Configure and start AP mode
     WiFi.mode(WIFI_AP);
     WiFi.softAPConfig(_apIP, _apIP, _apNetMsk);
@@ -176,7 +177,7 @@ void setup() {
     // Turn off wifi after 10 minutes
     os_timer_setfn(&_disableWifiTimer, disableWifiCallback, NULL);
     os_timer_arm(&_disableWifiTimer, 1000 * 60 * 10, false);
- 
+
     // Start DNS catcher
     //_dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     //_dnsServer.start(53, _config.DeviceName, _apIP);
@@ -233,11 +234,14 @@ void setup() {
     SSDP.schema(_server.client());
   });
 
-  _server.on("/admin/values", send_network_configuration_values_html);
+  _server.on("/admin/networkvalues", send_network_configuration_values_html);
   _server.on("/admin/connectionstate", send_connection_state_values_html);
   _server.on("/admin/infovalues", send_information_values_html);
   _server.on("/admin/ntpvalues", send_NTP_configuration_values_html);
   _server.on("/admin/generalvalues", send_general_configuration_values_html);
+  _server.on("/admin/modesvalues", send_general_modes_values_html);
+  _server.on("/admin/animationsvalues", send_general_animations_values_html);
+  _server.on("/admin/ledconfigvalues", send_general_ledconfig_values_html);
 
   _server.on("/admin/led", send_general_led);
 
@@ -301,9 +305,9 @@ void setup() {
   QTLed.setAutomaticBrightness(_config.brightnessAuto);
   if (!_config.brightnessAuto) QTLed.setBrightness(_config.brightness);
   QTLed.setColor(_config.color[0], _config.color[1], _config.color[2]);
-  QTLed.setColorRandom((MyLedStripColorRandom)_config.colorRandom);
-  QTLed.setMode((MyLedStripMode)_config.mode);
-  QTLed.setAnimMode((MyLedStripAnimatorMode)_config.animation);
+  QTLed.setColorRandom((RandomColorMode)_config.colorRandom);
+  QTLed.setMode(_config.mode);
+  QTLed.setAnimation(_config.animation);
 
   Serial.println("Ready");
 

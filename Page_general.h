@@ -10,12 +10,24 @@ const char PAGE_general[] PROGMEM = R"=====(
 <form action="" method="post">
 <table border="0"  cellspacing="0" cellpadding="3" >
 <tr><td align="right">Brightness auto :</td><td><input type="checkbox" id="brightnessauto" name="brightnessauto" value="" onclick="updatebrightnessauto()"></td></tr>
+<tr><td align="right">Brightness Sensibility :</td><td>
+<select id="brightnesssensibility" name="brightnesssensibility" onchange="updatebrightnesssensibility()" >
+  <option value="10">Very high</option>
+  <option value="20">High</option>
+  <option value="30">Normal</option>
+  <option value="40">Low</option>
+  <option value="50">Very low</option>
+</select></td></tr>
 <tr><td align="right">Brightness manual :</td><td><input type="range" id="brightness" name="brightness" max="255" min="0" step="1" onchange="updatebrightness()"><span id="brightnesst" name="brightnesst">--</span></td></tr>
 <tr><td align="right">Min day brightness :</td><td><input type="range" id="brightnessday" name="brightnessday" max="255" min="0" step="1" onchange="updatebrightnessday()"><span id="brightnessdayt" name="brightnessdayt">--</span></td></tr>
 <tr><td align="right">Min night brightness :</td><td><input type="range" id="brightnessnight" name="brightnessnight" max="255" min="0" step="1" onchange="updatebrightnessnight()"><span id="brightnessnightt" name="brightnessnightt">--</span></td></tr>
+<tr><td align="right">Clock type :</td><td>
+<select id="ledconfig" name="ledconfig" >
+</select>
+</td></tr>
 <tr><td align="right">Color :</td><td><input class="jscolor" onchange="updatecolor(this.jscolor)" value="" id="color" name="color" ></td></tr>
-<tr><td align="right">Color Random :</td><td>
-<select  id="colorrandom" name="colorrandom" onchange="updatecolorrandom()" >
+<tr><td align="right">Color random :</td><td>
+<select id="colorrandom" name="colorrandom" onchange="updatecolorrandom()" >
   <option value="0">No Random</option>
   <option value="1">Random all</option>
   <option value="2">Random letter</option>
@@ -23,34 +35,13 @@ const char PAGE_general[] PROGMEM = R"=====(
 </select>
 </td></tr>
 <tr><td align="right">Mode :</td><td>
-<select  id="mode" name="mode" onchange="updatemode()" >
-  <option value="1">Nothing</option>
-  <option value="2">Time</option>
-  <option value="3">Second</option>
-  <option value="4">Day</option>
-  <option value="5">Temperature</option>
+<select id="mode" name="mode" onchange="updatemode()" >
 </select>
 </td></tr>
 <tr><td align="right">Animation :</td><td>
-<select  id="animation" name="animation" onchange="updateanimation()" >
-  <option value="0">Normal</option>
-  <option value="1">Blink</option>
-  <option value="2">Fire</option>
-  <option value="3">Matrix</option>
-  <option value="4">Pong Auto</option>
-  <option value="5">Pong Manual</option>
-  <option value="6">Alphabet</option>
-  <option value="7">Rainbow w/ bg</option>
-  <option value="8">Rainbow w/o bg</option>
-  <option value="9">Redface</option>
+<select id="animation" name="animation" onchange="updateanimation()" >
 </select>
 </td></tr>
-
-<tr><td colspan="2" align="center"><a href="javascript:LedMode(100); void 0" class="btn btn--m btn--blue">Test Leds</a></td></tr>
-
-<tr><td colspan="2" align="center"><hr></td></tr>
-
-<tr><td colspan="2" align="center"><a href="javascript:LedPong(-1); void 0" class="btn btn--m btn--blue" id="ledpongA" style="visibility:hidden">&lt;&lt;&lt;</a> <a href="javascript:LedPong(1); void 0" class="btn btn--m btn--blue" id="ledpongB" style="visibility:hidden">&gt;&gt;&gt;</a></td></tr>
 
 <tr><td colspan="2" align="center"><hr></td></tr>
 
@@ -58,23 +49,6 @@ const char PAGE_general[] PROGMEM = R"=====(
 </table>
 </form>
 <script>
-
-function displayPlayPong() {
-  if (document.getElementById("animation").value == 5)
-  {
-    document.getElementById("ledpongA").style.visibility = "visible";
-    document.getElementById("ledpongB").style.visibility = "visible";
-  }
-  else
-  {
-    document.getElementById("ledpongA").style.visibility = "hidden";
-    document.getElementById("ledpongB").style.visibility = "hidden";
-  }
-}
-
-function LedPong(p) {
-  setValues("/admin/led?pong=" + p);
-}
 
 function updatebrightness() {
   document.getElementById("brightnesst").innerHTML = document.getElementById("brightness").value;
@@ -105,18 +79,21 @@ function updatemode() {
 
 function updateanimation() {
   setValues("/admin/led?animation=" + document.getElementById("animation").value);
-
-  displayPlayPong();
 }
 
 function validatebrightnessauto() {
   document.getElementById("brightness").disabled = document.getElementById('brightnessauto').checked;
   document.getElementById("brightnessday").disabled = !document.getElementById('brightnessauto').checked;
   document.getElementById("brightnessnight").disabled = !document.getElementById('brightnessauto').checked;
+  document.getElementById("brightnesssensibility").disabled = !document.getElementById('brightnessauto').checked;
 
   document.getElementById("brightnesst").innerHTML = document.getElementById("brightness").value;
   document.getElementById("brightnessdayt").innerHTML = document.getElementById("brightnessday").value;
   document.getElementById("brightnessnightt").innerHTML = document.getElementById("brightnessnight").value;
+}
+
+function updatebrightnesssensibility() {
+  setValues("/admin/led?brightnesssensibility=" + document.getElementById("brightnesssensibility").value);
 }
 
 function updatebrightnessauto() {
@@ -136,8 +113,15 @@ window.onload = function ()
 	{
 		load("microajax.js","js", function() 
 		{
-				setValues("/admin/generalvalues");
-        setTimeout(validatebrightnessauto,1000);
+        setValues("/admin/ledconfigvalues", function() {
+          setValues("/admin/modesvalues", function() {
+            setValues("/admin/animationsvalues", function() {
+              setValues("/admin/generalvalues", function() {
+                validatebrightnessauto();
+              });
+            });
+          });
+        });
 		});
 	});
 }
@@ -171,19 +155,23 @@ void send_general_html()
       if (_server.argName(i) == "mode") _config.mode = _server.arg(i).toInt();
       if (_server.argName(i) == "animation") _config.animation = _server.arg(i).toInt();
       if (_server.argName(i) == "colorrandom") _config.colorRandom = _server.arg(i).toInt();
+      if (_server.argName(i) == "ledconfig") _config.ledConfig = _server.arg(i).toInt();
+      if (_server.argName(i) == "brightnesssensibility") _config.luxSensitivity = _server.arg(i).toInt();
     }
 
 		WriteConfig();
+
+    QTLed.begin();
 
     QTLed.setAutomaticBrightness(_config.brightnessAuto);
     if (!_config.brightnessAuto)
       QTLed.setBrightness(_config.brightness);
 
     QTLed.setColor(_config.color[0], _config.color[1], _config.color[2]);
-    QTLed.setColorRandom((MyLedStripColorRandom)_config.colorRandom);
+    QTLed.setColorRandom((RandomColorMode)_config.colorRandom);
 
-    QTLed.setMode((MyLedStripMode)_config.mode);
-    QTLed.setAnimMode((MyLedStripAnimatorMode)_config.animation);
+    QTLed.setMode(_config.mode);
+    QTLed.setAnimation(_config.animation);
 
     //ESP.restart();
 	}
@@ -194,7 +182,7 @@ void send_general_html()
 
 void send_general_configuration_values_html()
 {
-	String values ="";
+	String values = "";
   values += "brightnessauto|" + (String)(_config.brightnessAuto ? "checked" : "") + "|chk\n";
   values += "brightness|" + (String)_config.brightness + "|input\n";
   values += "brightnessday|" + (String)_config.brightnessAutoMinDay + "|input\n";
@@ -203,9 +191,44 @@ void send_general_configuration_values_html()
   values += "mode|" + (String)_config.mode + "|input\n";
   values += "animation|" + (String)_config.animation + "|input\n";
   values += "colorrandom|" + (String)_config.colorRandom + "|input\n";
+  values += "ledconfig|" + (String)_config.ledConfig + "|input\n";
+  values += "brightnesssensibility|" + (String)_config.luxSensitivity + "|input\n";
 
 	_server.send(200, "text/plain", values);
 	//Serial.println(__FUNCTION__); 
+}
+
+void send_general_ledconfig_values_html()
+{
+  cl_Lst<LedConfiguration *> *pl = QTLed.getLedConfigurationList();
+
+  String values = "";
+  for (int i = 0; i < pl->size(); i++)
+    values += "ledconfig|" + (*pl)[i]->getName() + "|select\n";
+
+  _server.send(200, "text/plain", values);
+}
+
+void send_general_modes_values_html()
+{
+  cl_Lst<LedStripMode *> *pl = QTLed.getModesList();
+
+  String values = "";
+  for (int i = 0; i < pl->size(); i++)
+    values += "mode|" + (*pl)[i]->getName() + "|select\n";
+
+  _server.send(200, "text/plain", values);
+}
+
+void send_general_animations_values_html()
+{
+  cl_Lst<LedStripAnimation *> *pl = QTLed.getAnimationsList();
+
+  String values = "";
+  for (int i = 0; i < pl->size(); i++)
+    values += "animation|" + (*pl)[i]->getName() + "|select\n";
+
+  _server.send(200, "text/plain", values);
 }
 
 void send_general_led()
@@ -234,7 +257,7 @@ void send_general_led()
 
       if (_server.argName(i) == "mode")
       {
-        QTLed.setMode((MyLedStripMode)_server.arg(i).toInt());
+        QTLed.setMode(_server.arg(i).toInt());
       }
 
       if (_server.argName(i) == "color")
@@ -249,17 +272,16 @@ void send_general_led()
 
       if (_server.argName(i) == "animation")
       {
-        QTLed.setAnimMode((MyLedStripAnimatorMode)_server.arg(i).toInt());
+        QTLed.setAnimation(_server.arg(i).toInt());
       }
 
       if (_server.argName(i) == "colorrandom")
       {
-        QTLed.setColorRandom((MyLedStripColorRandom)_server.arg(i).toInt());
+        QTLed.setColorRandom((RandomColorMode)_server.arg(i).toInt());
       }
-
-      if (_server.argName(i) == "pong")
+      if (_server.argName(i) == "brightnesssensibility")
       {
-        QTLed.setPongModePlay1posManual(_server.arg(i).toInt());
+        _config.luxSensitivity = _server.arg(i).toInt();
       }
     }
   }

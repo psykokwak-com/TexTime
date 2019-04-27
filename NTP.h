@@ -79,7 +79,7 @@ void handleNTPRequest()
 
   if (unixTime > 0)
   {
-    Serial.println("NTP Sync Dt : " + String(unixTime - _timestamp) + "s");
+    Serial.println("NTP Sync Dt : " + String((int32_t)(unixTime - _timestamp)) + "s");
     _timestamp = unixTime; // store universally available time stamp
   }
 
@@ -233,9 +233,11 @@ void handleTimeFromRTC()
     if (RTC.GetIsRunning())
     {
       unsigned long t = (unsigned long)RTC.GetDateTime().Epoch32Time();
-      Serial.println("RTC Sync Dt : " + String(t - _timestamp) + "s");
+      Serial.println("RTC Sync Dt : " + String((int)(t - _timestamp)) + "s");
       _timestamp = t;
     }
+    else
+      Serial.println("RTC not working :(");
 
     p = v;
   }

@@ -70,9 +70,10 @@ window.onload = function ()
 	{
 		load("microajax.js","js", function() 
 		{
-					setValues("/admin/values");
-          setTimeout(validate,1000);
-					setTimeout(GetState,3000);
+					setValues("/admin/networkvalues", function() {
+            validate();
+            GetState();
+          });
 		});
 	});
 }
