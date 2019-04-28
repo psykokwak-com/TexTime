@@ -10,7 +10,7 @@ const char PAGE_general[] PROGMEM = R"=====(
 <form action="" method="post">
 <table border="0"  cellspacing="0" cellpadding="3" >
 <tr><td align="right">Brightness auto :</td><td><input type="checkbox" id="brightnessauto" name="brightnessauto" value="" onclick="updatebrightnessauto()"></td></tr>
-<tr><td align="right">Brightness Sensibility :</td><td>
+<tr><td align="right">brightness Sensitivity :</td><td>
 <select id="brightnesssensibility" name="brightnesssensibility" onchange="updatebrightnesssensibility()" >
   <option value="10">Very high</option>
   <option value="20">High</option>
@@ -100,6 +100,8 @@ function updatebrightnessauto() {
   validatebrightnessauto();
   if (document.getElementById('brightnessauto').checked)
     setValues("/admin/led?brightness=-1");
+  else
+    updatebrightness();
 }
 
 function LedMode(v)
