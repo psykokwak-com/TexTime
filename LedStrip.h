@@ -94,7 +94,8 @@ struct PixelsContainer
 
 class LedConfiguration {
 public:
-  virtual int ledsByPixel() = 0;
+  virtual int ledsByPixelForMatrix() = 0;
+  virtual int ledsByPixelForEdges() = 0;
   virtual int ledsNumber() = 0;
   virtual String getName() = 0;
   virtual const uint8_t *getLedsMatrixId(int row, int col) = 0;
@@ -124,7 +125,12 @@ public:
     return "40x40@1";
   }
 
-  int ledsByPixel()
+  int ledsByPixelForMatrix()
+  {
+    return 1;
+  }
+
+  int ledsByPixelForEdges()
   {
     return 1;
   }
@@ -175,7 +181,12 @@ public:
     return "100x100@1";
   }
 
-  int ledsByPixel()
+  int ledsByPixelForMatrix()
+  {
+    return 1;
+  }
+
+  int ledsByPixelForEdges()
   {
     return 1;
   }
@@ -635,7 +646,7 @@ protected:
 
         if (!p.display) continue;
 
-        for (int l = 0; l < _ledConfiguration[_ledConfigurationIndex]->ledsByPixel(); l++)
+        for (int l = 0; l < _ledConfiguration[_ledConfigurationIndex]->ledsByPixelForMatrix(); l++)
           _pStrip->SetPixelColor(i[l], p.color);
       }
     }
@@ -647,7 +658,7 @@ protected:
 
       if (!p.display) continue;
 
-      for (int l = 0; l < _ledConfiguration[_ledConfigurationIndex]->ledsByPixel(); l++)
+      for (int l = 0; l < _ledConfiguration[_ledConfigurationIndex]->ledsByPixelForEdges(); l++)
         _pStrip->SetPixelColor(i[l], p.color);
     }
 
