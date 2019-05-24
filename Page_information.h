@@ -83,7 +83,7 @@ void send_information_values_html ()
   values += "x_boot|" + printDateTime(convertDateTimeToUptime(convertUnixTimeStamp(millis64() / 1000))) + "|div\n";
   values += "x_date|" + printDateTime(_dateTime) + "|div\n";
   values += "x_als|" + String(getAvgLux()) + "|div\n";
-  values += "x_temp|" + (RTC.GetIsRunning() ? String(RTC.GetTemperature().AsFloat()) : String("N/A")) + "|div\n";
+  values += "x_temp|" + (RTC.GetIsRunning() ? String(RTC.GetTemperature().AsFloatDegC()) : String("N/A")) + "|div\n";
   values += "x_brightness|" + String((int)QTLed.getBrightness()) + "|div\n";
 
   _server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");

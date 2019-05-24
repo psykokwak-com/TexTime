@@ -510,7 +510,7 @@ public:
     if (!RTC.GetIsRunning())
       return; // TODO: Display something useful
 
-    int8_t t = RTC.GetTemperature().AsWholeDegrees();
+    int8_t t = RTC.GetTemperature().AsFloatDegC();
 
     ::copyNumberToMatrix(t, _pPixelContainer->pixelsArray, _color);
 
@@ -606,16 +606,8 @@ public:
 };
 
 
-class MyNeoEsp8266UartWS2813
-{
-public:
-  static const uint32_t ByteSendTimeUs = 10; // us it takes to send a single pixel element at 800khz speed
-  static const uint32_t UartBaud = 3636363;  // 3200000; // 800khz, 4 serial bytes per NeoByte
-  static const uint32_t RESMinTimeUs = 300;  // us it takes to wait before sending a new frame
-};
-typedef NeoEsp8266UartMethodBase<MyNeoEsp8266UartWS2813, NeoEsp8266AsyncUart> MyNeoEsp8266AsyncUart800KbpsMethod;
-#define NeoEsp8266Method MyNeoEsp8266AsyncUart800KbpsMethod
 
+#define NeoEsp8266Method NeoEsp8266AsyncUart1Ws2813Method
 class MyLedStrip
 {
 protected:
