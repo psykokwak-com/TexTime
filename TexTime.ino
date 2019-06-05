@@ -22,12 +22,15 @@
 #include <ESP8266NetBIOS.h>
 #include <ESP8266LLMNR.h>
 
+#include "PubSubClient.h"
+
 #include "global.h"
 #include "list.h"
 #include "RTC.h"
 #include "NTP.h"
 #include "LightSensor.h"
 #include "LedStrip.h"
+#include "mqtt.h"
 
 // Include the HTML, STYLE and Script "Pages"
 
@@ -37,6 +40,7 @@
 #include "Page_information.h"
 #include "Page_general.h"
 #include "Page_network.h"
+#include "Page_mqtt.h"
 #include "Page_script.js.h"
 #include "Page_style.css.h"
 
@@ -58,7 +62,6 @@ void disableWifiCallback(void *pArg)
 }
 
 
-
 //*** Normal code definition here ...
 void setup() {
   String chipID;
@@ -76,7 +79,7 @@ void setup() {
   Serial.println("Booting");
 
   // Config load 
-  EEPROM.begin(512); // define an EEPROM space of 512Bytes to store data
+  EEPROM.begin(1024); // define an EEPROM space of 1024Bytes to store data
   CFG_saved = ReadConfig();
   if (!CFG_saved)
   {
@@ -109,6 +112,12 @@ void setup() {
     _config.animation = 0;
     _config.ledConfig = 0;
     _config.luxSensitivity = 40;
+
+    _config.MQTTServer = "";
+    _config.MQTTLogin = "";
+    _config.MQTTPassword = "";
+    _config.MQTTPort = 1883;
+    _config.MQTTPubInterval = 5; // in sec
   }
 
   // Start led strip
@@ -208,6 +217,7 @@ void setup() {
   });
 
   _server.on("/network.html", send_network_configuration_html);
+  _server.on("/mqtt.html", send_mqtt_configuration_html);
 
   _server.on("/info.html", []() {
     //Serial.println("info.html");
@@ -234,14 +244,16 @@ void setup() {
     SSDP.schema(_server.client());
   });
 
-  _server.on("/admin/networkvalues", send_network_configuration_values_html);
-  _server.on("/admin/connectionstate", send_connection_state_values_html);
-  _server.on("/admin/infovalues", send_information_values_html);
-  _server.on("/admin/ntpvalues", send_NTP_configuration_values_html);
-  _server.on("/admin/generalvalues", send_general_configuration_values_html);
-  _server.on("/admin/modesvalues", send_general_modes_values_html);
-  _server.on("/admin/animationsvalues", send_general_animations_values_html);
-  _server.on("/admin/ledconfigvalues", send_general_ledconfig_values_html);
+  _server.on("/admin/networkfieldsvalues", send_network_configuration_values_html);
+  _server.on("/admin/networkconnectionvalues", send_network_connection_values_html);
+  _server.on("/admin/mqttfieldsvalues", send_mqtt_configuration_values_html);
+  _server.on("/admin/mqttconnectionvalues", send_mqtt_connection_values_html);
+  _server.on("/admin/infovalues", send_information_configuration_values_html);
+  _server.on("/admin/ntpfieldsvalues", send_ntp_configuration_values_html);
+  _server.on("/admin/generalfieldsvalues", send_general_configuration_values_html);
+  _server.on("/admin/generalmodesvalues", send_general_modes_values_html);
+  _server.on("/admin/generalanimationsvalues", send_general_animations_values_html);
+  _server.on("/admin/generalledconfigvalues", send_general_ledconfig_values_html);
 
   _server.on("/admin/led", send_general_led);
 
@@ -256,7 +268,6 @@ void setup() {
   Serial.println("HTTP server started");
 
   // ***********  OTA SETUP
-
   //ArduinoOTA.setHostname(host);
   ArduinoOTA.onStart([]() { // what to do before OTA download insert code here
     Serial.println("Start");
@@ -302,6 +313,13 @@ void setup() {
   SSDP.setDeviceType("upnp:rootdevice");
   SSDP.begin();
 
+  // MQTT configuration
+  if (_config.MQTTPubInterval < 1) _config.MQTTPubInterval = 1;
+  _mqttWifiClient.setNoDelay(true);
+  _mqttWifiClient.setTimeout(MQTT_SOCKET_TIMEOUT * 1000);
+  _mqtt.setServer(_config.MQTTServer.c_str(), _config.MQTTPort);
+  _mqtt.setCallback(mqttCallback);
+
   QTLed.setAutomaticBrightness(_config.brightnessAuto);
   if (!_config.brightnessAuto) QTLed.setBrightness(_config.brightness);
   QTLed.setColor(_config.color[0], _config.color[1], _config.color[2]);
@@ -331,7 +349,7 @@ void loop() {
   handleISRsecondTick();
 
   // Read current light value
-  handleAmbiantLightSensor();
+  handleAmbientLightSensor();
 
   // OTA request handling
   ArduinoOTA.handle();
@@ -341,6 +359,11 @@ void loop() {
 
   // DNS requests handling 
   //_dnsServer.processNextRequest();
+
+  // MQTT
+  mqttReconnect();
+  _mqtt.loop();
+  mqttPollingPublisher();
 
   // Handle led display
   QTLed.handle();

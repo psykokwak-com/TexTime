@@ -115,10 +115,10 @@ window.onload = function ()
 	{
 		load("microajax.js","js", function() 
 		{
-        setValues("/admin/ledconfigvalues", function() {
-          setValues("/admin/modesvalues", function() {
-            setValues("/admin/animationsvalues", function() {
-              setValues("/admin/generalvalues", function() {
+        setValues("/admin/generalledconfigvalues", function() {
+          setValues("/admin/generalmodesvalues", function() {
+            setValues("/admin/generalanimationsvalues", function() {
+              setValues("/admin/generalfieldsvalues", function() {
                 validatebrightnessauto();
               });
             });

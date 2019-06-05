@@ -31,7 +31,7 @@ int getAvgLux()
   return sum / ALS_AVG_SIZE;
 }
 
-void handleAmbiantLightSensor()
+void handleAmbientLightSensor()
 {
   static uint64_t pt = 0;
 

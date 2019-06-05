@@ -8,7 +8,7 @@ const char PAGE_network[] PROGMEM = R"=====(
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <a href="/"  class="btn btn--s"><</a>&nbsp;&nbsp;<strong>Network Configuration</strong>
 <hr>
-Connect to Router with these settings:<br>
+Connect to Router with these settings:<br><br>
 <form action="" method="get">
 <table border="0"  cellspacing="0" cellpadding="3" style="width:410px" >
 <tr><td align="right">SSID:</td><td><input type="text" id="ssid" name="ssid" value=""></td></tr>
@@ -56,7 +56,7 @@ Connect to Router with these settings:<br>
 
 function GetState()
 {
-	setValues("/admin/connectionstate");
+	setValues("/admin/networkconnectionvalues");
 }
 function selssid(value)
 {
@@ -70,7 +70,7 @@ window.onload = function ()
 	{
 		load("microajax.js","js", function() 
 		{
-					setValues("/admin/networkvalues", function() {
+					setValues("/admin/networkfieldsvalues", function() {
             validate();
             GetState();
           });
@@ -191,7 +191,7 @@ void send_network_configuration_values_html()
 //   FILL THE PAGE WITH NETWORKSTATE & NETWORKS
 //
 
-void send_connection_state_values_html()
+void send_network_connection_values_html()
 {
 
 	String state = "N/A";
@@ -227,7 +227,7 @@ void send_connection_state_values_html()
 	}
    
 	String values ="";
-	values += "connectionstate|" +  state + "|div\n";
+	values += "connectionstate|" + state + "|div\n";
 	values += "networks|" +  Networks + "|div\n";
 
   _server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");

@@ -17,6 +17,7 @@ const char PAGE_index[] PROGMEM = R"=====(
 <a href="/general.html" style="width:250px" class="btn btn--m btn--blue" >General Configuration</a><br>
 <a href="/network.html" style="width:250px" class="btn btn--m btn--blue" >Network Configuration</a><br>
 <a href="/ntp.html" style="width:250px" class="btn btn--m btn--blue" >Time Configuration</a><br>
+<a href="/mqtt.html" style="width:250px" class="btn btn--m btn--blue" >MQTT Configuration</a><br>
 <a href="/update" style="width:250px" class="btn btn--m btn--blue" >Update Firmware</a><br>
 <hr>
 <span><a href="http://www.psykokwak.com/" style="text-decoration:none" >By Psykokwak</a></span><br>

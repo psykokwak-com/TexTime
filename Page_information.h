@@ -30,7 +30,7 @@ const char PAGE_information[] PROGMEM = R"=====(
 
 <tr><td colspan="2" align="center"><hr></td></tr>
 
-<tr><td align="right">Ambiant light :</td><td><span id="x_als"></span> lux</td></tr>
+<tr><td align="right">Ambient light :</td><td><span id="x_als"></span> lux</td></tr>
 <tr><td align="right">Brightness :</td><td><span id="x_brightness"></span></td></tr>
 <tr><td align="right">Temperature :</td><td><span id="x_temp"></span> C</td></tr>
 
@@ -40,7 +40,7 @@ const char PAGE_information[] PROGMEM = R"=====(
 </table>
 <script>
 
-function GetState()
+function getState()
 {
   setValues("/admin/infovalues");
 }
@@ -51,8 +51,7 @@ window.onload = function ()
   {
     load("microajax.js","js", function() 
     {
-        GetState();
-        setInterval(GetState, 500);
+        setInterval(getState, 500);
     });
   });
 }
@@ -68,7 +67,7 @@ function load(e,t,n){if("js"==t){var a=document.createElement("script");a.src=e,
 // FILL WITH INFOMATION
 // 
 
-void send_information_values_html ()
+void send_information_configuration_values_html ()
 {
   String values ="";
 

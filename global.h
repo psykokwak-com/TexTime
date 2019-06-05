@@ -5,6 +5,8 @@
 ESP8266HTTPUpdateServer _httpUpdater;
 ESP8266WebServer _server(80);
 DNSServer _dnsServer;
+WiFiClient _mqttWifiClient;
+PubSubClient _mqtt(_mqttWifiClient);
 
 
 struct strConfig {
@@ -21,7 +23,6 @@ struct strConfig {
   String ntpServerName;                 // up to 64 Byte - EEPROM 192
   String DeviceName;                    // up to 64 Byte - EEPROM 256
 
-  // Application Settings here... from EEPROM 192 up to 511 (0 - 511)
   boolean brightnessAuto;               // 1 Byte - EEPROM 384
   byte brightness;                      // 1 Byte - EEPROM 385
   byte color[4];                        // 4 Byte - EEPROM 386
@@ -32,11 +33,17 @@ struct strConfig {
   byte brightnessAutoMinNight;          // 1 Byte - EEPROM 394
   byte ledConfig;                       // 1 Byte - EEPROM 395
   byte luxSensitivity;                  // 1 Byte - EEPROM 396
-  
+
+  String MQTTServer;                    // up to 64 Byte - EEPROM 512
+  String MQTTLogin;                     // up to 64 Byte - EEPROM 576
+  String MQTTPassword;                  // up to 64 Byte - EEPROM 640
+  long MQTTPort;                        // 4 Byte - EEPROM 704
+  long MQTTPubInterval;                 // 4 Byte - EEPROM 708
+
 } _config;
 
 
-//  Auxiliar function to handle EEPROM
+//  Auxiliary function to handle EEPROM
 
 void EEPROMWritelong(int address, long value){
   byte four = (value & 0xFF);
@@ -58,7 +65,7 @@ long EEPROMReadlong(long address){
   long two = EEPROM.read(address + 2);
   long one = EEPROM.read(address + 3);
 
-  //Return the recomposed long by using bitshift.
+  //Return the recomposed long by using bit shift.
   return ((four << 0) & 0xFF) + ((three << 8) & 0xFFFF) + ((two << 16) & 0xFFFFFF) + ((one << 24) & 0xFFFFFFFF);
 }
 
@@ -153,7 +160,6 @@ void WriteConfig(){
   WriteStringToEEPROM(192, _config.ntpServerName);
   WriteStringToEEPROM(256, _config.DeviceName);
 
-  // Application Settings here... from EEPROM 384 up to 511 (0 - 511)
   EEPROM.write(384, _config.brightnessAuto);
   EEPROM.write(385, _config.brightness);
   EEPROM.write(386, _config.color[0]); // R
@@ -167,6 +173,12 @@ void WriteConfig(){
   EEPROM.write(394, _config.brightnessAutoMinNight);
   EEPROM.write(395, _config.ledConfig);
   EEPROM.write(396, _config.luxSensitivity);
+
+  WriteStringToEEPROM(512, _config.MQTTServer);
+  WriteStringToEEPROM(576, _config.MQTTLogin);
+  WriteStringToEEPROM(640, _config.MQTTPassword);
+  EEPROMWritelong(704, _config.MQTTPort);
+  EEPROMWritelong(708, _config.MQTTPubInterval);
 
   EEPROM.commit();
 }
@@ -215,6 +227,12 @@ boolean ReadConfig(){
     _config.brightnessAutoMinNight = EEPROM.read(394);
     _config.ledConfig = EEPROM.read(395);
     _config.luxSensitivity = EEPROM.read(396);
+
+    _config.MQTTServer = ReadStringFromEEPROM(512);
+    _config.MQTTLogin = ReadStringFromEEPROM(576);
+    _config.MQTTPassword = ReadStringFromEEPROM(640);
+    _config.MQTTPort = EEPROMReadlong(704);
+    _config.MQTTPubInterval = EEPROMReadlong(708);
 
     return true;
 

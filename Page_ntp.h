@@ -59,7 +59,7 @@ window.onload = function ()
   {
     load("microajax.js","js", function() 
     {
-        setValues("/admin/ntpvalues");
+        setValues("/admin/ntpfieldsvalues");
     });
   });
 }
@@ -93,7 +93,7 @@ void send_NTP_configuration_html()
 
 
 
-void send_NTP_configuration_values_html()
+void send_ntp_configuration_values_html()
 {
     
   String values ="";
