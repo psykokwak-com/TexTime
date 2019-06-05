@@ -94,6 +94,10 @@ String  ReadStringFromEEPROM(int beginaddress){
   volatile byte counter = 0;
   char rChar;
   String retString = "";
+
+  if (EEPROM.read(beginaddress) == 255)
+    return String();
+
   while (1)
   {
     rChar = EEPROM.read(beginaddress + counter);
