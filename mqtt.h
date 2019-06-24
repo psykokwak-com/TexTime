@@ -1,29 +1,3 @@
-class MQTTTopic
-{
-private:
-  String _prefix;
-  String _suffix;
-public:
-  MQTTTopic(String suffix) 
-    : _prefix("psykokwak/")
-    , _suffix(suffix)
-  {}
-
-  String topic() 
-  {
-    String n = "textime-" + String(ESP.getChipId(), HEX);
-    return _prefix + n + _suffix;
-  }
-};
-
-
-MQTTTopic mqttTopicSubLedColor("/led/color");
-MQTTTopic mqttTopicSubLedMode("/led/mode");
-MQTTTopic mqttTopicSubLedAnim("/led/animation");
-
-MQTTTopic mqttTopicPubTemp("/temperature");
-MQTTTopic mqttTopicPubLight("/ambientlight");
-MQTTTopic mqttTopicPubRssi("/rssi");
 
 
 uint64_t _mqttPollingPublisherTimer = 0;
@@ -34,7 +8,7 @@ void mqttPollingPublisher()
     return;
 
   // polling not to fast
-  if (millis64() - _mqttPollingPublisherTimer < _config.MQTTPubInterval * 1000 && _mqttPollingPublisherTimer != 0)
+  if (millis64() - _mqttPollingPublisherTimer < (uint64_t)_config.MQTTPubInterval * 1000 && _mqttPollingPublisherTimer != 0)
     return;
 
   if (RTC.GetIsRunning())
@@ -50,18 +24,39 @@ void mqttPollingPublisher()
 void mqttCallback(char* topic, byte* payloadraw, unsigned int length) {
   String payload;
 
-  for (int i = 0; i < length; i++)
+  for (unsigned int i = 0; i < length; i++)
     payload += (char)payloadraw[i];
 
   Serial.print("topic:");
   Serial.print(topic);
   Serial.print(" : ");
   Serial.print((char*)payload.c_str());
-  Serial.println("");
+  Serial.print(" (");
+  Serial.print(payload.length());
+  Serial.println(")");
 
   // Set color
   if (!strncmp(topic, mqttTopicSubLedColor.topic().c_str(), mqttTopicSubLedColor.topic().length())) {
-    int32_t l = strtol(payload.c_str(), 0, HEX);
+
+    if (payload.length() == 0) {
+      byte r, g, b;
+      QTLed.getColor(r, g, b);
+
+      String sr = ("0" + String((int)r, HEX)); sr = sr.substring(sr.length() - 2);
+      String sg = ("0" + String((int)g, HEX)); sg = sg.substring(sg.length() - 2);
+      String sb = ("0" + String((int)b, HEX)); sb = sb.substring(sb.length() - 2);
+      String s = "#" + (sr + sg + sb);
+      s.toUpperCase();
+
+      _mqtt.publish(mqttTopicPubLedColor.topic().c_str(), s.c_str());
+
+      return;
+    }
+    
+    if (payload.length() != 7)
+      return;
+
+    int32_t l = strtol(payload.c_str() + 1, 0, HEX);
     byte r = (l >> 16) & 0xFF;
     byte g = (l >> 8) & 0xFF;
     byte b = (l >> 0) & 0xFF;
@@ -73,7 +68,15 @@ void mqttCallback(char* topic, byte* payloadraw, unsigned int length) {
 
   // Set mode
   if (!strncmp(topic, mqttTopicSubLedMode.topic().c_str(), mqttTopicSubLedMode.topic().length())) {
-    QTLed.setMode(payload.toInt());
+
+    // If there is no payload, send back the current value
+    if (payload.length() == 0) {
+      _mqtt.publish(mqttTopicPubLedMode.topic().c_str(), String(QTLed.getModeIndex()).c_str());
+      return;
+    }
+
+    if (!QTLed.setMode(payload.toInt()))
+      return;
 
     Serial.print("Set mode from MQTT : ");
     Serial.println(payload);
@@ -81,7 +84,15 @@ void mqttCallback(char* topic, byte* payloadraw, unsigned int length) {
 
   // Set animation
   if (!strncmp(topic, mqttTopicSubLedAnim.topic().c_str(), mqttTopicSubLedAnim.topic().length())) {
-    QTLed.setAnimation(payload.toInt());
+
+    // If there is no payload, send back the current value
+    if (payload.length() == 0) {
+      _mqtt.publish(mqttTopicPubLedAnim.topic().c_str(), String(QTLed.getAnimationIndex()).c_str());
+      return;
+    }
+
+    if (!QTLed.setAnimation(payload.toInt()))
+      return;
 
     Serial.print("Set animation from MQTT : ");
     Serial.println(payload);

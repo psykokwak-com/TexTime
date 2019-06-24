@@ -25,6 +25,7 @@
 #include "PubSubClient.h"
 
 #include "global.h"
+#include "mqtt_topics.h"
 #include "list.h"
 #include "RTC.h"
 #include "NTP.h"

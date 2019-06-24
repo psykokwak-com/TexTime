@@ -159,7 +159,7 @@ public:
   }
 };
 
-class LedConfiguration100x100 : public LedConfiguration {
+class LedConfiguration100x100_1 : public LedConfiguration {
 private:
   const uint8_t _matchingPixelsMatrix[NROW][NCOL][1] = {
     { { 21  }, { 19  }, { 17  }, { 15  }, { 13  }, { 11  }, { 9   }, { 7   }, { 5   }, { 3   }, { 1   } },
@@ -214,6 +214,64 @@ public:
     return _matchingPixelsEdge[n];
   }
 };
+
+class LedConfiguration100x100_2 : public LedConfiguration {
+private:
+  const uint8_t _matchingPixelsMatrix[NROW][NCOL][2] = {
+    { { 21 , 22  }, { 19 , 20  }, { 17 , 18  }, { 15 , 16  }, { 13 , 14  }, { 11 , 12  }, { 9  , 10  }, { 7  , 8   }, { 5  , 6   }, { 3  , 4   }, { 1  , 2   } },
+    { { 25 , 26  }, { 27 , 28  }, { 29 , 30  }, { 31 , 32  }, { 33 , 34  }, { 35 , 36  }, { 37 , 38  }, { 39 , 40  }, { 41 , 42  }, { 43 , 44  }, { 45 , 46  } },
+    { { 69 , 70  }, { 67 , 68  }, { 65 , 66  }, { 63 , 64  }, { 61 , 62  }, { 59 , 60  }, { 57 , 58  }, { 55 , 56  }, { 53 , 54  }, { 51 , 52  }, { 49 , 50  } },
+    { { 73 , 74  }, { 75 , 76  }, { 77 , 78  }, { 79 , 80  }, { 81 , 82  }, { 83 , 84  }, { 85 , 86  }, { 87 , 88  }, { 89 , 90  }, { 91 , 92  }, { 93 , 94  } },
+    { { 117, 118 }, { 115, 116 }, { 113, 114 }, { 111, 112 }, { 109, 110 }, { 107, 108 }, { 105, 106 }, { 103, 104 }, { 101, 102 }, { 99 , 100 }, { 97 , 98  } },
+    { { 121, 122 }, { 123, 124 }, { 125, 126 }, { 127, 128 }, { 129, 130 }, { 131, 132 }, { 133, 134 }, { 135, 136 }, { 137, 138 }, { 139, 140 }, { 141, 142 } },
+    { { 165, 166 }, { 163, 164 }, { 161, 162 }, { 159, 160 }, { 157, 158 }, { 155, 156 }, { 153, 154 }, { 151, 152 }, { 149, 150 }, { 147, 148 }, { 145, 146 } },
+    { { 169, 170 }, { 171, 172 }, { 173, 174 }, { 175, 176 }, { 177, 178 }, { 179, 180 }, { 181, 182 }, { 183, 184 }, { 185, 186 }, { 187, 188 }, { 189, 190 } },
+    { { 213, 214 }, { 211, 212 }, { 209, 210 }, { 207, 208 }, { 205, 206 }, { 203, 204 }, { 201, 202 }, { 199, 200 }, { 197, 198 }, { 195, 196 }, { 193, 194 } },
+    { { 217, 218 }, { 219, 220 }, { 221, 222 }, { 223, 224 }, { 225, 226 }, { 227, 228 }, { 229, 230 }, { 231, 232 }, { 233, 234 }, { 235, 236 }, { 237, 238 } }
+  };
+  const uint8_t _matchingPixelsEdge[NEDGE][1] = { { 242 }, { 241 }, { 240 }, { 243 } };
+
+public:
+  virtual String getName()
+  {
+    return "100x100@2";
+  }
+
+  int ledsByPixelForMatrix()
+  {
+    return 2;
+  }
+
+  int ledsByPixelForEdges()
+  {
+    return 1;
+  }
+
+  int ledsNumber()
+  {
+    return (NROW * 24) + NEDGE;
+  }
+
+  const uint8_t *getLedsMatrixId(int row, int col)
+  {
+    if (row < 0) return NULL;
+    if (col < 0) return NULL;
+    if (row > NROW - 1) return NULL;
+    if (col > NCOL - 1) return NULL;
+
+    return _matchingPixelsMatrix[row][col];
+  }
+
+  const uint8_t *getLedsEdgeId(int n)
+  {
+    if (n < 0) return NULL;
+    if (n > NEDGE - 1) return NULL;
+
+    return _matchingPixelsEdge[n];
+  }
+};
+
+
 
 //  0         x
 // 0+----------
@@ -299,6 +357,11 @@ public:
   void setColor(RgbColor c)
   {
     _color = c;
+  }
+
+  RgbColor getColor()
+  {
+    return _color;
   }
 
   void setColorRandom(RandomColorMode c)
@@ -719,7 +782,8 @@ public:
   {
 
     _ledConfiguration.push_back(new LedConfiguration40x40());
-    _ledConfiguration.push_back(new LedConfiguration100x100());
+    _ledConfiguration.push_back(new LedConfiguration100x100_1());
+    _ledConfiguration.push_back(new LedConfiguration100x100_2());
 
     _modeList.push_back(new LedStripModeNothing(&_pixels));
     _modeList.push_back(new LedStripModeTime(&_pixels));
@@ -805,6 +869,23 @@ public:
 
     // Force redrawing to update the color now
     setMode(_modeIndex);
+
+    // Update MQTT clients
+    String sr = ("0" + String((int)r, HEX)); sr = sr.substring(sr.length() - 2);
+    String sg = ("0" + String((int)g, HEX)); sg = sg.substring(sg.length() - 2);
+    String sb = ("0" + String((int)b, HEX)); sb = sb.substring(sb.length() - 2);
+    String s = "#" + (sr + sg + sb);
+    s.toUpperCase();
+
+    _mqtt.publish(mqttTopicPubLedColor.topic().c_str(), s.c_str());
+  }
+
+  void getColor(byte &r, byte &g, byte &b)
+  {
+    RgbColor c = _modeList[_modeIndex]->getColor();
+    r = c.R;
+    g = c.G;
+    b = c.B;
   }
 
   void setColorRandom(RandomColorMode c)
@@ -816,14 +897,23 @@ public:
     setMode(_modeIndex);
   }
 
-  void setMode(int mode)
+  bool setMode(int mode)
   {
-    if (mode < 0) return;
-    if (mode > _modeList.size() - 1) return;
+    if (mode < 0) return false;
+    if (mode > _modeList.size() - 1) return false;
 
     _modeIndex = mode;
 
     _modeList[_modeIndex]->begin();
+
+    _mqtt.publish(mqttTopicPubLedMode.topic().c_str(), String(mode).c_str());
+
+    return true;
+  }
+
+  int getModeIndex()
+  {
+    return _modeIndex;
   }
 
   void handle()
@@ -1217,13 +1307,22 @@ public:
     _animationList.push_back(new LedStripAnimationRainbow(&_pixels, &_animatedPixels));
   }
 
-  void setAnimation(int mode)
+  bool setAnimation(int mode)
   {
-    if (mode < 0) return;
-    if (mode > _animationList.size() - 1) return;
+    if (mode < 0) return false;
+    if (mode > _animationList.size() - 1) return false;
 
     _animationIndex = mode;
     _animationList[_animationIndex]->begin();
+
+    _mqtt.publish(mqttTopicPubLedAnim.topic().c_str(), String(mode).c_str());
+
+    return true;
+  }
+
+  int getAnimationIndex()
+  {
+    return _animationIndex;
   }
 
   cl_Lst<LedStripAnimation *> *getAnimationsList()

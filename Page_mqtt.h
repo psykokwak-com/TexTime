@@ -119,11 +119,16 @@ void send_mqtt_configuration_values_html()
 
 
   String sublist;
-  sublist += "\"" + mqttTopicSubLedColor.topic() + "\" : set display color. Value in hex. eg : 00FF00 <br>";
-  sublist += "\"" + mqttTopicSubLedMode.topic() + "\" : set display mode. Value in dec. eg : 1 <br>";
-  sublist += "\"" + mqttTopicSubLedAnim.topic() + "\" : set display animation. Value in dec. eg : 3 <br>";
+  sublist += "\"" + mqttTopicSubLedColor.topic() + "\" : set display color. Value in hex. eg : #00FF00<br>";
+  sublist += "\"" + mqttTopicSubLedMode.topic() + "\" : set display mode. Value in dec. eg : 1<br>";
+  sublist += "\"" + mqttTopicSubLedAnim.topic() + "\" : set display animation. Value in dec. eg : 3<br>";
+  sublist += "<i>Empty payload returns current value</i><br>";
 
   String publist;
+  publist += "\"" + mqttTopicPubLedColor.topic() + "\" : get display color. Value in hex. eg : #00FF00<br>";
+  publist += "\"" + mqttTopicPubLedMode.topic() + "\" : get display mode. Value in dec. eg : 1<br>";
+  publist += "\"" + mqttTopicPubLedAnim.topic() + "\" : get display animation. Value in dec. eg : 3<br>";
+  publist += "<br>";
   publist += "\"" + mqttTopicPubTemp.topic() + "\" : get temperature. Value in degrees celius.<br>";
   publist += "\"" + mqttTopicPubLight.topic() + "\" : get ambient light. Value in lumens.<br>";
   publist += "\"" + mqttTopicPubRssi.topic() + "\" : get WiFi RSSI. Value in %.<br>";
