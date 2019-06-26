@@ -27,6 +27,6 @@ MQTTTopic mqttTopicPubLedColor("stat", "led/color");
 MQTTTopic mqttTopicPubLedMode("stat", "led/mode");
 MQTTTopic mqttTopicPubLedAnim("stat", "led/animation");
 
-MQTTTopic mqttTopicPubTemp("stat", "temperature");
-MQTTTopic mqttTopicPubLight("stat", "ambientlight");
-MQTTTopic mqttTopicPubRssi("stat", "rssi");
+MQTTTopic mqttTopicPubTemp("tele", "temperature");
+MQTTTopic mqttTopicPubLight("tele", "ambientlight");
+MQTTTopic mqttTopicPubRssi("tele", "rssi");

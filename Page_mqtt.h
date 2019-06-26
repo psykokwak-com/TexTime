@@ -122,7 +122,7 @@ void send_mqtt_configuration_values_html()
   sublist += "\"" + mqttTopicSubLedColor.topic() + "\" : set display color. Value in hex. eg : #00FF00<br>";
   sublist += "\"" + mqttTopicSubLedMode.topic() + "\" : set display mode. Value in dec. eg : 1<br>";
   sublist += "\"" + mqttTopicSubLedAnim.topic() + "\" : set display animation. Value in dec. eg : 3<br>";
-  sublist += "<i>Empty payload returns current value</i><br>";
+  sublist += "<i>Empty payload returns current value. See publishing \"stat\" topics.</i><br>";
 
   String publist;
   publist += "\"" + mqttTopicPubLedColor.topic() + "\" : get display color. Value in hex. eg : #00FF00<br>";
