@@ -24,6 +24,7 @@
 
 #include "PubSubClient.h"
 
+#include "WiFiMgr.h"
 #include "global.h"
 #include "mqtt_topics.h"
 #include "list.h"
@@ -53,15 +54,6 @@ extern "C" {
 
 IPAddress _apIP(192, 168, 1, 1);
 IPAddress _apNetMsk(255, 255, 255, 0);
-
-
-os_timer_t _disableWifiTimer;
-
-void disableWifiCallback(void *pArg)
-{
-  WiFi.forceSleepBegin();
-}
-
 
 //*** Normal code definition here ...
 void setup() {
@@ -118,7 +110,7 @@ void setup() {
     _config.MQTTLogin = "";
     _config.MQTTPassword = "";
     _config.MQTTPort = 1883;
-    _config.MQTTPubInterval = 5; // in sec
+    _config.MQTTPubInterval = 120; // in sec
   }
 
   // Start led strip
@@ -135,66 +127,19 @@ void setup() {
   // Connect the ESP8266 to local WIFI network in Station mode
   //printConfig();
 
-  if (CFG_saved)
+  // Configure WiFi
+  WiFiMgr.setAPssid("TexTime-" + String(ESP.getChipId(), HEX));
+
+  if (!_config.dhcp)
   {
-    WiFi.mode(WIFI_STA);
-
-    char* devicename = &_config.DeviceName[0];
-    wifi_station_set_hostname(devicename); //See more at : http ://www.esp8266.com/viewtopic.php?f=29&t=11124#sthash.458xtq2U.dpuf
-
-    Serial.print("Trying to connect to : ");
-    Serial.println(_config.ssid.c_str());
-    Serial.print("WiFi key : ");
-    Serial.println(_config.password.c_str());
-
-    WiFi.begin(_config.ssid.c_str(), _config.password.c_str());
-
-    WIFI_connected = WiFi.waitForConnectResult();
-    if (WIFI_connected != WL_CONNECTED)
-    {
-      Serial.print("Connection Failed!\nError code : ");
-      Serial.println(WIFI_connected);
-      Serial.println("Activating to AP mode...");
-    }
-    else
-    {
-      if (!_config.dhcp)
-      {
-        WiFi.config(IPAddress(_config.IP[0], _config.IP[1], _config.IP[2], _config.IP[3]),
-          IPAddress(_config.Gateway[0], _config.Gateway[1], _config.Gateway[2], _config.Gateway[3]),
-          IPAddress(_config.Netmask[0], _config.Netmask[1], _config.Netmask[2], _config.Netmask[3]),
-          IPAddress(_config.DNS[0], _config.DNS[1], _config.DNS[2], _config.DNS[3]));
-      }
-
-      WiFi.setAutoReconnect(true);
-
-      Serial.print("Wifi ip:"); Serial.println(WiFi.localIP());
-      getNTPtime();
-    }
+    WiFiMgr.setSTAIPip(IPAddress(_config.IP[0], _config.IP[1], _config.IP[2], _config.IP[3]),
+      IPAddress(_config.Gateway[0], _config.Gateway[1], _config.Gateway[2], _config.Gateway[3]),
+      IPAddress(_config.Netmask[0], _config.Netmask[1], _config.Netmask[2], _config.Netmask[3]),
+      IPAddress(_config.DNS[0], _config.DNS[1], _config.DNS[2], _config.DNS[3]));
   }
 
-  if ((WIFI_connected != WL_CONNECTED) || !CFG_saved)
-  {
-    Serial.println("Setting AP mode");
-
-    String defaultSSID = "TexTime-" + String(ESP.getChipId(), HEX);
-
-    // Configure and start AP mode
-    WiFi.mode(WIFI_AP);
-    WiFi.softAPConfig(_apIP, _apIP, _apNetMsk);
-    WiFi.softAP(defaultSSID.c_str());
-
-    // Turn off wifi after 10 minutes
-    os_timer_setfn(&_disableWifiTimer, disableWifiCallback, NULL);
-    os_timer_arm(&_disableWifiTimer, 1000 * 60 * 10, false);
-
-    // Start DNS catcher
-    //_dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
-    //_dnsServer.start(53, _config.DeviceName, _apIP);
-  }
-
-
-  WiFi.setSleepMode(WIFI_NONE_SLEEP);
+  // Start WiFi
+  WiFiMgr.tryToConnect(_config.ssid, _config.password, &_config.DeviceName[0]);
 
   // Start HTTP Server for configuration
   _server.on("/", []() {
@@ -339,6 +284,11 @@ void setup() {
 
 // the loop function runs over and over again forever
 void loop() {
+
+  // Handle WiFi AP/STA
+  if (WiFiMgr.handle()) {
+    getNTPtime();
+  }
 
   // Update time from RTC
   handleTimeFromRTC();

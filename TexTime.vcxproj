@@ -101,12 +101,14 @@
     <ClInclude Include="PubSubClient.h" />
     <ClInclude Include="textime.h" />
     <ClInclude Include="RTC.h" />
+    <ClInclude Include="WiFiMgr.h" />
     <ClInclude Include="__vm\.TexTime.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="http.cpp" />
     <ClCompile Include="mongoose.c" />
     <ClCompile Include="PubSubClient.cpp" />
+    <ClCompile Include="WiFiMgr.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
