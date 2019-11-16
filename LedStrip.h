@@ -1232,7 +1232,7 @@ public:
 
     clearPixelsColor();
 
-    _rainbowIndex += 0.005;
+    _rainbowIndex += 0.001;
 
     if (_rainbowIndex > 1.0)
       _rainbowIndex = 0.0;
@@ -1241,7 +1241,7 @@ public:
     for (int c = 0; c < NCOL; c++) {
       for (int r = 0; r < NROW; r++) {
 
-        double hsl = ((double)((r * NCOL) + c) / (double)(NROW * NCOL)) * (120.0 / 360.0);
+        double hsl = ((double)((r * NCOL) + c) / (double)(NROW * NCOL)) * (60.0 / 360.0);
         hsl += _rainbowIndex;
         if (hsl > 1.0) hsl -= 1.0;
 

@@ -12,11 +12,25 @@ void mqttPollingPublisher()
     return;
 
   if (RTC.GetIsRunning())
-    _mqtt.publish(mqttTopicPubTemp.topic().c_str(), String(RTC.GetTemperature().AsFloatDegC(), 2).c_str());
+    _mqtt.publish(mqttTopicPubTemp.topic().c_str(), String(RTC.GetTemperature().AsFloatDegC(), 2).c_str(), true);
 
-  _mqtt.publish(mqttTopicPubLight.topic().c_str(), String(getAvgLux()).c_str());
+  _mqtt.publish(mqttTopicPubLight.topic().c_str(), String(getAvgLux()).c_str(), true);
 
-  _mqtt.publish(mqttTopicPubRssi.topic().c_str(), String(GetRSSIinPercent(WiFi.RSSI())).c_str());
+  _mqtt.publish(mqttTopicPubRssi.topic().c_str(), String(GetRSSIinPercent(WiFi.RSSI())).c_str(), true);
+
+  byte r, g, b;
+  QTLed.getColor(r, g, b);
+
+  String sr = ("0" + String((int)r, HEX)); sr = sr.substring(sr.length() - 2);
+  String sg = ("0" + String((int)g, HEX)); sg = sg.substring(sg.length() - 2);
+  String sb = ("0" + String((int)b, HEX)); sb = sb.substring(sb.length() - 2);
+  String s = "#" + (sr + sg + sb);
+  s.toUpperCase();
+  _mqtt.publish(mqttTopicPubLedColor.topic().c_str(), s.c_str(), true);
+
+  _mqtt.publish(mqttTopicPubLedMode.topic().c_str(), String(QTLed.getModeIndex()).c_str(), true);
+
+  _mqtt.publish(mqttTopicPubLedAnim.topic().c_str(), String(QTLed.getAnimationIndex()).c_str(), true);
 
   _mqttPollingPublisherTimer = millis64();
 }
@@ -48,7 +62,7 @@ void mqttCallback(char* topic, byte* payloadraw, unsigned int length) {
       String s = "#" + (sr + sg + sb);
       s.toUpperCase();
 
-      _mqtt.publish(mqttTopicPubLedColor.topic().c_str(), s.c_str());
+      _mqtt.publish(mqttTopicPubLedColor.topic().c_str(), s.c_str(), true);
 
       return;
     }
@@ -71,7 +85,7 @@ void mqttCallback(char* topic, byte* payloadraw, unsigned int length) {
 
     // If there is no payload, send back the current value
     if (payload.length() == 0) {
-      _mqtt.publish(mqttTopicPubLedMode.topic().c_str(), String(QTLed.getModeIndex()).c_str());
+      _mqtt.publish(mqttTopicPubLedMode.topic().c_str(), String(QTLed.getModeIndex()).c_str(), true);
       return;
     }
 
@@ -87,7 +101,7 @@ void mqttCallback(char* topic, byte* payloadraw, unsigned int length) {
 
     // If there is no payload, send back the current value
     if (payload.length() == 0) {
-      _mqtt.publish(mqttTopicPubLedAnim.topic().c_str(), String(QTLed.getAnimationIndex()).c_str());
+      _mqtt.publish(mqttTopicPubLedAnim.topic().c_str(), String(QTLed.getAnimationIndex()).c_str(), true);
       return;
     }
 
