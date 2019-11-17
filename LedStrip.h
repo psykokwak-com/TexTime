@@ -631,12 +631,14 @@ class LedStripModeTestSpeed : public LedStripMode
 private:
   int _r;
   int _c;
+  int _e;
 
 public:
   LedStripModeTestSpeed(PixelsContainer *pPixelContainer)
     : LedStripMode("Test Speed", pPixelContainer)
     , _r(0)
     , _c(0)
+    , _e(0)
   {
   }
 
@@ -644,6 +646,7 @@ public:
   {
     _r = 0;
     _c = 0;
+    _e = 0;
   }
 
   void handle()
@@ -659,10 +662,16 @@ public:
     if (_r == NROW) {
       _c = 0;
       _r = 0;
+      _e++;
+    }
+
+    if (_e == NEDGE) {
+      _e = 0;
     }
 
     clearPixelsColor();
     _pPixelContainer->pixelsArray.setPixel(pWHITE, _r, _c++);
+    _pPixelContainer->pixelsEdge[_e] = pWHITE;
 
     _pPixelContainer->hasChanged = true;
   }
