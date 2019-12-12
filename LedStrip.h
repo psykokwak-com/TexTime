@@ -1354,14 +1354,96 @@ public:
           _pPixelContainerOutput->pixelsEdge[0] = Pixel(pf.color);
 
         if (c == NCOL - 1 && r == 0 && _pPixelContainerInput->pixelsEdge[1].display)
-          _pPixelContainerOutput->pixelsEdge[1] = Pixel(pf.color);;
+          _pPixelContainerOutput->pixelsEdge[1] = Pixel(pf.color);
 
         if (c == NCOL - 1 && r == NROW - 1 && _pPixelContainerInput->pixelsEdge[2].display)
-          _pPixelContainerOutput->pixelsEdge[2] = Pixel(pf.color);;
+          _pPixelContainerOutput->pixelsEdge[2] = Pixel(pf.color);
 
         if (c == 0 && r == NROW - 1 && _pPixelContainerInput->pixelsEdge[3].display)
-          _pPixelContainerOutput->pixelsEdge[3] = Pixel(pf.color);;
+          _pPixelContainerOutput->pixelsEdge[3] = Pixel(pf.color);
       }
+    }
+
+    _pPixelContainerOutput->hasChanged = true;
+  }
+};
+
+#define ANIMSNOWFLAKENB 30
+class LedStripAnimationSnowFlake : public LedStripAnimation
+{
+private:
+  Frame _frame;
+  PixelPos _snowFlake[ANIMSNOWFLAKENB];
+
+public:
+  LedStripAnimationSnowFlake(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimation("Snowflakes", pPixelContainerInput, pPixelContainerOutput)
+  {
+  }
+
+  void begin()
+  {
+    _frame.init(15);
+
+    for (int i = 0; i < ANIMSNOWFLAKENB; i++) {
+      _snowFlake[i].e = 0;
+    }
+  }
+
+  void handle()
+  {
+    if (!_frame.next())
+      return;
+
+    clearPixelsColor();
+
+    if (random(4) == 0) 
+    {
+      PixelPos pp;
+      pp.p = pWHITE;
+      pp.e = 50;
+      pp.r = random(NROW);
+      pp.c = random(NCOL);
+
+      bool already = false;
+      for (int i = 0; i < ANIMSNOWFLAKENB; i++) {
+        if (_snowFlake[i].e > 0 && _snowFlake[i].r == pp.r && _snowFlake[i].c == pp.c)
+          already = true;
+      }
+
+      if (!already) {
+        for (int i = 0; i < ANIMSNOWFLAKENB; i++) {
+          if (_snowFlake[i].e == 0) {
+            _snowFlake[i] = pp;
+            break;
+          }
+        }
+      }
+    }
+
+
+    for (int i = 0; i < ANIMSNOWFLAKENB; i++) {
+      if (_snowFlake[i].e > 0) {
+        _pPixelContainerOutput->pixelsArray.setPixel(_snowFlake[i].p.color, _snowFlake[i].r, _snowFlake[i].c);
+        _snowFlake[i].e -= 1;
+        _snowFlake[i].p.color.Darken(5);
+      }
+    }
+
+    // Copy foreground matrix pixels
+    for (int c = 0; c < NCOL; c++) {
+      for (int r = 0; r < NROW; r++) {
+        Pixel pf = _pPixelContainerInput->pixelsArray.getPixel(r, c);
+        if (pf.display)
+          _pPixelContainerOutput->pixelsArray.setPixel(pf, r, c);
+      }
+    }
+
+    // Copy foreground edge pixels
+    for (int e = 0; e < NEDGE; e++) {
+      Pixel pf = _pPixelContainerInput->pixelsEdge[e];
+      if (pf.display)
+        _pPixelContainerOutput->pixelsEdge[e] = pf;
     }
 
     _pPixelContainerOutput->hasChanged = true;
@@ -1405,6 +1487,7 @@ public:
     _animationList.push_back(new LedStripAnimationFire(&_pixels, &_animatedPixels));
     _animationList.push_back(new LedStripAnimationMatrix(&_pixels, &_animatedPixels));
     _animationList.push_back(new LedStripAnimationRainbow(&_pixels, &_animatedPixels));
+    _animationList.push_back(new LedStripAnimationSnowFlake(&_pixels, &_animatedPixels));
   }
 
   bool setAnimation(int mode)
