@@ -16,6 +16,8 @@
 #define pBLUE  Pixel(RgbColor(0  , 0  , 255))
 #define pWHITE Pixel(RgbColor(255, 255, 255))
 
+typedef NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266AsyncUart1Ws2813Method> MyNeoPixelBrightnessBus;
+
 
 class Pixel
 {
@@ -369,8 +371,10 @@ public:
     _colorRandomMode = c;
   }
 
+
   virtual void begin() = 0;
   virtual void handle() = 0;
+  virtual bool allowAnimation() = 0;
 };
 
 class LedStripModeNothing : public LedStripMode
@@ -392,6 +396,12 @@ public:
   void handle()
   {
   }
+
+  bool allowAnimation()
+  {
+    return true;
+  }
+
 };
 
 class LedStripModeTime : public LedStripMode
@@ -472,6 +482,11 @@ public:
 
     _pPixelContainer->hasChanged = true;
   }
+
+  bool allowAnimation()
+  {
+    return true;
+  }
 };
 
 
@@ -506,6 +521,11 @@ public:
 
     _pPixelContainer->hasChanged = true;
   }
+
+  bool allowAnimation()
+  {
+    return true;
+  }
 };
 
 class LedStripModeDay : public LedStripMode
@@ -538,6 +558,11 @@ public:
     ::copyNumberToMatrix(_s, _pPixelContainer->pixelsArray, _color);
 
     _pPixelContainer->hasChanged = true;
+  }
+
+  bool allowAnimation()
+  {
+    return true;
   }
 };
 
@@ -578,6 +603,11 @@ public:
     ::copyNumberToMatrix(t, _pPixelContainer->pixelsArray, _color);
 
     _pPixelContainer->hasChanged = true;
+  }
+
+  bool allowAnimation()
+  {
+    return true;
   }
 };
 
@@ -623,6 +653,11 @@ public:
       break;
     }
     _t++;
+  }
+
+  bool allowAnimation()
+  {
+    return false;
   }
 };
 
@@ -675,15 +710,68 @@ public:
 
     _pPixelContainer->hasChanged = true;
   }
+
+  bool allowAnimation()
+  {
+    return true;
+  }
 };
 
 
+class LedStripModeTestStrip : public LedStripMode
+{
+private:
+  MyNeoPixelBrightnessBus **_ppStrip;
+  Frame _frame;
+  int _index;
 
-#define NeoEsp8266Method NeoEsp8266AsyncUart1Ws2813Method
+public:
+  LedStripModeTestStrip(PixelsContainer *pPixelContainer, MyNeoPixelBrightnessBus **ppStrip)
+    : LedStripMode("Test Strip", pPixelContainer)
+    , _ppStrip(ppStrip)
+    , _index(0)
+  {
+  }
+
+  void begin()
+  {
+    _index = 0;
+    _frame.init(4);
+  }
+
+  void handle()
+  {
+    if (!_frame.next())
+      return;
+
+    // Clear display
+    clearPixelsColor();
+
+    // Do not update buffer because this animation write directly to the strip device
+    _pPixelContainer->hasChanged = false;
+
+    if (!(*_ppStrip)->CanShow())
+      return;
+
+    if (_index > (*_ppStrip)->PixelCount())
+      _index = 0;
+
+    (*_ppStrip)->ClearTo(RgbColor(0, 0, 0));
+    (*_ppStrip)->SetPixelColor(_index++, RgbColor(255, 255, 255));
+    (*_ppStrip)->Show();
+  }
+
+  bool allowAnimation()
+  {
+    return false;
+  }
+};
+
+
 class MyLedStrip
 {
 protected:
-  NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266Method> *_pStrip;
+  MyNeoPixelBrightnessBus *_pStrip;
   cl_Lst<LedConfiguration *> _ledConfiguration;
   int _ledConfigurationIndex;
   PixelsContainer _pixels;
@@ -774,12 +862,13 @@ protected:
     p = v;
   }
 
-  void handleMode()
+  bool handleMode()
   {
-    if (_modeIndex < 0) return;
-    if (_modeIndex > _modeList.size() - 1) return;
+    if (_modeIndex < 0) return false;
+    if (_modeIndex > _modeList.size() - 1) return false;
 
     _modeList[_modeIndex]->handle();
+    return true;
   }
 
 public:
@@ -801,6 +890,7 @@ public:
     _modeList.push_back(new LedStripModeTemperature(&_pixels));
     _modeList.push_back(new LedStripModeTestColors(&_pixels));
     _modeList.push_back(new LedStripModeTestSpeed(&_pixels));
+    _modeList.push_back(new LedStripModeTestStrip(&_pixels, &_pStrip));
   }
 
   ~MyLedStrip()
@@ -829,7 +919,7 @@ public:
       _ledConfigurationIndex = _config.ledConfig;
       
       // Cannot use DMA because DMA GPIO is already used by serial/USB bridge :(
-      _pStrip = new NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266Method>(_ledConfiguration[_ledConfigurationIndex]->ledsNumber(), D4);
+      _pStrip = new MyNeoPixelBrightnessBus(_ledConfiguration[_ledConfigurationIndex]->ledsNumber(), D4);
       _pStrip->Begin();
     }
 
@@ -1278,7 +1368,6 @@ public:
   }
 };
 
-
 class MyLedStripAnimator : public MyLedStrip
 {
 protected:
@@ -1286,14 +1375,14 @@ protected:
   cl_Lst<LedStripAnimation *> _animationList;
   int _animationIndex;
 
-  void handleAnimation()
+  bool handleAnimation()
   {
-    if (_animationIndex < 0) return;
-    if (_animationIndex > _animationList.size() - 1) return;
+    if (_animationIndex < 0) return false;
+    if (_animationIndex > _animationList.size() - 1) return false;
 
     // check if the animated pixel buffer is displayed
     // if not, do not update the animated pixel buffer
-    if (_animatedPixels.hasChanged) return;
+    if (_animatedPixels.hasChanged) return false;
 
     // update the animated pixel buffer
     _animationList[_animationIndex]->handle();
@@ -1302,6 +1391,8 @@ protected:
     // then simulate update of the input buffer
     if (_animatedPixels.hasChanged)
       _pixels.hasChanged = false;
+
+    return true;
   }
 
 public:
@@ -1342,9 +1433,18 @@ public:
   void handle()
   {
     handleAutomaticBrightness();
-    handleMode();
-    handleAnimation();
-    refresh(&_animatedPixels);
+
+    if (!handleMode()) return;
+
+    if (_modeList[_modeIndex]->allowAnimation())
+    {
+      handleAnimation();
+      refresh(&_animatedPixels);
+    }
+    else
+    {
+      refresh(&_pixels);
+    }
   }
 };
 
