@@ -44,6 +44,7 @@ public:
 
   //Acces
   T& operator[](int Indice);
+  T& get(int Indice);
   int size(void) { return NbElt; };
 };
 //---------------------------------------------------------------------------
@@ -209,7 +210,7 @@ template <class T> void cl_Lst<T>::clear(void)
   NbElt = 0;
 }
 //---------------------------------------------------------------------------
-template <class T> T& cl_Lst<T>::operator[](int Indice)
+template <class T> T& cl_Lst<T>::get(int Indice)
 {
   cl_EltLst<T>* Temp = Premier;
 
@@ -221,6 +222,11 @@ template <class T> T& cl_Lst<T>::operator[](int Indice)
 
   //if (Temp)
     return Temp->Data;
+}
+
+template <class T> T& cl_Lst<T>::operator[](int Indice)
+{
+  return get(Indice);
 }
 
 #endif

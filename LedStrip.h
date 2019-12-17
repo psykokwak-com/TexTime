@@ -404,19 +404,49 @@ public:
 
 };
 
+#define LedStripModeTimeName "Time"
 class LedStripModeTime : public LedStripMode
 {
 private:
-  TextTimeFr _textime;
+  cl_Lst<TextTime *> _pTexTime;
+  int _lang;
   int _m;
   int _h;
 
 public:
   LedStripModeTime(PixelsContainer *pPixelContainer)
-    : LedStripMode("Time", pPixelContainer)
+    : LedStripMode(LedStripModeTimeName, pPixelContainer)
+    , _lang(0)
     , _m(-1)
     , _h(-1)
   {
+    // Add your language here. It will be added
+    // to the configuration page automatically
+    _pTexTime.push_back(new TextTimeFr());
+    _pTexTime.push_back(new TextTimeEn());
+  }
+
+  cl_Lst<TextTime *> *getLanguagesList()
+  {
+    return &_pTexTime;
+  }
+
+  int getLanguage()
+  {
+    return _lang;
+  }
+
+  bool setLanguage(int lang)
+  {
+    if (lang < 0) return false;
+    if (lang > _pTexTime.size() - 1) return false;
+
+    _lang = lang;
+
+    // Force refresh
+    begin();
+
+    return true;
   }
 
   void begin()
@@ -436,7 +466,7 @@ public:
     _m = m;
     _h = h;
 
-    TextTimeBlobs b = _textime.getBlobsFromTime(h, m);
+    TextTimeBlobs b = _pTexTime[_lang]->getBlobsFromTime(h, m);
 
     if (!b.number)
       return; // TODO: Display something useful
@@ -900,6 +930,15 @@ public:
     _modeList.clear();
   }
 
+  cl_Lst<TextTime *> *getLanguagesList()
+  {
+    for (int i = 0; i < _modeList.size(); i++)
+    {
+      if (_modeList[i]->getName().equalsIgnoreCase(LedStripModeTimeName))
+        return ((LedStripModeTime *)(_modeList[i]))->getLanguagesList();
+    }
+  }
+
   cl_Lst<LedStripMode *> *getModesList()
   {
     return &_modeList;
@@ -1013,6 +1052,27 @@ public:
   int getModeIndex()
   {
     return _modeIndex;
+  }
+
+  int getLanguage()
+  {
+    for (int i = 0; i < _modeList.size(); i++)
+    {
+      if (_modeList[i]->getName().equalsIgnoreCase(LedStripModeTimeName))
+        return ((LedStripModeTime *)(_modeList[i]))->getLanguage();
+    }
+    return -1;
+  }
+
+  bool setLanguage(int lang)
+  {
+    for (int i = 0; i < _modeList.size(); i++)
+    {
+      if (_modeList[i]->getName().equalsIgnoreCase(LedStripModeTimeName)) {
+        return ((LedStripModeTime *)(_modeList[i]))->setLanguage(lang);
+      }
+    }
+    return false;
   }
 
   void handle()

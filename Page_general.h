@@ -34,6 +34,10 @@ const char PAGE_general[] PROGMEM = R"=====(
   <option value="3">Random word</option>
 </select>
 </td></tr>
+<tr><td align="right">Language :</td><td>
+<select id="lang" name="lang" onchange="updatelang()" >
+</select>
+</td></tr>
 <tr><td align="right">Mode :</td><td>
 <select id="mode" name="mode" onchange="updatemode()" >
 </select>
@@ -73,8 +77,12 @@ function updatecolorrandom() {
   setValues("/admin/led?colorrandom=" + document.getElementById("colorrandom").value);
 }
 
+function updatelang() {
+  setValues("/admin/led?lang=" + document.getElementById("lang").value);
+}
+
 function updatemode() {
-  LedMode(document.getElementById("mode").value);
+  setValues("/admin/led?mode=" + document.getElementById("mode").value);
 }
 
 function updateanimation() {
@@ -104,18 +112,14 @@ function updatebrightnessauto() {
     updatebrightness();
 }
 
-function LedMode(v)
-{
-  setValues("/admin/led?mode=" + v);
-}
-
 window.onload = function ()
 {
 	load("style.css","css", function() 
 	{
 		load("microajax.js","js", function() 
 		{
-        setValues("/admin/generalledconfigvalues", function() {
+      setValues("/admin/generalledconfigvalues", function() {
+        setValues("/admin/generallangsvalues", function() {
           setValues("/admin/generalmodesvalues", function() {
             setValues("/admin/generalanimationsvalues", function() {
               setValues("/admin/generalfieldsvalues", function() {
@@ -124,6 +128,7 @@ window.onload = function ()
             });
           });
         });
+      });
 		});
 	});
 }
@@ -154,6 +159,7 @@ void send_general_html()
         _config.color[1] = (l >> 8) & 0xFF;
         _config.color[2] = (l >> 0) & 0xFF;
       }
+      if (_server.argName(i) == "lang") _config.language = _server.arg(i).toInt();
       if (_server.argName(i) == "mode") _config.mode = _server.arg(i).toInt();
       if (_server.argName(i) == "animation") _config.animation = _server.arg(i).toInt();
       if (_server.argName(i) == "colorrandom") _config.colorRandom = _server.arg(i).toInt();
@@ -172,6 +178,7 @@ void send_general_html()
     QTLed.setColor(_config.color[0], _config.color[1], _config.color[2]);
     QTLed.setColorRandom((RandomColorMode)_config.colorRandom);
 
+    QTLed.setLanguage(_config.language);
     QTLed.setMode(_config.mode);
     QTLed.setAnimation(_config.animation);
 
@@ -190,6 +197,7 @@ void send_general_configuration_values_html()
   values += "brightnessday|" + (String)_config.brightnessAutoMinDay + "|input\n";
   values += "brightnessnight|" + (String)_config.brightnessAutoMinNight + "|input\n";
   values += "color|" + dec2hex2(_config.color[0]) + dec2hex2(_config.color[1]) + dec2hex2(_config.color[2]) + "|jscolor\n";
+  values += "lang|" + (String)_config.language + "|input\n";
   values += "mode|" + (String)_config.mode + "|input\n";
   values += "animation|" + (String)_config.animation + "|input\n";
   values += "colorrandom|" + (String)_config.colorRandom + "|input\n";
@@ -207,6 +215,17 @@ void send_general_ledconfig_values_html()
   String values = "";
   for (int i = 0; i < pl->size(); i++)
     values += "ledconfig|" + (*pl)[i]->getName() + "|select\n";
+
+  _server.send(200, "text/plain", values);
+}
+
+void send_general_langs_values_html()
+{
+  cl_Lst<TextTime *> *pl = QTLed.getLanguagesList();
+
+  String values = "";
+  for (int i = 0; i < pl->size(); i++)
+    values += "lang|" + (*pl)[i]->getLanguage() + "|select\n";
 
   _server.send(200, "text/plain", values);
 }
@@ -256,6 +275,10 @@ void send_general_led()
       if (_server.argName(i) == "brightnessnight")
         _config.brightnessAutoMinNight = _server.arg(i).toInt();
 
+      if (_server.argName(i) == "lang")
+      {
+        QTLed.setLanguage(_server.arg(i).toInt());
+      }
 
       if (_server.argName(i) == "mode")
       {

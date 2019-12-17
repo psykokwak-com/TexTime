@@ -33,6 +33,7 @@ struct strConfig {
   byte brightnessAutoMinNight;          // 1 Byte - EEPROM 394
   byte ledConfig;                       // 1 Byte - EEPROM 395
   byte luxSensitivity;                  // 1 Byte - EEPROM 396
+  byte language;                        // 1 Byte - EEPROM 397
 
   String MQTTServer;                    // up to 64 Byte - EEPROM 512
   String MQTTLogin;                     // up to 64 Byte - EEPROM 576
@@ -177,6 +178,7 @@ void WriteConfig(){
   EEPROM.write(394, _config.brightnessAutoMinNight);
   EEPROM.write(395, _config.ledConfig);
   EEPROM.write(396, _config.luxSensitivity);
+  EEPROM.write(397, _config.language);
 
   WriteStringToEEPROM(512, _config.MQTTServer);
   WriteStringToEEPROM(576, _config.MQTTLogin);
@@ -231,6 +233,7 @@ boolean ReadConfig(){
     _config.brightnessAutoMinNight = EEPROM.read(394);
     _config.ledConfig = EEPROM.read(395);
     _config.luxSensitivity = EEPROM.read(396);
+    _config.language = EEPROM.read(397);
 
     _config.MQTTServer = ReadStringFromEEPROM(512);
     _config.MQTTLogin = ReadStringFromEEPROM(576);

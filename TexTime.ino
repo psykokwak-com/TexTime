@@ -105,6 +105,7 @@ void setup() {
     _config.animation = 0;
     _config.ledConfig = 0;
     _config.luxSensitivity = 40;
+    _config.language = 0;
 
     _config.MQTTServer = "";
     _config.MQTTLogin = "";
@@ -197,6 +198,7 @@ void setup() {
   _server.on("/admin/infovalues", send_information_configuration_values_html);
   _server.on("/admin/ntpfieldsvalues", send_ntp_configuration_values_html);
   _server.on("/admin/generalfieldsvalues", send_general_configuration_values_html);
+  _server.on("/admin/generallangsvalues", send_general_langs_values_html);
   _server.on("/admin/generalmodesvalues", send_general_modes_values_html);
   _server.on("/admin/generalanimationsvalues", send_general_animations_values_html);
   _server.on("/admin/generalledconfigvalues", send_general_ledconfig_values_html);
@@ -270,6 +272,7 @@ void setup() {
   if (!_config.brightnessAuto) QTLed.setBrightness(_config.brightness);
   QTLed.setColor(_config.color[0], _config.color[1], _config.color[2]);
   QTLed.setColorRandom((RandomColorMode)_config.colorRandom);
+  QTLed.setLanguage(_config.language);
   QTLed.setMode(_config.mode);
   QTLed.setAnimation(_config.animation);
 
