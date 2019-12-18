@@ -481,7 +481,7 @@ public:
     _minutes[6].pixels[2].row = 3; _minutes[6].pixels[2].col = 2;   // L
     _minutes[6].pixels[3].row = 3; _minutes[6].pixels[3].col = 3;   // F
 
-    _minutes[7].number = 8; // between [35:39]
+    _minutes[7].number = 10; // between [35:39]
     _minutes[7].pixels[0].row = 2; _minutes[7].pixels[0].col = 0;    // T
     _minutes[7].pixels[1].row = 2; _minutes[7].pixels[1].col = 1;    // W
     _minutes[7].pixels[2].row = 2; _minutes[7].pixels[2].col = 2;    // E
@@ -493,7 +493,7 @@ public:
     _minutes[7].pixels[8].row = 2; _minutes[7].pixels[8].col = 8;    // V
     _minutes[7].pixels[9].row = 2; _minutes[7].pixels[9].col = 9;    // E
 
-    _minutes[8].number = 4; // between [40:44]
+    _minutes[8].number = 6; // between [40:44]
     _minutes[8].pixels[0].row = 2; _minutes[8].pixels[0].col = 0;   // T
     _minutes[8].pixels[1].row = 2; _minutes[8].pixels[1].col = 1;   // W
     _minutes[8].pixels[2].row = 2; _minutes[8].pixels[2].col = 2;   // E
