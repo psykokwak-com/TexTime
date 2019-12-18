@@ -401,7 +401,7 @@ public:
     _hours[8].pixels[1].row = 7; _hours[8].pixels[1].col = 1;  // I
     _hours[8].pixels[2].row = 7; _hours[8].pixels[2].col = 2;  // G
     _hours[8].pixels[3].row = 7; _hours[8].pixels[3].col = 3;  // H
-    _hours[8].pixels[4].row = 7; _hours[8].pixels[4].col = 3;  // T
+    _hours[8].pixels[4].row = 7; _hours[8].pixels[4].col = 4;  // T
 
     _hours[9].number = 4;
     _hours[9].pixels[0].row = 4; _hours[9].pixels[0].col = 7;   // N
@@ -434,18 +434,18 @@ public:
 
     _minutes[0].number = 0; // between [0:4]
 
-    _minutes[1].number = 8 - 4; // between [5:9]
+    _minutes[1].number = 4; // between [5:9]
     _minutes[1].pixels[0].row = 2; _minutes[1].pixels[0].col = 6;  // F
     _minutes[1].pixels[1].row = 2; _minutes[1].pixels[1].col = 7;  // I
     _minutes[1].pixels[2].row = 2; _minutes[1].pixels[2].col = 8;  // V
     _minutes[1].pixels[3].row = 2; _minutes[1].pixels[3].col = 9;  // E
 
-    _minutes[2].number = 7 - 4; // between [10:14]
+    _minutes[2].number = 3; // between [10:14]
     _minutes[2].pixels[0].row = 3; _minutes[2].pixels[0].col = 5;  // T
     _minutes[2].pixels[1].row = 3; _minutes[2].pixels[1].col = 6;  // E
     _minutes[2].pixels[2].row = 3; _minutes[2].pixels[2].col = 7;  // N
 
-    _minutes[3].number = 12 - 4; // between [15:19]
+    _minutes[3].number = 8; // between [15:19]
     _minutes[3].pixels[0].row = 1; _minutes[3].pixels[0].col = 0;    // A
     _minutes[3].pixels[1].row = 1; _minutes[3].pixels[1].col = 2;    // Q
     _minutes[3].pixels[2].row = 1; _minutes[3].pixels[2].col = 3;    // U
@@ -455,7 +455,7 @@ public:
     _minutes[3].pixels[6].row = 1; _minutes[3].pixels[6].col = 7;    // E
     _minutes[3].pixels[7].row = 1; _minutes[3].pixels[7].col = 8;    // R
 
-    _minutes[4].number = 10 - 4; // between [20:24]
+    _minutes[4].number = 6; // between [20:24]
     _minutes[4].pixels[0].row = 2; _minutes[4].pixels[0].col = 0;  // T
     _minutes[4].pixels[1].row = 2; _minutes[4].pixels[1].col = 1;  // W
     _minutes[4].pixels[2].row = 2; _minutes[4].pixels[2].col = 2;  // E
@@ -463,7 +463,7 @@ public:
     _minutes[4].pixels[4].row = 2; _minutes[4].pixels[4].col = 4;  // T
     _minutes[4].pixels[5].row = 2; _minutes[4].pixels[5].col = 5;  // Y
 
-    _minutes[5].number = 14 - 4; // between [25:29]
+    _minutes[5].number = 10; // between [25:29]
     _minutes[5].pixels[0].row = 2; _minutes[5].pixels[0].col = 0;    // T
     _minutes[5].pixels[1].row = 2; _minutes[5].pixels[1].col = 1;    // W
     _minutes[5].pixels[2].row = 2; _minutes[5].pixels[2].col = 2;    // E
@@ -475,13 +475,13 @@ public:
     _minutes[5].pixels[8].row = 2; _minutes[5].pixels[8].col = 8;    // V
     _minutes[5].pixels[9].row = 2; _minutes[5].pixels[9].col = 9;    // E
 
-    _minutes[6].number = 8 - 4; // between [30:34]
+    _minutes[6].number = 4; // between [30:34]
     _minutes[6].pixels[0].row = 3; _minutes[6].pixels[0].col = 0;   // H
     _minutes[6].pixels[1].row = 3; _minutes[6].pixels[1].col = 1;   // A
     _minutes[6].pixels[2].row = 3; _minutes[6].pixels[2].col = 2;   // L
     _minutes[6].pixels[3].row = 3; _minutes[6].pixels[3].col = 3;   // F
 
-    _minutes[7].number = 12 - 2; // between [35:39]
+    _minutes[7].number = 8; // between [35:39]
     _minutes[7].pixels[0].row = 2; _minutes[7].pixels[0].col = 0;    // T
     _minutes[7].pixels[1].row = 2; _minutes[7].pixels[1].col = 1;    // W
     _minutes[7].pixels[2].row = 2; _minutes[7].pixels[2].col = 2;    // E
@@ -493,7 +493,7 @@ public:
     _minutes[7].pixels[8].row = 2; _minutes[7].pixels[8].col = 8;    // V
     _minutes[7].pixels[9].row = 2; _minutes[7].pixels[9].col = 9;    // E
 
-    _minutes[8].number = 8 - 2; // between [40:44]
+    _minutes[8].number = 4; // between [40:44]
     _minutes[8].pixels[0].row = 2; _minutes[8].pixels[0].col = 0;   // T
     _minutes[8].pixels[1].row = 2; _minutes[8].pixels[1].col = 1;   // W
     _minutes[8].pixels[2].row = 2; _minutes[8].pixels[2].col = 2;   // E
@@ -501,7 +501,7 @@ public:
     _minutes[8].pixels[4].row = 2; _minutes[8].pixels[4].col = 4;   // T
     _minutes[8].pixels[5].row = 2; _minutes[8].pixels[5].col = 5;   // Y
 
-    _minutes[9].number = 10 - 2; // between [45:49]
+    _minutes[9].number = 8; // between [45:49]
     _minutes[9].pixels[0].row = 1; _minutes[9].pixels[0].col = 0;   // A
     _minutes[9].pixels[1].row = 1; _minutes[9].pixels[1].col = 2;   // Q
     _minutes[9].pixels[2].row = 1; _minutes[9].pixels[2].col = 3;   // U
@@ -511,12 +511,12 @@ public:
     _minutes[9].pixels[6].row = 1; _minutes[9].pixels[6].col = 7;   // E
     _minutes[9].pixels[7].row = 1; _minutes[9].pixels[7].col = 8;   // R
 
-    _minutes[10].number = 5 - 2; // between [50:54]
+    _minutes[10].number = 3; // between [50:54]
     _minutes[10].pixels[0].row = 3; _minutes[10].pixels[0].col = 5;  // T
     _minutes[10].pixels[1].row = 3; _minutes[10].pixels[1].col = 6;  // E
     _minutes[10].pixels[2].row = 3; _minutes[10].pixels[2].col = 7;  // N
 
-    _minutes[11].number = 6 - 2; // between [55:59]
+    _minutes[11].number = 4; // between [55:59]
     _minutes[11].pixels[0].row = 2; _minutes[11].pixels[0].col = 6;  // F
     _minutes[11].pixels[1].row = 2; _minutes[11].pixels[1].col = 7;  // I
     _minutes[11].pixels[2].row = 2; _minutes[11].pixels[2].col = 8;  // V
@@ -540,20 +540,20 @@ public:
       b.blobs[b.number++] = &_oclock;
     else if (minute >= 35) {
       hour = hour + 1;
-      b.blobs[b.number++] = &_to;
+      b.blobs[b.number++] = &_to;     // TO 
     }
     else
-      b.blobs[b.number++] = &_past;
+      b.blobs[b.number++] = &_past;   // PAST
 
     if (hour > 23) hour = 0;
 
     b.blobs[b.number++] = &(_hours[hour % 12]);    // DISPLAY HOURS
     b.blobs[b.number++] = &(_minutes[minute / 5]); // DISPALY MINUTES
 
-    if (hour < 13)                    // AM
-      b.blobs[b.number++] = &_am;
-    else                              // PM
-      b.blobs[b.number++] = &_pm;
+    if (hour < 12)                    
+      b.blobs[b.number++] = &_am;     // AM
+    else                              
+      b.blobs[b.number++] = &_pm;     // PM
 
     return b;
   }
