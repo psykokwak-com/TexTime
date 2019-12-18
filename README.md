@@ -1,6 +1,6 @@
 # TexTime
 
-TexTime project is an DIY qlock project.
+TexTime project is an DIY qlock project based on an ESP8666 MCU and WS2813 LEDs.
 
 ![TexTime](https://reho.st/preview/self/f4b9afd9798dff7c08a92e4f3a6389d2bd697135.jpg)
 
