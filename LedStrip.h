@@ -1433,21 +1433,22 @@ class LedStripAnimationSnowFlake : public LedStripAnimation
 {
 private:
   Frame _frame;
-  PixelPos _snowFlake[ANIMSNOWFLAKENB];
+  int _matrixColumn[NCOL];
+  int _matrixColumnSize;
 
 public:
   LedStripAnimationSnowFlake(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
     : LedStripAnimation("Snowflakes", pPixelContainerInput, pPixelContainerOutput)
+    , _matrixColumnSize(1)
   {
   }
 
   void begin()
   {
-    _frame.init(15);
+    _frame.init(4);
 
-    for (int i = 0; i < ANIMSNOWFLAKENB; i++) {
-      _snowFlake[i].e = 0;
-    }
+    for (int i = 0; i < NCOL; i++)
+      _matrixColumn[i] = -1;
   }
 
   void handle()
@@ -1457,37 +1458,32 @@ public:
 
     clearPixelsColor();
 
-    if (random(4) == 0) 
-    {
-      PixelPos pp;
-      pp.p = pWHITE;
-      pp.e = 50;
-      pp.r = random(NROW);
-      pp.c = random(NCOL);
+    // Copy background matrix pixels
 
-      bool already = false;
-      for (int i = 0; i < ANIMSNOWFLAKENB; i++) {
-        if (_snowFlake[i].e > 0 && _snowFlake[i].r == pp.r && _snowFlake[i].c == pp.c)
-          already = true;
-      }
-
-      if (!already) {
-        for (int i = 0; i < ANIMSNOWFLAKENB; i++) {
-          if (_snowFlake[i].e == 0) {
-            _snowFlake[i] = pp;
-            break;
-          }
+    // Create a new column if possible (= -1)
+    for (int c = 0; c < NCOL; c++) {
+      if (_matrixColumn[c] == -1) {
+        if (random(5) == 0) {
+          _matrixColumn[c] = 0;
         }
       }
     }
 
+    // Update display columns
+    for (int c = 0; c < NCOL; c++) {
+      if (_matrixColumn[c] == -1)
+        continue;
 
-    for (int i = 0; i < ANIMSNOWFLAKENB; i++) {
-      if (_snowFlake[i].e > 0) {
-        _pPixelContainerOutput->pixelsArray.setPixel(_snowFlake[i].p.color, _snowFlake[i].r, _snowFlake[i].c);
-        _snowFlake[i].e -= 1;
-        _snowFlake[i].p.color.Darken(5);
+      Pixel green = pWHITE;
+      for (int r = _matrixColumn[c]; r > _matrixColumn[c] - _matrixColumnSize; r--) {
+        _pPixelContainerOutput->pixelsArray.setPixel(green, r, c);
+        green.color.Darken(128);
       }
+
+      _matrixColumn[c]++;
+
+      if (_matrixColumn[c] > NROW + _matrixColumnSize)
+        _matrixColumn[c] = -1;
     }
 
     // Copy foreground matrix pixels
