@@ -2,7 +2,7 @@
 
 TexTime project is an DIY qlock project based on an ESP8666 MCU and WS2813 LEDs.
 
-![TexTime](https://reho.st/preview/self/f4b9afd9798dff7c08a92e4f3a6389d2bd697135.jpg)
+![TexTime](https://reho.st/preview/self/be379bd761407b3a657e1c276fe8063ff5d1cf09.jpg)
 
 ## Build
 To build this code, you need the following arduino libraries : 
