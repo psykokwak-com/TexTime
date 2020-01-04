@@ -59,7 +59,6 @@ IPAddress _apNetMsk(255, 255, 255, 0);
 void setup() {
   String chipID;
   bool CFG_saved = false;
-  int WIFI_connected = false;
 
   // No need to set this until option is set in arduino/visualmicro
   //system_update_cpu_freq(SYS_CPU_160MHZ);

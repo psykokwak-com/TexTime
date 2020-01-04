@@ -16,7 +16,8 @@
 #define pBLUE  Pixel(RgbColor(0  , 0  , 255))
 #define pWHITE Pixel(RgbColor(255, 255, 255))
 
-typedef NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266AsyncUart1Ws2813Method> MyNeoPixelBrightnessBus;
+//typedef NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266AsyncUart1Ws2813Method> MyNeoPixelBrightnessBus;
+typedef NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266Uart1Ws2813Method> MyNeoPixelBrightnessBus;
 
 
 class Pixel
