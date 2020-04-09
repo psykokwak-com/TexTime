@@ -10,5 +10,5 @@ To build this code, you need the following arduino libraries :
 - https://github.com/Makuna/Rtc
 
 ## Documentation
-Electronic parts are available on https://easyeda.com/psykokwak/TexTime-V3
-The source code is based on the "template" project from https://github.com/Pedroalbuquerque/template
+- Electronic parts are available on https://easyeda.com/psykokwak/TexTime-V3
+- The source code is based on the "template" project from https://github.com/Pedroalbuquerque/template
