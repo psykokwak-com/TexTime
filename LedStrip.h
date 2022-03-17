@@ -871,10 +871,9 @@ protected:
       int lmin = 0;                               // minimum lux sensitivity allowed
       int lmax = _config.luxSensitivity * 10;     // maximum lux sensitivity allowed
 
-      int s = sn;
+      int s = sn; // night
 
-      if (_dateTime.hour > 21 && _dateTime.hour < 9) s = sn; // between 22h and 9h
-      if (_dateTime.hour > 9 && _dateTime.hour < 21) s = sd; // between 10h and 21h
+      if (_dateTime.hour > 9 && _dateTime.hour < 21) s = sd; // between 10h and 21h (day)
 
       if (_dateTime.hour == 21) s = map(_dateTime.minute, 0, 59, sd, sn); // during the 21th hour
       if (_dateTime.hour == 9) s = map(_dateTime.minute, 0, 59, sn, sd); // during the 9th hour
@@ -938,6 +937,8 @@ public:
       if (_modeList[i]->getName().equalsIgnoreCase(LedStripModeTimeName))
         return ((LedStripModeTime *)(_modeList[i]))->getLanguagesList();
     }
+
+    return NULL;
   }
 
   cl_Lst<LedStripMode *> *getModesList()
@@ -1242,7 +1243,7 @@ private:
 
   RgbColor generateFireColor()
   {
-    RgbColor c = RgbColor(58, 58, 6);;
+    RgbColor c = RgbColor(58, 58, 6);
     c.Darken(random(15));
     c.R += random(15);
     return c;
@@ -1507,6 +1508,236 @@ public:
   }
 };
 
+class LedStripAnimationCake : public LedStripAnimation
+{
+private:
+  Frame _frame;
+
+public:
+  LedStripAnimationCake(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimation("Cake", pPixelContainerInput, pPixelContainerOutput)
+  {
+  }
+
+  void begin()
+  {
+    _frame.init(5);
+  }
+
+  Pixel generateFire()
+  {
+    Pixel yellow = Pixel(RgbColor(255, 160, 25));
+
+    yellow.color.B += random(50);
+    yellow.color.G += random(30);
+
+    return yellow;
+  }
+
+  void handle()
+  {
+    if (!_frame.next())
+      return;
+
+    clearPixelsColor();
+
+    if (_dateTime.second / 10 % 2)
+    {
+      Pixel white = Pixel(RgbColor(255, 255, 255));
+      Pixel red = Pixel(RgbColor(255, 0, 0));
+      Pixel brown = Pixel(RgbColor(125, 57, 0));
+
+      _pPixelContainerOutput->pixelsArray.setPixel(generateFire(), 2, 3);
+      _pPixelContainerOutput->pixelsArray.setPixel(generateFire(), 2, 5);
+      _pPixelContainerOutput->pixelsArray.setPixel(generateFire(), 2, 7);
+
+      _pPixelContainerOutput->pixelsArray.setPixel(white, 3, 3);
+      _pPixelContainerOutput->pixelsArray.setPixel(white, 3, 5);
+      _pPixelContainerOutput->pixelsArray.setPixel(white, 3, 7);
+
+      _pPixelContainerOutput->pixelsArray.setPixel(white, 4, 3);
+      _pPixelContainerOutput->pixelsArray.setPixel(white, 4, 5);
+      _pPixelContainerOutput->pixelsArray.setPixel(white, 4, 7);
+
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 5, 2);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 5, 3);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 5, 4);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 5, 5);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 5, 6);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 5, 7);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 5, 8);
+
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 6, 2);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 6, 3);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 6, 4);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 6, 5);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 6, 6);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 6, 7);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 6, 8);
+
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 7, 1);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 7, 2);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 7, 3);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 7, 4);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 7, 5);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 7, 6);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 7, 7);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 7, 8);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 7, 9);
+
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 8, 1);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 8, 2);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 8, 3);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 8, 4);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 8, 5);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 8, 6);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 8, 7);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 8, 8);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 8, 9);
+
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 9, 1);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 9, 2);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 9, 3);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 9, 4);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 9, 5);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 9, 6);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 9, 7);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 9, 8);
+      _pPixelContainerOutput->pixelsArray.setPixel(brown, 9, 9);
+    }
+    else
+    {
+      // Copy foreground matrix pixels
+      for (int c = 0; c < NCOL; c++) {
+        for (int r = 0; r < NROW; r++) {
+          Pixel pf = _pPixelContainerInput->pixelsArray.getPixel(r, c);
+          if (pf.display)
+            _pPixelContainerOutput->pixelsArray.setPixel(pf, r, c);
+        }
+      }
+
+      // Copy foreground edge pixels
+      for (int e = 0; e < NEDGE; e++) {
+        Pixel pf = _pPixelContainerInput->pixelsEdge[e];
+        if (pf.display)
+          _pPixelContainerOutput->pixelsEdge[e] = pf;
+      }
+    }
+
+    _pPixelContainerOutput->hasChanged = true;
+  }
+};
+
+
+class LedStripAnimationLove : public LedStripAnimation
+{
+private:
+  Frame _frame;
+
+public:
+  LedStripAnimationLove(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimation("Love", pPixelContainerInput, pPixelContainerOutput)
+  {
+  }
+
+  void begin()
+  {
+    _frame.init(5);
+  }
+
+  void handle()
+  {
+    if (!_frame.next())
+      return;
+
+    clearPixelsColor();
+
+    if (_dateTime.second / 10 % 2)
+    {
+      //Pixel white = Pixel(RgbColor(255, 255, 255));
+      Pixel red = Pixel(RgbColor(255, 0, 0));
+      Pixel pink = Pixel(RgbColor(0x69, 0x28, 0xDE));
+
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 1, 2);
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 1, 3);
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 1, 4);
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 1, 6);
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 1, 7);
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 1, 8);
+
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 2, 1);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 2, 2);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 2, 3);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 2, 4);
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 2, 5);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 2, 6);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 2, 7);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 2, 8);
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 2, 9);
+
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 3, 1);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 3, 2);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 3, 3);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 3, 4);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 3, 5);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 3, 6);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 3, 7);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 3, 8);
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 3, 9);
+
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 4, 1);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 4, 2);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 4, 3);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 4, 4);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 4, 5);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 4, 6);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 4, 7);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 4, 8);
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 4, 9);
+
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 5, 2);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 5, 3);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 5, 4);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 5, 5);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 5, 6);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 5, 7);
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 5, 8);
+
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 6, 3);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 6, 4);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 6, 5);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 6, 6);
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 6, 7);
+
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 7, 4);
+      _pPixelContainerOutput->pixelsArray.setPixel(red, 7, 5);
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 7, 6);
+
+      _pPixelContainerOutput->pixelsArray.setPixel(pink, 8, 5);
+    }
+    else
+    {
+      // Copy foreground matrix pixels
+      for (int c = 0; c < NCOL; c++) {
+        for (int r = 0; r < NROW; r++) {
+          Pixel pf = _pPixelContainerInput->pixelsArray.getPixel(r, c);
+          if (pf.display)
+            _pPixelContainerOutput->pixelsArray.setPixel(pf, r, c);
+        }
+      }
+
+      // Copy foreground edge pixels
+      for (int e = 0; e < NEDGE; e++) {
+        Pixel pf = _pPixelContainerInput->pixelsEdge[e];
+        if (pf.display)
+          _pPixelContainerOutput->pixelsEdge[e] = pf;
+      }
+    }
+
+    _pPixelContainerOutput->hasChanged = true;
+  }
+};
+
 class MyLedStripAnimator : public MyLedStrip
 {
 protected:
@@ -1545,6 +1776,9 @@ public:
     _animationList.push_back(new LedStripAnimationMatrix(&_pixels, &_animatedPixels));
     _animationList.push_back(new LedStripAnimationRainbow(&_pixels, &_animatedPixels));
     _animationList.push_back(new LedStripAnimationSnowFlake(&_pixels, &_animatedPixels));
+    _animationList.push_back(new LedStripAnimationCake(&_pixels, &_animatedPixels));
+    _animationList.push_back(new LedStripAnimationLove(&_pixels, &_animatedPixels));
+
   }
 
   bool setAnimation(int mode)
