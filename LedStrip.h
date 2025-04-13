@@ -1686,7 +1686,6 @@ public:
   }
 };
 
-
 class LedStripAnimationLove : public LedStripAnimation
 {
 private:
@@ -1796,6 +1795,124 @@ public:
   }
 };
 
+class LedStripAnimationRipple : public LedStripAnimation
+{
+private:
+  struct Ripple {
+    int originR, originC;
+    int radius;
+    RgbColor baseColor;
+    bool active;
+  };
+
+  static const int MAX_RIPPLES = 2;
+  Ripple _ripples[MAX_RIPPLES];
+  Frame _frame;
+
+  bool isInBounds(int r, int c)
+  {
+    return r >= 0 && r < NROW &&c >= 0 && c < NCOL;
+  }
+
+  void createNewRipple(int index)
+  {
+    _ripples[index].originR = random(NROW);
+    _ripples[index].originC = random(NCOL);
+    _ripples[index].radius = 0;
+    _ripples[index].baseColor = RgbColor(random(128, 255), random(64), random(255));
+    _ripples[index].active = true;
+  }
+
+  double euclideanDistance(int r1, int c1, int r2, int c2)
+  {
+    return sqrt((r1 - r2) * (r1 - r2) + (c1 - c2) * (c1 - c2));
+  }
+
+public:
+  LedStripAnimationRipple(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimation("Ripple", pPixelContainerInput, pPixelContainerOutput)
+  {
+  }
+
+  void begin()
+  {
+    _frame.init(8);
+    for (int i = 0; i < MAX_RIPPLES; i++)
+      _ripples[i].active = false;
+
+    // Start the first wave
+    createNewRipple(0);
+  }
+
+  void handle()
+  {
+    if (!_frame.next())
+      return;
+
+    clearPixelsColor();
+
+    for (int r = 0; r < NROW; r++) {
+      for (int c = 0; c < NCOL; c++) {
+        Pixel p;
+        p.display = false;
+
+        for (int i = 0; i < MAX_RIPPLES; i++) {
+          if (!_ripples[i].active)
+            continue;
+
+          double dist = euclideanDistance(r, c, _ripples[i].originR, _ripples[i].originC);
+
+          if (abs(dist - _ripples[i].radius) < 0.5) {
+            RgbColor color = _ripples[i].baseColor;
+            int darkenAmount = (int)(dist * 10);
+            color.Darken(darkenAmount);
+
+            p.color = color;
+            p.display = true;
+            break;
+          }
+        }
+
+        if (p.display)
+          _pPixelContainerOutput->pixelsArray.setPixel(p, r, c);
+      }
+    }
+
+    for (int i = 0; i < MAX_RIPPLES; i++) {
+      if (_ripples[i].active) {
+        _ripples[i].radius++;
+
+        if (_ripples[i].radius > (NROW + NCOL) / 2) {
+          _ripples[i].active = false;
+        }
+      }
+
+      if (!_ripples[i].active && random(100) < 10) {
+        createNewRipple(i);
+      }
+    }
+
+    // Copy foreground matrix pixels
+    for (int c = 0; c < NCOL; c++) {
+      for (int r = 0; r < NROW; r++) {
+        Pixel pf = _pPixelContainerInput->pixelsArray.getPixel(r, c);
+        if (pf.display)
+          _pPixelContainerOutput->pixelsArray.setPixel(pf, r, c);
+      }
+    }
+
+    // Copy foreground edge pixels
+    for (int e = 0; e < NEDGE; e++) {
+      Pixel pf = _pPixelContainerInput->pixelsEdge[e];
+      if (pf.display)
+        _pPixelContainerOutput->pixelsEdge[e] = pf;
+    }
+
+    _pPixelContainerOutput->hasChanged = true;
+  }
+};
+
+
 class MyLedStripAnimator : public MyLedStrip
 {
 protected:
@@ -1836,6 +1953,7 @@ public:
     _animationList.push_back(new LedStripAnimationSnowFlake(&_pixels, &_animatedPixels));
     _animationList.push_back(new LedStripAnimationCake(&_pixels, &_animatedPixels));
     _animationList.push_back(new LedStripAnimationLove(&_pixels, &_animatedPixels));
+    _animationList.push_back(new LedStripAnimationRipple(&_pixels, &_animatedPixels));
 
   }
 
