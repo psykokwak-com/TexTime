@@ -101,14 +101,14 @@ public:
   virtual int ledsByPixelForEdges() = 0;
   virtual int ledsNumber() = 0;
   virtual String getName() = 0;
-  virtual const uint8_t *getLedsMatrixId(int row, int col) = 0;
-  virtual const uint8_t *getLedsEdgeId(int n) = 0;
+  virtual const uint16_t *getLedsMatrixId(int row, int col) = 0;
+  virtual const uint16_t *getLedsEdgeId(int n) = 0;
   virtual ~LedConfiguration() {}
 };
 
 class LedConfiguration40x40 : public LedConfiguration {
 private:
-  const uint8_t _matchingPixelsMatrix[NROW][NCOL][1] = {
+  const uint16_t _matchingPixelsMatrix[NROW][NCOL][1] = {
     { { 0  }, { 1  }, { 5  }, { 6  }, { 14 }, { 15 }, { 27 }, { 28  }, { 44  }, { 45  }, { 64  } },
     { { 2  }, { 4  }, { 7  }, { 13 }, { 16 }, { 26 }, { 29 }, { 43  }, { 46  }, { 63  }, { 65  } },
     { { 3  }, { 8  }, { 12 }, { 17 }, { 25 }, { 30 }, { 42 }, { 47  }, { 62  }, { 66  }, { 81  } },
@@ -120,7 +120,7 @@ private:
     { { 36 }, { 53 }, { 56 }, { 72 }, { 75 }, { 87 }, { 90 }, { 98  }, { 101 }, { 105 }, { 108 } },
     { { 54 }, { 55 }, { 73 }, { 74 }, { 88 }, { 89 }, { 99 }, { 100 }, { 106 }, { 107 }, { 109 } }
   };
-  const uint8_t _matchingPixelsEdge[NEDGE][1] = { { 112 }, { 111 }, { 110 }, { 113 } };
+  const uint16_t _matchingPixelsEdge[NEDGE][1] = { { 112 }, { 111 }, { 110 }, { 113 } };
 
 public:
   virtual String getName()
@@ -143,7 +143,7 @@ public:
     return (NROW * NCOL) + NEDGE;
   }
 
-  const uint8_t *getLedsMatrixId(int row, int col)
+  const uint16_t *getLedsMatrixId(int row, int col)
   {
     if (row < 0) return NULL;
     if (col < 0) return NULL;
@@ -153,7 +153,7 @@ public:
     return _matchingPixelsMatrix[row][col];
   }
 
-  const uint8_t *getLedsEdgeId(int n)
+  const uint16_t *getLedsEdgeId(int n)
   {
     if (n < 0) return NULL;
     if (n > NEDGE - 1) return NULL;
@@ -164,7 +164,7 @@ public:
 
 class LedConfiguration100x100_1 : public LedConfiguration {
 private:
-  const uint8_t _matchingPixelsMatrix[NROW][NCOL][1] = {
+  const uint16_t _matchingPixelsMatrix[NROW][NCOL][1] = {
     { { 21  }, { 19  }, { 17  }, { 15  }, { 13  }, { 11  }, { 9   }, { 7   }, { 5   }, { 3   }, { 1   } },
     { { 24  }, { 26  }, { 28  }, { 30  }, { 32  }, { 34  }, { 36  }, { 38  }, { 40  }, { 42  }, { 44  } },
     { { 67  }, { 65  }, { 63  }, { 61  }, { 59  }, { 57  }, { 55  }, { 53  }, { 51  }, { 49  }, { 47  } },
@@ -176,7 +176,7 @@ private:
     { { 205 }, { 203 }, { 201 }, { 199 }, { 197 }, { 195 }, { 193 }, { 191 }, { 189 }, { 187 }, { 185 } },
     { { 208 }, { 210 }, { 212 }, { 214 }, { 216 }, { 218 }, { 220 }, { 222 }, { 224 }, { 226 }, { 228 } }
   };
-  const uint8_t _matchingPixelsEdge[NEDGE][1] = { { 232 }, { 231 }, { 230 }, { 233 } };
+  const uint16_t _matchingPixelsEdge[NEDGE][1] = { { 232 }, { 231 }, { 230 }, { 233 } };
 
 public:
   virtual String getName()
@@ -199,7 +199,7 @@ public:
     return (NROW * 23) + NEDGE;
   }
 
-  const uint8_t *getLedsMatrixId(int row, int col)
+  const uint16_t *getLedsMatrixId(int row, int col)
   {
     if (row < 0) return NULL;
     if (col < 0) return NULL;
@@ -209,7 +209,7 @@ public:
     return _matchingPixelsMatrix[row][col];
   }
 
-  const uint8_t *getLedsEdgeId(int n)
+  const uint16_t *getLedsEdgeId(int n)
   {
     if (n < 0) return NULL;
     if (n > NEDGE - 1) return NULL;
@@ -220,7 +220,7 @@ public:
 
 class LedConfiguration100x100_2 : public LedConfiguration {
 private:
-  const uint8_t _matchingPixelsMatrix[NROW][NCOL][2] = {
+  const uint16_t _matchingPixelsMatrix[NROW][NCOL][2] = {
     { { 21 , 22  }, { 19 , 20  }, { 17 , 18  }, { 15 , 16  }, { 13 , 14  }, { 11 , 12  }, { 9  , 10  }, { 7  , 8   }, { 5  , 6   }, { 3  , 4   }, { 1  , 2   } },
     { { 25 , 26  }, { 27 , 28  }, { 29 , 30  }, { 31 , 32  }, { 33 , 34  }, { 35 , 36  }, { 37 , 38  }, { 39 , 40  }, { 41 , 42  }, { 43 , 44  }, { 45 , 46  } },
     { { 69 , 70  }, { 67 , 68  }, { 65 , 66  }, { 63 , 64  }, { 61 , 62  }, { 59 , 60  }, { 57 , 58  }, { 55 , 56  }, { 53 , 54  }, { 51 , 52  }, { 49 , 50  } },
@@ -232,7 +232,7 @@ private:
     { { 213, 214 }, { 211, 212 }, { 209, 210 }, { 207, 208 }, { 205, 206 }, { 203, 204 }, { 201, 202 }, { 199, 200 }, { 197, 198 }, { 195, 196 }, { 193, 194 } },
     { { 217, 218 }, { 219, 220 }, { 221, 222 }, { 223, 224 }, { 225, 226 }, { 227, 228 }, { 229, 230 }, { 231, 232 }, { 233, 234 }, { 235, 236 }, { 237, 238 } }
   };
-  const uint8_t _matchingPixelsEdge[NEDGE][1] = { { 242 }, { 241 }, { 240 }, { 243 } };
+  const uint16_t _matchingPixelsEdge[NEDGE][1] = { { 242 }, { 241 }, { 240 }, { 243 } };
 
 public:
   virtual String getName()
@@ -255,7 +255,7 @@ public:
     return (NROW * 24) + NEDGE;
   }
 
-  const uint8_t *getLedsMatrixId(int row, int col)
+  const uint16_t *getLedsMatrixId(int row, int col)
   {
     if (row < 0) return NULL;
     if (col < 0) return NULL;
@@ -265,7 +265,64 @@ public:
     return _matchingPixelsMatrix[row][col];
   }
 
-  const uint8_t *getLedsEdgeId(int n)
+  const uint16_t *getLedsEdgeId(int n)
+  {
+    if (n < 0) return NULL;
+    if (n > NEDGE - 1) return NULL;
+
+    return _matchingPixelsEdge[n];
+  }
+};
+
+
+class LedConfiguration100x100_3 : public LedConfiguration {
+private:
+  const uint16_t _matchingPixelsMatrix[NROW][NCOL][2] = {
+    { { 21 , 22  }, { 19 , 20  }, { 17 , 18  }, { 15 , 16  }, { 13 , 14  }, { 11 , 12  }, { 9  , 10  }, { 7  , 8   }, { 5  , 6   }, { 3  , 4   }, { 1  , 2   } },
+    { { 27 , 28  }, { 29 , 30  }, { 31 , 32  }, { 33 , 34  }, { 35 , 36  }, { 37 , 38  }, { 39 , 40  }, { 41 , 42  }, { 43 , 44  }, { 45 , 46  }, { 47 , 48  } },
+    { { 73 , 74  }, { 71 , 72  }, { 69 , 70  }, { 67 , 68  }, { 65 , 66  }, { 63 , 64  }, { 61 , 62  }, { 59 , 60  }, { 57 , 58  }, { 55 , 56  }, { 53 , 54  } },
+    { { 79 , 80  }, { 81 , 82  }, { 83 , 84  }, { 85 , 86  }, { 87 , 88  }, { 89 , 90  }, { 91 , 92  }, { 93 , 94  }, { 95 , 96  }, { 97 , 98  }, { 99 , 100 } },
+    { { 125, 126 }, { 123, 124 }, { 121, 122 }, { 119, 120 }, { 117, 118 }, { 115, 116 }, { 113, 114 }, { 111, 112 }, { 109, 110 }, { 107, 108 }, { 105, 106 } },
+    { { 131, 132 }, { 133, 134 }, { 135, 136 }, { 137, 138 }, { 139, 140 }, { 141, 142 }, { 143, 144 }, { 145, 146 }, { 147, 148 }, { 149, 150 }, { 151, 152 } },
+    { { 177, 178 }, { 175, 176 }, { 173, 174 }, { 171, 172 }, { 169, 170 }, { 167, 168 }, { 165, 166 }, { 163, 164 }, { 161, 162 }, { 159, 160 }, { 157, 158 } },
+    { { 183, 184 }, { 185, 186 }, { 187, 188 }, { 189, 190 }, { 191, 192 }, { 193, 194 }, { 195, 196 }, { 197, 198 }, { 199, 200 }, { 201, 202 }, { 203, 204 } },
+    { { 229, 230 }, { 227, 228 }, { 225, 226 }, { 223, 224 }, { 221, 222 }, { 219, 220 }, { 217, 218 }, { 215, 216 }, { 213, 214 }, { 211, 212 }, { 209, 210 } },
+    { { 235, 236 }, { 237, 238 }, { 239, 240 }, { 241, 242 }, { 243, 244 }, { 245, 246 }, { 247, 248 }, { 249, 250 }, { 251, 252 }, { 253, 254 }, { 255, 256 } },
+  };
+  const uint16_t _matchingPixelsEdge[NEDGE][1] = { { 260 }, { 259 }, { 258 }, { 261 } };
+
+public:
+  virtual String getName()
+  {
+    return "100x100@3";
+  }
+
+  int ledsByPixelForMatrix()
+  {
+    return 2;
+  }
+
+  int ledsByPixelForEdges()
+  {
+    return 1;
+  }
+
+  int ledsNumber()
+  {
+    return 262;
+  }
+
+  const uint16_t *getLedsMatrixId(int row, int col)
+  {
+    if (row < 0) return NULL;
+    if (col < 0) return NULL;
+    if (row > NROW - 1) return NULL;
+    if (col > NCOL - 1) return NULL;
+
+    return _matchingPixelsMatrix[row][col];
+  }
+
+  const uint16_t *getLedsEdgeId(int n)
   {
     if (n < 0) return NULL;
     if (n > NEDGE - 1) return NULL;
@@ -825,7 +882,7 @@ protected:
     for (int r = 0; r < NROW; r++) {
       for (int c = 0; c < NCOL; c++) {
         Pixel p = pPixel->pixelsArray.getPixel(r, c);
-        const uint8_t *i = _ledConfiguration[_ledConfigurationIndex]->getLedsMatrixId(r, c);
+        const uint16_t *i = _ledConfiguration[_ledConfigurationIndex]->getLedsMatrixId(r, c);
 
         if (!p.display) continue;
 
@@ -837,7 +894,7 @@ protected:
     // Fill leds strip with edge pixels
     for (int e = 0; e < NEDGE; e++) {
       Pixel p = pPixel->pixelsEdge[e];
-      const uint8_t *i = _ledConfiguration[_ledConfigurationIndex]->getLedsEdgeId(e);
+      const uint16_t *i = _ledConfiguration[_ledConfigurationIndex]->getLedsEdgeId(e);
 
       if (!p.display) continue;
 
@@ -912,6 +969,7 @@ public:
     _ledConfiguration.push_back(new LedConfiguration40x40());
     _ledConfiguration.push_back(new LedConfiguration100x100_1());
     _ledConfiguration.push_back(new LedConfiguration100x100_2());
+    _ledConfiguration.push_back(new LedConfiguration100x100_3());
 
     _modeList.push_back(new LedStripModeNothing(&_pixels));
     _modeList.push_back(new LedStripModeTime(&_pixels));
