@@ -19,7 +19,6 @@
 //typedef NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266AsyncUart1Ws2813Method> MyNeoPixelBrightnessBus;
 typedef NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266Uart1Ws2813Method> MyNeoPixelBrightnessBus;
 
-
 class Pixel
 {
 public:
@@ -92,8 +91,6 @@ struct PixelsContainer
   Pixel pixelsEdge[NEDGE];
   bool hasChanged;
 };
-
-
 
 class LedConfiguration {
 public:
@@ -274,7 +271,6 @@ public:
   }
 };
 
-
 class LedConfiguration100x100_3 : public LedConfiguration {
 private:
   const uint16_t _matchingPixelsMatrix[NROW][NCOL][2] = {
@@ -331,14 +327,12 @@ public:
   }
 };
 
-
-
 //  0         x
 // 0+----------
 //  |
 //  |
 //  |
-// y|  
+// y|
 //
 void copyCharToMatrix(const uint8_t src[FONTROW][FONTCOL], PixelsArray &dst, int posx, int posy, const RgbColor &color)
 {
@@ -369,7 +363,6 @@ void copyNumberToMatrix(int n, PixelsArray &dst, const RgbColor &color)
   ::copyCharToMatrix(_font_number[abs(n % 10)], dst, x, 0 + 6, color); // Display "Second number"
 }
 
-
 enum RandomColorMode
 {
   ColorRandomNo = 0,
@@ -377,7 +370,6 @@ enum RandomColorMode
   ColorRandomLetter,
   ColorRandomWord
 };
-
 
 class LedStripMode
 {
@@ -399,7 +391,7 @@ protected:
     // Clear pixels
     setPixelsColor(pVOID);
   }
-  
+
 public:
   LedStripMode(String name, PixelsContainer *pPixelContainer)
     : _name(name)
@@ -428,7 +420,6 @@ public:
   {
     _colorRandomMode = c;
   }
-
 
   virtual void begin() = 0;
   virtual void handle() = 0;
@@ -459,7 +450,6 @@ public:
   {
     return true;
   }
-
 };
 
 #define LedStripModeTimeName "Time"
@@ -577,7 +567,6 @@ public:
   }
 };
 
-
 class LedStripModeSeconds : public LedStripMode
 {
 private:
@@ -653,7 +642,6 @@ public:
     return true;
   }
 };
-
 
 class LedStripModeTemperature : public LedStripMode
 {
@@ -805,7 +793,6 @@ public:
   }
 };
 
-
 class LedStripModeTestStrip : public LedStripMode
 {
 private:
@@ -854,7 +841,6 @@ public:
     return false;
   }
 };
-
 
 class MyLedStrip
 {
@@ -965,7 +951,6 @@ public:
     , _automaticBrightness(false)
     , _modeIndex(0)
   {
-
     _ledConfiguration.push_back(new LedConfiguration40x40());
     _ledConfiguration.push_back(new LedConfiguration100x100_1());
     _ledConfiguration.push_back(new LedConfiguration100x100_2());
@@ -1014,9 +999,9 @@ public:
     end();
 
     if (!_pStrip)
-    { 
+    {
       _ledConfigurationIndex = _config.ledConfig;
-      
+
       // Cannot use DMA because DMA GPIO is already used by serial/USB bridge :(
       _pStrip = new MyNeoPixelBrightnessBus(_ledConfiguration[_ledConfigurationIndex]->ledsNumber(), D4);
       _pStrip->Begin();
@@ -1142,9 +1127,6 @@ public:
     refresh(&_pixels);
   }
 };
-
-
-
 
 class LedStripAnimation
 {
@@ -1459,7 +1441,6 @@ public:
     // Copy foreground matrix pixels
     for (int c = 0; c < NCOL; c++) {
       for (int r = 0; r < NROW; r++) {
-
         double hsl = ((double)((r * NCOL) + c) / (double)(NROW * NCOL)) * (60.0 / 360.0);
         hsl += _rainbowIndex;
         if (hsl > 1.0) hsl -= 1.0;
@@ -1912,6 +1893,264 @@ public:
   }
 };
 
+class LedStripAnimationMinuteFall : public LedStripAnimation
+{
+private:
+  struct FallingPixel : PixelPos {
+    int ce;
+    int cc;
+    int cr;
+  };
+
+  Frame _frame;
+  int _lastMinute;
+  bool _animationInProgress;
+  int _animationPhase; // 0: falling old pixels, 1: rising new pixels
+
+  cl_Lst<PixelPos> _oldPixelPositions;
+  cl_Lst<FallingPixel> _fallingPixels;
+
+  void getPixelsList()
+  {
+    _oldPixelPositions.clear();
+
+    // Retrieve currently displayed pixels (old minute)
+    for (int c = 0; c < NCOL; c++) {
+      for (int r = 0; r < NROW; r++) {
+        Pixel p = _pPixelContainerInput->pixelsArray.getPixel(r, c);
+        if (p.display) {
+          PixelPos pp;
+          pp.e = -1;
+          pp.c = c;
+          pp.r = r;
+          pp.p = p;
+          _oldPixelPositions.push_back(pp);
+        }
+      }
+    }
+
+    // Retrieve edge pixels (old minute)
+    for (int e = 0; e < NEDGE; e++) {
+      Pixel p = _pPixelContainerInput->pixelsEdge[e];
+      if (p.display) {
+        PixelPos pp;
+        pp.e = e;
+        pp.c = -1;
+        pp.r = -1;
+        pp.p = p;
+        _oldPixelPositions.push_back(pp);
+      }
+    }
+  }
+
+  void startFallingAnimation()
+  {
+    // Clear falling pixels list
+    _fallingPixels.clear();
+
+    // Add all pixels that need to fall
+    for (int i = 0; i < _oldPixelPositions.size(); i++) {
+      FallingPixel fp;
+
+      fp.r = _oldPixelPositions[i].r;
+      fp.c = _oldPixelPositions[i].c;
+      fp.e = _oldPixelPositions[i].e;
+
+      fp.cr = -random(3, 20); // Random delay in frames
+      fp.cc = -random(3, 20); // Random delay in frames
+      fp.ce = -random(3, 20); // Random delay in frames
+
+      fp.p = _oldPixelPositions[i].p;
+
+      _fallingPixels.push_back(fp);
+    }
+
+    _animationPhase = 0;
+  }
+
+  void startRisingAnimation()
+  {
+    // Clear rising pixels list
+    _fallingPixels.clear();
+
+    // Create all rising pixels at once based on current input
+    for (int c = 0; c < NCOL; c++) {
+      for (int r = 0; r < NROW; r++) {
+        Pixel targetPixel = _pPixelContainerInput->pixelsArray.getPixel(r, c);
+        if (!targetPixel.display) continue;
+
+        FallingPixel fp;
+        fp.r = r;
+        fp.c = c;
+        fp.e = -1;
+        fp.cr = -random(3, 20); // Random delay in frames
+        fp.cc = -random(3, 20); // Random delay in frames
+        fp.ce = -random(3, 20); // Random delay in frames
+        fp.p = targetPixel;
+
+        _fallingPixels.push_back(fp);
+      }
+    }
+
+    // Handle edge pixels too
+    for (int e = 0; e < NEDGE; e++) {
+      Pixel targetPixel = _pPixelContainerInput->pixelsEdge[e];
+      if (!targetPixel.display) continue;
+
+      FallingPixel fp;
+      fp.r = -1;
+      fp.c = -1;
+      fp.e = e;
+      fp.cr = -random(3, 20); // Random delay in frames
+      fp.cc = -random(3, 20); // Random delay in frames
+      fp.ce = -random(3, 20); // Random delay in frames
+      fp.p = targetPixel;
+
+      _fallingPixels.push_back(fp);
+    }
+
+    _animationPhase = 1;
+  }
+
+public:
+  LedStripAnimationMinuteFall(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimation("PixelsFalling", pPixelContainerInput, pPixelContainerOutput)
+    , _lastMinute(-1)
+    , _animationInProgress(false)
+    , _animationPhase(0)
+  {
+  }
+
+  void begin()
+  {
+    _frame.init(15); // Slow animation (fps)
+    _lastMinute = _dateTime.minute;
+    _animationInProgress = false;
+
+    // Clear falling pixels lists
+    _fallingPixels.clear();
+    //_risingPixels.clear();
+
+    // Force refresh of input pixels because
+    // we copy them to the output buffer only
+    // When they change. (To limit CPU usage)
+    _pPixelContainerInput->hasChanged = true;
+  }
+
+  void handle()
+  {
+    if (!_frame.next())
+      return;
+
+    // Check if minute has changed
+    if (_dateTime.minute != _lastMinute && !_animationInProgress) {
+      _lastMinute = _dateTime.minute;
+      _animationInProgress = true;
+      startFallingAnimation();
+    }
+
+    getPixelsList();
+
+    if (!_animationInProgress) {
+      // No animation, just copy input to output
+      *_pPixelContainerOutput = *_pPixelContainerInput;
+      _pPixelContainerOutput->hasChanged = true;
+      return;
+    }
+
+    clearPixelsColor();
+
+    if (_animationPhase == 0) {
+      bool allFallen = true;
+
+      for (int i = 0; i < _fallingPixels.size(); i++) {
+        _fallingPixels[i].cr++;
+
+        // Matrix pixel
+        if (_fallingPixels[i].e == -1) {
+          // If the pixel current position is under the matrix, do nothing (no display)
+          if (_fallingPixels[i].cr > NROW) continue;
+
+          // If the pixel current position is above the original position, display at original position (delay phase)
+          else if (_fallingPixels[i].cr < _fallingPixels[i].r) {
+            _pPixelContainerOutput->pixelsArray.setPixel(_fallingPixels[i].p, _fallingPixels[i].r, _fallingPixels[i].c);
+            allFallen = false;
+          }
+
+          // If the pixel current position is below the original position, display at current position (falling)
+          else {
+            _pPixelContainerOutput->pixelsArray.setPixel(_fallingPixels[i].p, _fallingPixels[i].cr, _fallingPixels[i].c);
+            allFallen = false;
+          }
+        }
+
+        // Edge pixel
+        if (_fallingPixels[i].c == -1 && _fallingPixels[i].r == -1) {
+          // If pixel current position is in delay phase, display it at edge position
+          if (_fallingPixels[i].cr < 0) {
+            _pPixelContainerOutput->pixelsEdge[_fallingPixels[i].e] = _fallingPixels[i].p;
+            allFallen = false;
+          }
+        }
+      }
+
+      if (allFallen) {
+        // All pixels have fallen, switch to rising phase
+        startRisingAnimation();
+      }
+    }
+
+    if (_animationPhase == 1) {
+      // Second step: rising pixels of new time
+      bool allRisen = true;
+
+      // Animate all rising pixels
+      for (int i = 0; i < _fallingPixels.size(); i++) {
+        _fallingPixels[i].cr++;
+
+        // Matrix pixel
+        if (_fallingPixels[i].e == -1) {
+          // If the pixel current position is in delay phase (above matrix), wait
+          if (_fallingPixels[i].cr < 0) {
+            allRisen = false;
+            continue;
+          }
+
+          // If the pixel current position is falling to destination
+          else if (_fallingPixels[i].cr <= _fallingPixels[i].r) {
+            _pPixelContainerOutput->pixelsArray.setPixel(_fallingPixels[i].p, _fallingPixels[i].cr, _fallingPixels[i].c);
+            allRisen = false;
+          }
+
+          // If the pixel current position has reached its destination
+          else {
+            _pPixelContainerOutput->pixelsArray.setPixel(_fallingPixels[i].p, _fallingPixels[i].r, _fallingPixels[i].c);
+          }
+        }
+
+        // Edge pixel
+        if (_fallingPixels[i].c == -1 && _fallingPixels[i].r == -1) {
+          // If pixel current position is in delay phase, wait
+          if (_fallingPixels[i].cr < 0) {
+            allRisen = false;
+          }
+
+          // Display pixel at edge position (reached destination)
+          else {
+            _pPixelContainerOutput->pixelsEdge[_fallingPixels[i].e] = _fallingPixels[i].p;
+          }
+        }
+      }
+
+      if (allRisen) {
+        // Animation complete
+        _animationInProgress = false;
+      }
+    }
+
+    _pPixelContainerOutput->hasChanged = true;
+  }
+};
 
 class MyLedStripAnimator : public MyLedStrip
 {
@@ -1954,7 +2193,7 @@ public:
     _animationList.push_back(new LedStripAnimationCake(&_pixels, &_animatedPixels));
     _animationList.push_back(new LedStripAnimationLove(&_pixels, &_animatedPixels));
     _animationList.push_back(new LedStripAnimationRipple(&_pixels, &_animatedPixels));
-
+    _animationList.push_back(new LedStripAnimationMinuteFall(&_pixels, &_animatedPixels));
   }
 
   bool setAnimation(int mode)
