@@ -143,6 +143,30 @@ void setup() {
 
   // Start HTTP Server for configuration
   _server.on("/", []() {
+    // Handle form submissions with parameters
+    if (_server.args() > 0) {
+      // Check if this is a general settings save
+      if (_server.hasArg("brightness") || _server.hasArg("brightnessauto") || _server.hasArg("color") || _server.hasArg("mode")) {
+        send_general_html();
+        return;
+      }
+      // Check if this is a network settings save
+      else if (_server.hasArg("ssid") || _server.hasArg("ip_0") || _server.hasArg("dhcp")) {
+        send_network_configuration_html();
+        return;
+      }
+      // Check if this is an NTP settings save
+      else if (_server.hasArg("ntpserver") || _server.hasArg("tz") || _server.hasArg("update")) {
+        send_NTP_configuration_html();
+        return;
+      }
+      // Check if this is an MQTT settings save
+      else if (_server.hasArg("host") || _server.hasArg("port") || _server.hasArg("login")) {
+        send_mqtt_configuration_html();
+        return;
+      }
+    }
+    
     //Serial.println("index.html");
     _server.send_P(200, "text/html", PAGE_index);
   });
@@ -162,17 +186,7 @@ void setup() {
     _server.send_P(200, "image/png", PAGE_ico, PAGE_ico_size);
   });
 
-  _server.on("/network.html", send_network_configuration_html);
-  _server.on("/mqtt.html", send_mqtt_configuration_html);
-
-  _server.on("/info.html", []() {
-    //Serial.println("info.html");
-    _server.send_P(200, "text/html", PAGE_information);
-  });
-
-  _server.on("/ntp.html", send_NTP_configuration_html);
-
-  _server.on("/general.html", send_general_html);
+  // Obsolete routes removed - using dashboard interface instead
 
   _server.on("/style.css", []() {
     //Serial.println("style.css");
@@ -203,6 +217,178 @@ void setup() {
   _server.on("/admin/generalledconfigvalues", send_general_ledconfig_values_html);
 
   _server.on("/admin/led", send_general_led);
+  
+  // Async save endpoints
+  _server.on("/admin/save/general", HTTP_POST, []() {
+    if (_server.args() > 0) {
+      // Process general settings save
+      _config.brightnessAuto = false;
+      for (uint8_t i = 0; i < _server.args(); i++) {
+        if (_server.argName(i) == "brightnessauto") _config.brightnessAuto = true;
+        if (_server.argName(i) == "brightness") _config.brightness = _server.arg(i).toInt();
+        if (_server.argName(i) == "brightnessday") _config.brightnessAutoMinDay = _server.arg(i).toInt();
+        if (_server.argName(i) == "brightnessnight") _config.brightnessAutoMinNight = _server.arg(i).toInt();
+        if (_server.argName(i) == "color") {
+          String colorStr = _server.arg(i);
+          // Remove # if present
+          if (colorStr.startsWith("#")) {
+            colorStr = colorStr.substring(1);
+          }
+          int32_t l = strtol(colorStr.c_str(), 0, 16);
+          _config.color[0] = (l >> 16) & 0xFF;
+          _config.color[1] = (l >> 8) & 0xFF;
+          _config.color[2] = (l >> 0) & 0xFF;
+        }
+        if (_server.argName(i) == "lang") _config.language = _server.arg(i).toInt();
+        if (_server.argName(i) == "mode") _config.mode = _server.arg(i).toInt();
+        if (_server.argName(i) == "animation") _config.animation = _server.arg(i).toInt();
+        if (_server.argName(i) == "colorrandom") _config.colorRandom = _server.arg(i).toInt();
+        if (_server.argName(i) == "ledconfig") _config.ledConfig = _server.arg(i).toInt();
+        if (_server.argName(i) == "brightnesssensibility") _config.luxSensitivity = _server.arg(i).toInt();
+      }
+      
+      WriteConfig();
+      QTLed.begin();
+      QTLed.setAutomaticBrightness(_config.brightnessAuto);
+      if (!_config.brightnessAuto) QTLed.setBrightness(_config.brightness);
+      QTLed.setColor(_config.color[0], _config.color[1], _config.color[2]);
+      QTLed.setColorRandom((RandomColorMode)_config.colorRandom);
+      QTLed.setLanguage(_config.language);
+      QTLed.setMode(_config.mode);
+      QTLed.setAnimation(_config.animation);
+      
+      _server.send(200, "text/plain", "OK");
+    } else {
+      _server.send(400, "text/plain", "ERROR");
+    }
+  });
+  
+  _server.on("/admin/save/network", HTTP_POST, []() {
+    if (_server.args() > 0) {
+      _config.dhcp = false;
+      for (uint8_t i = 0; i < _server.args(); i++) {
+        if (_server.argName(i) == "ssid") _config.ssid = _server.arg(i);
+        if (_server.argName(i) == "password") _config.password = _server.arg(i);
+        if (_server.argName(i) == "ipaddress") {
+          // Parse IP address string like "192.168.1.100"
+          String ip = _server.arg(i);
+          int parts[4];
+          int partIndex = 0;
+          int start = 0;
+          for (int j = 0; j <= ip.length() && partIndex < 4; j++) {
+            if (j == ip.length() || ip.charAt(j) == '.') {
+              String part = ip.substring(start, j);
+              parts[partIndex] = part.toInt();
+              if (checkRange(String(parts[partIndex]))) {
+                _config.IP[partIndex] = parts[partIndex];
+              }
+              partIndex++;
+              start = j + 1;
+            }
+          }
+        }
+        if (_server.argName(i) == "netmask") {
+          // Parse netmask string
+          String nm = _server.arg(i);
+          int parts[4];
+          int partIndex = 0;
+          int start = 0;
+          for (int j = 0; j <= nm.length() && partIndex < 4; j++) {
+            if (j == nm.length() || nm.charAt(j) == '.') {
+              String part = nm.substring(start, j);
+              parts[partIndex] = part.toInt();
+              if (checkRange(String(parts[partIndex]))) {
+                _config.Netmask[partIndex] = parts[partIndex];
+              }
+              partIndex++;
+              start = j + 1;
+            }
+          }
+        }
+        if (_server.argName(i) == "gateway") {
+          // Parse gateway string
+          String gw = _server.arg(i);
+          int parts[4];
+          int partIndex = 0;
+          int start = 0;
+          for (int j = 0; j <= gw.length() && partIndex < 4; j++) {
+            if (j == gw.length() || gw.charAt(j) == '.') {
+              String part = gw.substring(start, j);
+              parts[partIndex] = part.toInt();
+              if (checkRange(String(parts[partIndex]))) {
+                _config.Gateway[partIndex] = parts[partIndex];
+              }
+              partIndex++;
+              start = j + 1;
+            }
+          }
+        }
+        if (_server.argName(i) == "dnsserver") {
+          // Parse DNS string
+          String dns = _server.arg(i);
+          int parts[4];
+          int partIndex = 0;
+          int start = 0;
+          for (int j = 0; j <= dns.length() && partIndex < 4; j++) {
+            if (j == dns.length() || dns.charAt(j) == '.') {
+              String part = dns.substring(start, j);
+              parts[partIndex] = part.toInt();
+              if (checkRange(String(parts[partIndex]))) {
+                _config.DNS[partIndex] = parts[partIndex];
+              }
+              partIndex++;
+              start = j + 1;
+            }
+          }
+        }
+        if (_server.argName(i) == "dhcp") _config.dhcp = true;
+        if (_server.argName(i) == "devicename") _config.DeviceName = _server.arg(i);
+      }
+      
+      WriteConfig();
+      _server.send(200, "text/plain", "OK");
+      ESP.restart();
+    } else {
+      _server.send(400, "text/plain", "ERROR");
+    }
+  });
+  
+  _server.on("/admin/save/ntp", HTTP_POST, []() {
+    if (_server.args() > 0) {
+      _config.isDayLightSaving = false;
+      for (uint8_t i = 0; i < _server.args(); i++) {
+        if (_server.argName(i) == "ntpserver") _config.ntpServerName = urldecode(_server.arg(i));
+        if (_server.argName(i) == "update") _config.Update_Time_Via_NTP_Every = _server.arg(i).toInt();
+        if (_server.argName(i) == "tz") _config.timeZone = _server.arg(i).toInt();
+        if (_server.argName(i) == "dst") _config.isDayLightSaving = true;
+      }
+      
+      WriteConfig();
+      getNTPtime();
+      _server.send(200, "text/plain", "OK");
+    } else {
+      _server.send(400, "text/plain", "ERROR");
+    }
+  });
+  
+  _server.on("/admin/save/mqtt", HTTP_POST, []() {
+    if (_server.args() > 0) {
+      for (uint8_t i = 0; i < _server.args(); i++) {
+        if (_server.argName(i) == "host") _config.MQTTServer = _server.arg(i);
+        if (_server.argName(i) == "port") _config.MQTTPort = _server.arg(i).toInt();
+        if (_server.argName(i) == "login") _config.MQTTLogin = _server.arg(i);
+        if (_server.argName(i) == "password") _config.MQTTPassword = _server.arg(i);
+        if (_server.argName(i) == "interval") _config.MQTTPubInterval = _server.arg(i).toInt();
+      }
+      
+      WriteConfig();
+      _mqtt.disconnect();
+      _mqtt.setServer(_config.MQTTServer.c_str(), _config.MQTTPort);
+      _server.send(200, "text/plain", "OK");
+    } else {
+      _server.send(400, "text/plain", "ERROR");
+    }
+  });
 
 
   _server.onNotFound([]() {

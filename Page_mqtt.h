@@ -1,106 +1,52 @@
-
-
 //
 //  HTML PAGE
 //
-const char PAGE_mqtt[] PROGMEM = R"=====(
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<a href="/"  class="btn btn--s"><</a>&nbsp;&nbsp;<strong>MQTT Configuration</strong>
-<hr>
-Connect to MQTT Broker with these settings:<br><br>
-<form action="" method="get">
-<table border="0"  cellspacing="0" cellpadding="3" style="width:410px" >
-<tr><td align="right">Broker host:</td><td><input type="text" id="host" name="host" value=""></td></tr>
-<tr><td align="right">Broker port:</td><td><input type="text" id="port" name="port" value=""></td></tr>
-<tr><td align="right">Broker login:</td><td><input type="text" id="login" name="login" value=""></td></tr>
-<tr><td align="right">Broker password:</td><td><input type="password" id="password" name="password" value=""></td></tr>
-<tr><td align="right">Publish interval:</td><td><input type="text" id="interval" name="interval" value=""></td></tr>
-<tr><td colspan="2" align="center"><input type="submit" style="width:150px" class="btn btn--m btn--blue" value="Save"></td></tr>
-</table>
-</form>
-
-<hr>
-<strong>Connection State:</strong><div id="connectionstate">N/A</div>
-<hr>
-
-<h3>Topic list (all payloads are ascii) :</h3>
-<b>Subscriber topics : </b><br>
-<div id="sublist" style="font-size: smaller;"></div>
-<br>
-<b>Publisher topics : </b><br>
-<div id="publist" style="font-size: smaller;"></div>
-<br>
-<script>
-getState = function ()
-{
-  setValues("/admin/mqttconnectionvalues");
-}
-
-window.onload = function ()
-{
-	load("style.css","css", function() 
-	{
-		load("microajax.js","js", function() 
-		{
-					setValues("/admin/mqttfieldsvalues", function() {
-            setInterval(getState, 500);
-          });
-		});
-	});
-}
-function load(e,t,n){if("js"==t){var a=document.createElement("script");a.src=e,a.type="text/javascript",a.async=!1,a.onload=function(){n()},document.getElementsByTagName("head")[0].appendChild(a)}else if("css"==t){var a=document.createElement("link");a.href=e,a.rel="stylesheet",a.type="text/css",a.async=!1,a.onload=function(){n()},document.getElementsByTagName("head")[0].appendChild(a)}}
-
-</script>
-
-)=====";
-
+// HTML PAGE REMOVED - Now using dashboard in Page_index.h
+// This page is obsolete and replaced by the dashboard interface
 
 //
 //  SEND HTML PAGE OR IF A FORM SUMBITTED VALUES, PROCESS THESE VALUES
-// 
+//
 
 void send_mqtt_configuration_html()
 {
-	
-	if (_server.args() > 0 )  // Save Settings
-	{
-		for ( uint8_t i = 0; i < _server.args(); i++ ) {
+  if (_server.args() > 0)  // Save Settings
+  {
+    for (uint8_t i = 0; i < _server.args(); i++) {
       //Serial.println(_server.argName(i) + " = " + _server.arg(i));
 
-			if (_server.argName(i) == "host") _config.MQTTServer = (_server.arg(i));
-			if (_server.argName(i) == "port") _config.MQTTPort = _server.arg(i).toInt();
-			if (_server.argName(i) == "login") _config.MQTTLogin = _server.arg(i);
+      if (_server.argName(i) == "host") _config.MQTTServer = (_server.arg(i));
+      if (_server.argName(i) == "port") _config.MQTTPort = _server.arg(i).toInt();
+      if (_server.argName(i) == "login") _config.MQTTLogin = _server.arg(i);
       if (_server.argName(i) == "password") _config.MQTTPassword = _server.arg(i);
       if (_server.argName(i) == "interval") _config.MQTTPubInterval = _server.arg(i).toInt();
-
-		}
+    }
     _server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     _server.sendHeader("Pragma", "no-cache");
     _server.sendHeader("Expires", "-1");
 
-    _server.send_P(200, "text/html", PAGE_mqtt);
+    _server.sendHeader("Location", "/");
+    _server.send(302);
 
     //printConfig();
 
-		WriteConfig();
+    WriteConfig();
 
     _mqtt.disconnect();
-    _mqtt.setServer(_config.MQTTServer.c_str() , _config.MQTTPort);
+    _mqtt.setServer(_config.MQTTServer.c_str(), _config.MQTTPort);
     // let the main loop calls mqttreconnect();
-	}
-	else
-	{
+  }
+  else
+  {
     _server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     _server.sendHeader("Pragma", "no-cache");
     _server.sendHeader("Expires", "-1");
 
-    _server.send_P(200, "text/html", PAGE_mqtt);
-	}
-	//Serial.println(__FUNCTION__); 
+    _server.sendHeader("Location", "/");
+    _server.send(302);
+  }
+  //Serial.println(__FUNCTION__);
 }
-
-
 
 //
 //   FILL THE PAGE WITH VALUES
@@ -108,15 +54,13 @@ void send_mqtt_configuration_html()
 
 void send_mqtt_configuration_values_html()
 {
+  String values = "";
 
-	String values ="";
-
-	values += "host|" + (String) _config.MQTTServer + "|input\n";
-	values += "port|" + String(_config.MQTTPort) + "|input\n";
-	values += "login|" +  (String) _config.MQTTLogin + "|input\n";
-	values += "password|" +  (String) _config.MQTTPassword + "|input\n";
+  values += "host|" + (String)_config.MQTTServer + "|input\n";
+  values += "port|" + String(_config.MQTTPort) + "|input\n";
+  values += "login|" + (String)_config.MQTTLogin + "|input\n";
+  values += "password|" + (String)_config.MQTTPassword + "|input\n";
   values += "interval|" + String(_config.MQTTPubInterval) + "|input\n";
-
 
   String sublist;
   sublist += "\"" + mqttTopicSubLedColor.topic() + "\" : set display color. Value in hex. eg : #00FF00<br>";
@@ -140,8 +84,8 @@ void send_mqtt_configuration_values_html()
   _server.sendHeader("Pragma", "no-cache");
   _server.sendHeader("Expires", "-1");
 
-	_server.send ( 200, "text/plain", values);
-	//Serial.println(__FUNCTION__); 
+  _server.send(200, "text/plain", values);
+  //Serial.println(__FUNCTION__);
 }
 
 void send_mqtt_connection_values_html()
@@ -163,12 +107,12 @@ void send_mqtt_connection_values_html()
   }
 
   String values = "";
-  values += "connectionstate|" + s + "|div\n";
+  values += "mqttconnectionstate|" + s + "|div\n";
 
   _server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   _server.sendHeader("Pragma", "no-cache");
   _server.sendHeader("Expires", "-1");
 
   _server.send(200, "text/plain", values);
-  //Serial.println(__FUNCTION__); 
+  //Serial.println(__FUNCTION__);
 }
