@@ -240,6 +240,7 @@ boolean ReadConfig(){
     _config.color[3] = EEPROM.read(389); // W
     _config.mode = EEPROM.read(390);
     _config.animation = EEPROM.read(391);
+    if (_config.animation > 12) _config.animation = 0;
     _config.colorRandom = EEPROM.read(392);
     _config.brightnessAutoMinDay = EEPROM.read(393);
     _config.brightnessAutoMinNight = EEPROM.read(394);
