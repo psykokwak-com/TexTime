@@ -1378,14 +1378,16 @@ public:
       Pixel head = Pixel(RgbColor(
         (uint8_t)((uint16_t)200 * bMax / 255), bMax,
         (uint8_t)((uint16_t)200 * bMax / 255)));
-      Pixel trail = Pixel(RgbColor(0, bMax, 0));
       for (int r = _matrixColumn[c]; r > _matrixColumn[c] - _matrixColumnSize[c]; r--) {
         int dist = _matrixColumn[c] - r;
         if (dist == 0) {
           _pPixelContainerOutput->pixelsArray.setPixel(head, r, c);
         } else {
-          _pPixelContainerOutput->pixelsArray.setPixel(trail, r, c);
-          if (dist >= 5) trail.color.Darken(35);
+          // Fade proportionally over the full trail length so the tail remains
+          // visible at any animBrightnessMax value (avoids absolute Darken going
+          // to black too fast at low brightness)
+          uint8_t g = (uint8_t)((uint16_t)bMax * (_matrixColumnSize[c] - dist) / _matrixColumnSize[c]);
+          _pPixelContainerOutput->pixelsArray.setPixel(Pixel(RgbColor(0, g, 0)), r, c);
         }
       }
 
