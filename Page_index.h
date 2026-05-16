@@ -781,6 +781,15 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function initializeColorPicker() {
       initColorPicker();
+      // setValues() sets colorText.value programmatically (no 'input' event fires),
+      // so we push the loaded color into colorInput here explicitly.
+      const colorInput = document.getElementById('color');
+      const colorText  = document.getElementById('colorText');
+      if (colorInput && colorText && colorText.value) {
+        let v = colorText.value.trim();
+        if (!v.startsWith('#')) v = '#' + v;
+        if (isValidHexColor(v)) colorInput.value = v;
+      }
     }
 
     function hexToRgb(hex) {
