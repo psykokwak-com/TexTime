@@ -191,10 +191,19 @@ const char PAGE_index[] PROGMEM = R"=====(
               </div>
 
             <div class="form-group">
-              <label for="color" class="form-label">Color</label>
-              <div class="color-picker-container">
-                <input type="color" id="color" name="color" class="color-picker-input">
+              <label class="form-label">Color</label>
+              <div style="display:flex;gap:0.75rem;align-items:center">
+                <div id="colorSwatch" class="cpicker-swatch" title="Pick color" style="width:3rem;height:2.5rem;background:#ff0000;border:2px solid #ccc;border-radius:4px;cursor:pointer;flex-shrink:0"></div>
                 <input type="text" id="colorText" class="color-text-input" placeholder="#FF0000" maxlength="7">
+                <input type="hidden" id="color" name="color">
+              </div>
+              <div id="cpickerPanel" class="cpicker-panel" style="display:none">
+                <div id="svSquare" class="cpicker-sv">
+                  <div class="cpicker-sv-white"></div>
+                  <div class="cpicker-sv-black"></div>
+                  <div id="svThumb" class="cpicker-sv-thumb"></div>
+                </div>
+                <input type="range" id="hueSlider" class="cpicker-hue" min="0" max="359" value="0">
               </div>
             </div>
 
@@ -498,43 +507,96 @@ const char PAGE_index[] PROGMEM = R"=====(
   <div class="overlay" id="overlay"></div>
 
   <script>
-    // Initialize color picker
+    // Custom color picker — HSV square + hue slider, no native <input type="color">
+    var _cpH=0, _cpS=1, _cpV=1, _cpInit=false;
+
+    function _cpHsvToHex(h,s,v) {
+      var i=Math.floor(h/60)%6, f=h/60-Math.floor(h/60);
+      var p=v*(1-s), q=v*(1-f*s), t=v*(1-(1-f)*s);
+      var rgb=[[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][i];
+      return '#'+rgb.map(function(x){return Math.round(x*255).toString(16).padStart(2,'0');}).join('');
+    }
+
+    function _cpHexToHsv(hex) {
+      var r=parseInt(hex.slice(1,3),16)/255, g=parseInt(hex.slice(3,5),16)/255, b=parseInt(hex.slice(5,7),16)/255;
+      var max=Math.max(r,g,b), min=Math.min(r,g,b), d=max-min, h=0;
+      if(d){if(max===r)h=((g-b)/d+(g<b?6:0))*60; else if(max===g)h=((b-r)/d+2)*60; else h=((r-g)/d+4)*60;}
+      return {h:h, s:max?d/max:0, v:max};
+    }
+
+    function _cpApply(send) {
+      var hex=_cpHsvToHex(_cpH,_cpS,_cpV);
+      var sw=document.getElementById('colorSwatch');
+      var ct=document.getElementById('colorText');
+      var ci=document.getElementById('color');
+      var sq=document.getElementById('svSquare');
+      var th=document.getElementById('svThumb');
+      var hs=document.getElementById('hueSlider');
+      if(sw) sw.style.backgroundColor=hex;
+      if(ct) ct.value=hex;
+      if(ci) ci.value=hex;
+      if(sq) sq.style.backgroundColor='hsl('+Math.round(_cpH)+',100%,50%)';
+      if(th){th.style.left=(_cpS*100)+'%'; th.style.top=((1-_cpV)*100)+'%';}
+      if(hs) hs.value=_cpH;
+      if(send) updatecolor(hex);
+    }
+
+    function _cpSetFromHex(hex) {
+      if(!isValidHexColor(hex)) return;
+      var hsv=_cpHexToHsv(hex);
+      _cpH=hsv.h; _cpS=hsv.s; _cpV=hsv.v;
+      _cpApply(false);
+    }
+
     function initColorPicker() {
-      const colorInput = document.getElementById('color');
-      const colorText = document.getElementById('colorText');
-
-      if (colorInput && colorText) {
-        function syncTextToColorPicker() {
-          const currentColorValue = colorText.value;
-          if (currentColorValue) {
-            let value = currentColorValue.trim();
-            if (!value.startsWith('#')) value = '#' + value;
-            if (isValidHexColor(value)) {
-              colorInput.value = value;
-            }
-          }
-        }
-
-        // Sync color picker to text input
-        colorInput.addEventListener('input', function(e) {
-          colorText.value = e.target.value;
-          updatecolor(e.target.value);
-        });
-
-        // Sync text input to color picker
-        colorText.addEventListener('input', function(e) {
-          syncTextToColorPicker();
-          let value = e.target.value.trim();
-          if (!value.startsWith('#')) value = '#' + value;
-          if (isValidHexColor(value)) {
-            updatecolor(value);
-          }
-        });
-
-        // Sync on load
-        setTimeout(syncTextToColorPicker, 100);
-        setTimeout(syncTextToColorPicker, 500);
+      if(_cpInit) {
+        var ct=document.getElementById('colorText');
+        if(ct && ct.value) _cpSetFromHex(ct.value.trim().startsWith('#')?ct.value.trim():'#'+ct.value.trim());
+        return;
       }
+      _cpInit=true;
+      var swatch=document.getElementById('colorSwatch');
+      var panel=document.getElementById('cpickerPanel');
+      var sq=document.getElementById('svSquare');
+      var hs=document.getElementById('hueSlider');
+      var ct=document.getElementById('colorText');
+      var panelOpen=false;
+
+      swatch.addEventListener('click', function(e) {
+        e.stopPropagation();
+        panelOpen=!panelOpen;
+        panel.style.display=panelOpen?'block':'none';
+      });
+      document.addEventListener('click', function(e) {
+        if(panelOpen && !panel.contains(e.target) && e.target!==swatch) {
+          panelOpen=false; panel.style.display='none';
+        }
+      });
+
+      var svDrag=false;
+      function onSV(e) {
+        e.preventDefault();
+        var rect=sq.getBoundingClientRect();
+        var cx=e.touches?e.touches[0].clientX:e.clientX;
+        var cy=e.touches?e.touches[0].clientY:e.clientY;
+        _cpS=Math.max(0,Math.min(1,(cx-rect.left)/rect.width));
+        _cpV=Math.max(0,Math.min(1,1-(cy-rect.top)/rect.height));
+        _cpApply(true);
+      }
+      sq.addEventListener('mousedown',  function(e){svDrag=true; onSV(e);});
+      sq.addEventListener('touchstart', function(e){svDrag=true; onSV(e);},{passive:false});
+      document.addEventListener('mousemove',  function(e){if(svDrag) onSV(e);});
+      document.addEventListener('touchmove',  function(e){if(svDrag) onSV(e);},{passive:false});
+      document.addEventListener('mouseup',    function(){svDrag=false;});
+      document.addEventListener('touchend',   function(){svDrag=false;});
+
+      hs.addEventListener('input', function(){_cpH=parseInt(this.value); _cpApply(true);});
+
+      ct.addEventListener('input', function() {
+        var v=this.value.trim();
+        if(!v.startsWith('#')) v='#'+v;
+        if(isValidHexColor(v)){_cpSetFromHex(v); updatecolor(v);}
+      });
     }
 
     // Dashboard Management
@@ -781,14 +843,11 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function initializeColorPicker() {
       initColorPicker();
-      // setValues() sets colorText.value programmatically (no 'input' event fires),
-      // so we push the loaded color into colorInput here explicitly.
-      const colorInput = document.getElementById('color');
-      const colorText  = document.getElementById('colorText');
-      if (colorInput && colorText && colorText.value) {
-        let v = colorText.value.trim();
-        if (!v.startsWith('#')) v = '#' + v;
-        if (isValidHexColor(v)) colorInput.value = v;
+      var ct=document.getElementById('colorText');
+      if(ct && ct.value) {
+        var v=ct.value.trim();
+        if(!v.startsWith('#')) v='#'+v;
+        _cpSetFromHex(v);
       }
     }
 
@@ -1192,7 +1251,7 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     // Initialize app
     window.onload = function() {
-      load("style.css", "css", function() {
+      load("style.css?t="+Date.now(), "css", function() {
         // Load saved theme
         loadTheme();
 
