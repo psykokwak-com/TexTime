@@ -186,7 +186,7 @@ void send_general_led()
         _config.luxSensitivity = _server.arg(i).toInt();
 
       if (_server.argName(i) == "animspeed")
-        _config.animSpeed = constrain(_server.arg(i).toInt(), 1, 20);
+        QTLed.setAnimSpeed(constrain(_server.arg(i).toInt(), 1, 20));
 
       if (_server.argName(i) == "animbrightmin")
         _config.animBrightnessMin = constrain(_server.arg(i).toInt(), 0, 100);
