@@ -45,6 +45,8 @@
 #include "Page_mqtt.h"
 #include "Page_script.js.h"
 #include "Page_style.css.h"
+#include "Page_tetris.h"
+#include "Page_snake.h"
 
 
 
@@ -52,12 +54,8 @@ extern "C" {
 #include "user_interface.h"
 }
 
-IPAddress _apIP(192, 168, 1, 1);
-IPAddress _apNetMsk(255, 255, 255, 0);
-
 //*** Normal code definition here ...
 void setup() {
-  String chipID;
   bool CFG_saved = false;
 
   // No need to set this until option is set in arduino/visualmicro
@@ -71,7 +69,7 @@ void setup() {
   Serial.println("Booting");
 
   // Config load 
-  EEPROM.begin(1024); // define an EEPROM space of 1024Bytes to store data
+  EEPROM.begin(EEPROM_SIZE);
   CFG_saved = ReadConfig();
   if (!CFG_saved)
   {
@@ -96,12 +94,16 @@ void setup() {
     _config.brightness = 128; // [0:255]
     _config.brightnessAutoMinDay = 30; // [0:255]
     _config.brightnessAutoMinNight = 0; // [0:255]
+    _config.brightnessMax = 255; // [0:255]
     _config.color[0] = 255; // R
     _config.color[1] = 255; // G
     _config.color[2] = 255; // B
     _config.color[3] = 255; // W
     _config.mode = 1;
     _config.animation = 0;
+    _config.animSpeed = 10;
+    _config.animBrightnessMin = 10;
+    _config.animBrightnessMax = 100;
     _config.ledConfig = 0;
     _config.luxSensitivity = 40;
     _config.language = 0;
@@ -111,6 +113,9 @@ void setup() {
     _config.MQTTPassword = "";
     _config.MQTTPort = 1883;
     _config.MQTTPubInterval = 120; // in sec
+
+    _config.APPassword = AP_DEFAULT_PASSWORD;
+    WriteConfig();
   }
 
   // Start led strip
@@ -128,7 +133,7 @@ void setup() {
   //printConfig();
 
   // Configure WiFi
-  WiFiMgr.setAPssid("TexTime-" + String(ESP.getChipId(), HEX));
+  WiFiMgr.setAPssid("TexTime-" + String(ESP.getChipId(), HEX), _config.APPassword);
 
   if (!_config.dhcp)
   {
@@ -139,7 +144,7 @@ void setup() {
   }
 
   // Start WiFi
-  WiFiMgr.tryToConnect(_config.ssid, _config.password, &_config.DeviceName[0]);
+  WiFiMgr.tryToConnect(_config.ssid, _config.password, _config.DeviceName);
 
   // Start HTTP Server for configuration
   _server.on("/", []() {
@@ -217,7 +222,15 @@ void setup() {
   _server.on("/admin/generalledconfigvalues", send_general_ledconfig_values_html);
 
   _server.on("/admin/led", send_general_led);
-  
+
+  _server.on("/tetris.html", send_tetris_html);
+  _server.on("/admin/tetris", send_tetris_action);
+  _server.on("/admin/tetrisstate", send_tetris_state);
+
+  _server.on("/snake.html", send_snake_html);
+  _server.on("/admin/snake", send_snake_action);
+  _server.on("/admin/snakestate", send_snake_state);
+
   // Async save endpoints
   _server.on("/admin/save/general", HTTP_POST, []() {
     if (_server.args() > 0) {
@@ -268,7 +281,8 @@ void setup() {
       _config.dhcp = false;
       for (uint8_t i = 0; i < _server.args(); i++) {
         if (_server.argName(i) == "ssid") _config.ssid = _server.arg(i);
-        if (_server.argName(i) == "password") _config.password = _server.arg(i);
+        if (_server.argName(i) == "password") { String p = _server.arg(i); if (p.length() > 0) _config.password = p; }
+        if (_server.argName(i) == "appassword") { String p = _server.arg(i); if (p.length() >= 8) _config.APPassword = p; }
         if (_server.argName(i) == "ipaddress") {
           // Parse IP address string like "192.168.1.100"
           String ip = _server.arg(i);
@@ -449,7 +463,7 @@ void setup() {
   // MQTT configuration
   if (_config.MQTTPubInterval < 1) _config.MQTTPubInterval = 1;
   _mqttWifiClient.setNoDelay(true);
-  _mqttWifiClient.setTimeout(MQTT_SOCKET_TIMEOUT * 1000);
+  _mqttWifiClient.setTimeout((unsigned long)MQTT_SOCKET_TIMEOUT * 1000UL);
   _mqtt.setServer(_config.MQTTServer.c_str(), _config.MQTTPort);
   _mqtt.setCallback(mqttCallback);
 

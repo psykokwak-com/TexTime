@@ -19,6 +19,7 @@
 //typedef NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266AsyncUart1Ws2813Method> MyNeoPixelBrightnessBus;
 typedef NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266Uart1Ws2813Method> MyNeoPixelBrightnessBus;
 
+
 class Pixel
 {
 public:
@@ -92,32 +93,67 @@ struct PixelsContainer
   bool hasChanged;
 };
 
+
+
 class LedConfiguration {
 public:
   virtual int ledsByPixelForMatrix() = 0;
   virtual int ledsByPixelForEdges() = 0;
   virtual int ledsNumber() = 0;
   virtual String getName() = 0;
-  virtual const uint16_t *getLedsMatrixId(int row, int col) = 0;
-  virtual const uint16_t *getLedsEdgeId(int n) = 0;
+  virtual const uint8_t *getLedsMatrixId(int row, int col) = 0;
+  virtual const uint8_t *getLedsEdgeId(int n) = 0;
   virtual ~LedConfiguration() {}
 };
 
 class LedConfiguration40x40 : public LedConfiguration {
 private:
-  const uint16_t _matchingPixelsMatrix[NROW][NCOL][1] = {
-    { { 0  }, { 1  }, { 5  }, { 6  }, { 14 }, { 15 }, { 27 }, { 28  }, { 44  }, { 45  }, { 64  } },
-    { { 2  }, { 4  }, { 7  }, { 13 }, { 16 }, { 26 }, { 29 }, { 43  }, { 46  }, { 63  }, { 65  } },
-    { { 3  }, { 8  }, { 12 }, { 17 }, { 25 }, { 30 }, { 42 }, { 47  }, { 62  }, { 66  }, { 81  } },
-    { { 9  }, { 11 }, { 18 }, { 24 }, { 31 }, { 41 }, { 48 }, { 61  }, { 67  }, { 80  }, { 82  } },
-    { { 10 }, { 19 }, { 23 }, { 32 }, { 40 }, { 49 }, { 60 }, { 68  }, { 79  }, { 83  }, { 94  } },
-    { { 20 }, { 22 }, { 33 }, { 39 }, { 50 }, { 59 }, { 69 }, { 78  }, { 84  }, { 93  }, { 95  } },
-    { { 21 }, { 34 }, { 38 }, { 51 }, { 58 }, { 70 }, { 77 }, { 85  }, { 92  }, { 96  }, { 103 } },
-    { { 35 }, { 37 }, { 52 }, { 57 }, { 71 }, { 76 }, { 86 }, { 91  }, { 97  }, { 102 }, { 104 } },
-    { { 36 }, { 53 }, { 56 }, { 72 }, { 75 }, { 87 }, { 90 }, { 98  }, { 101 }, { 105 }, { 108 } },
-    { { 54 }, { 55 }, { 73 }, { 74 }, { 88 }, { 89 }, { 99 }, { 100 }, { 106 }, { 107 }, { 109 } }
+
+// version damien
+  const uint8_t _matchingPixelsMatrix[NROW][NCOL][1] = {
+    { { 55 }, { 54 }, { 36 }, { 35 }, { 21 }, { 20 }, { 10 }, { 9   }, { 3   }, { 2   }, { 0   } },
+    { { 73 }, { 56 }, { 53 }, { 37 }, { 34 }, { 22 }, { 19 }, { 11  }, { 8   }, { 4   }, { 1   } },
+    { { 74 }, { 72 }, { 57 }, { 52 }, { 38 }, { 33 }, { 23 }, { 18  }, { 12  }, { 7   }, { 5   } },
+    { { 88 }, { 75 }, { 71 }, { 58 }, { 51 }, { 39 }, { 32 }, { 24  }, { 17  }, { 13  }, { 6   } },
+    { { 89 }, { 87 }, { 76 }, { 70 }, { 59 }, { 50 }, { 40 }, { 31  }, { 25  }, { 16  }, { 14  } },
+    { { 99 }, { 90 }, { 86 }, { 77 }, { 69 }, { 60 }, { 49 }, { 41  }, { 30  }, { 26  }, { 15  } },
+    { { 100}, { 98 }, { 91 }, { 85 }, { 78 }, { 68 }, { 61 }, { 48  }, { 42  }, { 29  }, { 27  } },
+    { { 106}, { 101}, { 97 }, { 92 }, { 84 }, { 79 }, { 67 }, { 62  }, { 47  }, { 43  }, { 28  } },
+    { { 107}, { 105}, { 102}, { 96 }, { 93 }, { 83 }, { 80 }, { 66  }, { 63  }, { 46  }, { 44  } },
+    { { 109}, { 108}, { 104}, { 103}, { 95 }, { 94 }, { 82 }, { 81 }, { 65  }, { 64  }, { 45  } }
   };
-  const uint16_t _matchingPixelsEdge[NEDGE][1] = { { 112 }, { 111 }, { 110 }, { 113 } };
+  const uint8_t _matchingPixelsEdge[NEDGE][1] = { { 113 }, { 112 }, { 111 }, { 110 } };
+
+// verison originale
+  //const uint8_t _matchingPixelsMatrix[NROW][NCOL][1] = {
+    //{ { 0  }, { 1  }, { 5  }, { 6  }, { 14 }, { 15 }, { 27 }, { 28  }, { 44  }, { 45  }, { 64  } },
+    //{ { 2  }, { 4  }, { 7  }, { 13 }, { 16 }, { 26 }, { 29 }, { 43  }, { 46  }, { 63  }, { 65  } },
+    //{ { 3  }, { 8  }, { 12 }, { 17 }, { 25 }, { 30 }, { 42 }, { 47  }, { 62  }, { 66  }, { 81  } },
+    //{ { 9  }, { 11 }, { 18 }, { 24 }, { 31 }, { 41 }, { 48 }, { 61  }, { 67  }, { 80  }, { 82  } },
+    //{ { 10 }, { 19 }, { 23 }, { 32 }, { 40 }, { 49 }, { 60 }, { 68  }, { 79  }, { 83  }, { 94  } },
+    //{ { 20 }, { 22 }, { 33 }, { 39 }, { 50 }, { 59 }, { 69 }, { 78  }, { 84  }, { 93  }, { 95  } },
+    //{ { 21 }, { 34 }, { 38 }, { 51 }, { 58 }, { 70 }, { 77 }, { 85  }, { 92  }, { 96  }, { 103 } },
+    //{ { 35 }, { 37 }, { 52 }, { 57 }, { 71 }, { 76 }, { 86 }, { 91  }, { 97  }, { 102 }, { 104 } },
+    //{ { 36 }, { 53 }, { 56 }, { 72 }, { 75 }, { 87 }, { 90 }, { 98  }, { 101 }, { 105 }, { 108 } },
+    //{ { 54 }, { 55 }, { 73 }, { 74 }, { 88 }, { 89 }, { 99 }, { 100 }, { 106 }, { 107 }, { 109 } }
+  //};
+  //const uint8_t _matchingPixelsEdge[NEDGE][1] = { { 112 }, { 111 }, { 110 }, { 113 } };
+
+// verison lina et blandine
+ // const uint8_t _matchingPixelsMatrix[NROW][NCOL][1] = {
+   // { { 0  }, { 1  }, { 5  }, { 6  }, { 14 }, { 15 }, { 27 }, { 28  }, { 44  }, { 45  }, { 64  } },
+    //{ { 2  }, { 4  }, { 7  }, { 13 }, { 16 }, { 26 }, { 29 }, { 43  }, { 46  }, { 63  }, { 65  } },
+    //{ { 3  }, { 8  }, { 12 }, { 17 }, { 25 }, { 30 }, { 42 }, { 47  }, { 62  }, { 66  }, { 81  } },
+    //{ { 9  }, { 11 }, { 18 }, { 24 }, { 31 }, { 41 }, { 48 }, { 61  }, { 67  }, { 80  }, { 82  } },
+    //{ { 10 }, { 19 }, { 23 }, { 32 }, { 40 }, { 49 }, { 60 }, { 68  }, { 79  }, { 83  }, { 94  } },
+    //{ { 20 }, { 22 }, { 33 }, { 39 }, { 50 }, { 59 }, { 69 }, { 78  }, { 84  }, { 93  }, { 95  } },
+    //{ { 21 }, { 34 }, { 38 }, { 51 }, { 58 }, { 70 }, { 77 }, { 85  }, { 92  }, { 96  }, { 103 } },
+    //{ { 35 }, { 37 }, { 52 }, { 57 }, { 71 }, { 76 }, { 86 }, { 91  }, { 97  }, { 102 }, { 104 } },
+    //{ { 36 }, { 53 }, { 56 }, { 72 }, { 75 }, { 87 }, { 90 }, { 98  }, { 101 }, { 105 }, { 108 } },
+    //{ { 54 }, { 55 }, { 73 }, { 74 }, { 88 }, { 89 }, { 99 }, { 100 }, { 106 }, { 107 }, { 109 } }
+  //};
+  //const uint8_t _matchingPixelsEdge[NEDGE][1] = { { 112 }, { 113 }, { 110 }, { 111 } };
+  
 
 public:
   virtual String getName()
@@ -140,7 +176,7 @@ public:
     return (NROW * NCOL) + NEDGE;
   }
 
-  const uint16_t *getLedsMatrixId(int row, int col)
+  const uint8_t *getLedsMatrixId(int row, int col)
   {
     if (row < 0) return NULL;
     if (col < 0) return NULL;
@@ -150,7 +186,7 @@ public:
     return _matchingPixelsMatrix[row][col];
   }
 
-  const uint16_t *getLedsEdgeId(int n)
+  const uint8_t *getLedsEdgeId(int n)
   {
     if (n < 0) return NULL;
     if (n > NEDGE - 1) return NULL;
@@ -161,7 +197,7 @@ public:
 
 class LedConfiguration100x100_1 : public LedConfiguration {
 private:
-  const uint16_t _matchingPixelsMatrix[NROW][NCOL][1] = {
+  const uint8_t _matchingPixelsMatrix[NROW][NCOL][1] = {
     { { 21  }, { 19  }, { 17  }, { 15  }, { 13  }, { 11  }, { 9   }, { 7   }, { 5   }, { 3   }, { 1   } },
     { { 24  }, { 26  }, { 28  }, { 30  }, { 32  }, { 34  }, { 36  }, { 38  }, { 40  }, { 42  }, { 44  } },
     { { 67  }, { 65  }, { 63  }, { 61  }, { 59  }, { 57  }, { 55  }, { 53  }, { 51  }, { 49  }, { 47  } },
@@ -173,7 +209,7 @@ private:
     { { 205 }, { 203 }, { 201 }, { 199 }, { 197 }, { 195 }, { 193 }, { 191 }, { 189 }, { 187 }, { 185 } },
     { { 208 }, { 210 }, { 212 }, { 214 }, { 216 }, { 218 }, { 220 }, { 222 }, { 224 }, { 226 }, { 228 } }
   };
-  const uint16_t _matchingPixelsEdge[NEDGE][1] = { { 232 }, { 231 }, { 230 }, { 233 } };
+  const uint8_t _matchingPixelsEdge[NEDGE][1] = { { 232 }, { 231 }, { 230 }, { 233 } };
 
 public:
   virtual String getName()
@@ -196,7 +232,7 @@ public:
     return (NROW * 23) + NEDGE;
   }
 
-  const uint16_t *getLedsMatrixId(int row, int col)
+  const uint8_t *getLedsMatrixId(int row, int col)
   {
     if (row < 0) return NULL;
     if (col < 0) return NULL;
@@ -206,7 +242,7 @@ public:
     return _matchingPixelsMatrix[row][col];
   }
 
-  const uint16_t *getLedsEdgeId(int n)
+  const uint8_t *getLedsEdgeId(int n)
   {
     if (n < 0) return NULL;
     if (n > NEDGE - 1) return NULL;
@@ -217,7 +253,7 @@ public:
 
 class LedConfiguration100x100_2 : public LedConfiguration {
 private:
-  const uint16_t _matchingPixelsMatrix[NROW][NCOL][2] = {
+  const uint8_t _matchingPixelsMatrix[NROW][NCOL][2] = {
     { { 21 , 22  }, { 19 , 20  }, { 17 , 18  }, { 15 , 16  }, { 13 , 14  }, { 11 , 12  }, { 9  , 10  }, { 7  , 8   }, { 5  , 6   }, { 3  , 4   }, { 1  , 2   } },
     { { 25 , 26  }, { 27 , 28  }, { 29 , 30  }, { 31 , 32  }, { 33 , 34  }, { 35 , 36  }, { 37 , 38  }, { 39 , 40  }, { 41 , 42  }, { 43 , 44  }, { 45 , 46  } },
     { { 69 , 70  }, { 67 , 68  }, { 65 , 66  }, { 63 , 64  }, { 61 , 62  }, { 59 , 60  }, { 57 , 58  }, { 55 , 56  }, { 53 , 54  }, { 51 , 52  }, { 49 , 50  } },
@@ -229,7 +265,7 @@ private:
     { { 213, 214 }, { 211, 212 }, { 209, 210 }, { 207, 208 }, { 205, 206 }, { 203, 204 }, { 201, 202 }, { 199, 200 }, { 197, 198 }, { 195, 196 }, { 193, 194 } },
     { { 217, 218 }, { 219, 220 }, { 221, 222 }, { 223, 224 }, { 225, 226 }, { 227, 228 }, { 229, 230 }, { 231, 232 }, { 233, 234 }, { 235, 236 }, { 237, 238 } }
   };
-  const uint16_t _matchingPixelsEdge[NEDGE][1] = { { 242 }, { 241 }, { 240 }, { 243 } };
+  const uint8_t _matchingPixelsEdge[NEDGE][1] = { { 242 }, { 241 }, { 240 }, { 243 } };
 
 public:
   virtual String getName()
@@ -252,7 +288,7 @@ public:
     return (NROW * 24) + NEDGE;
   }
 
-  const uint16_t *getLedsMatrixId(int row, int col)
+  const uint8_t *getLedsMatrixId(int row, int col)
   {
     if (row < 0) return NULL;
     if (col < 0) return NULL;
@@ -262,7 +298,7 @@ public:
     return _matchingPixelsMatrix[row][col];
   }
 
-  const uint16_t *getLedsEdgeId(int n)
+  const uint8_t *getLedsEdgeId(int n)
   {
     if (n < 0) return NULL;
     if (n > NEDGE - 1) return NULL;
@@ -271,68 +307,14 @@ public:
   }
 };
 
-class LedConfiguration100x100_3 : public LedConfiguration {
-private:
-  const uint16_t _matchingPixelsMatrix[NROW][NCOL][2] = {
-    { { 21 , 22  }, { 19 , 20  }, { 17 , 18  }, { 15 , 16  }, { 13 , 14  }, { 11 , 12  }, { 9  , 10  }, { 7  , 8   }, { 5  , 6   }, { 3  , 4   }, { 1  , 2   } },
-    { { 27 , 28  }, { 29 , 30  }, { 31 , 32  }, { 33 , 34  }, { 35 , 36  }, { 37 , 38  }, { 39 , 40  }, { 41 , 42  }, { 43 , 44  }, { 45 , 46  }, { 47 , 48  } },
-    { { 73 , 74  }, { 71 , 72  }, { 69 , 70  }, { 67 , 68  }, { 65 , 66  }, { 63 , 64  }, { 61 , 62  }, { 59 , 60  }, { 57 , 58  }, { 55 , 56  }, { 53 , 54  } },
-    { { 79 , 80  }, { 81 , 82  }, { 83 , 84  }, { 85 , 86  }, { 87 , 88  }, { 89 , 90  }, { 91 , 92  }, { 93 , 94  }, { 95 , 96  }, { 97 , 98  }, { 99 , 100 } },
-    { { 125, 126 }, { 123, 124 }, { 121, 122 }, { 119, 120 }, { 117, 118 }, { 115, 116 }, { 113, 114 }, { 111, 112 }, { 109, 110 }, { 107, 108 }, { 105, 106 } },
-    { { 131, 132 }, { 133, 134 }, { 135, 136 }, { 137, 138 }, { 139, 140 }, { 141, 142 }, { 143, 144 }, { 145, 146 }, { 147, 148 }, { 149, 150 }, { 151, 152 } },
-    { { 177, 178 }, { 175, 176 }, { 173, 174 }, { 171, 172 }, { 169, 170 }, { 167, 168 }, { 165, 166 }, { 163, 164 }, { 161, 162 }, { 159, 160 }, { 157, 158 } },
-    { { 183, 184 }, { 185, 186 }, { 187, 188 }, { 189, 190 }, { 191, 192 }, { 193, 194 }, { 195, 196 }, { 197, 198 }, { 199, 200 }, { 201, 202 }, { 203, 204 } },
-    { { 229, 230 }, { 227, 228 }, { 225, 226 }, { 223, 224 }, { 221, 222 }, { 219, 220 }, { 217, 218 }, { 215, 216 }, { 213, 214 }, { 211, 212 }, { 209, 210 } },
-    { { 235, 236 }, { 237, 238 }, { 239, 240 }, { 241, 242 }, { 243, 244 }, { 245, 246 }, { 247, 248 }, { 249, 250 }, { 251, 252 }, { 253, 254 }, { 255, 256 } },
-  };
-  const uint16_t _matchingPixelsEdge[NEDGE][1] = { { 260 }, { 259 }, { 258 }, { 261 } };
 
-public:
-  virtual String getName()
-  {
-    return "100x100@3";
-  }
-
-  int ledsByPixelForMatrix()
-  {
-    return 2;
-  }
-
-  int ledsByPixelForEdges()
-  {
-    return 1;
-  }
-
-  int ledsNumber()
-  {
-    return 262;
-  }
-
-  const uint16_t *getLedsMatrixId(int row, int col)
-  {
-    if (row < 0) return NULL;
-    if (col < 0) return NULL;
-    if (row > NROW - 1) return NULL;
-    if (col > NCOL - 1) return NULL;
-
-    return _matchingPixelsMatrix[row][col];
-  }
-
-  const uint16_t *getLedsEdgeId(int n)
-  {
-    if (n < 0) return NULL;
-    if (n > NEDGE - 1) return NULL;
-
-    return _matchingPixelsEdge[n];
-  }
-};
 
 //  0         x
 // 0+----------
 //  |
 //  |
 //  |
-// y|
+// y|  
 //
 void copyCharToMatrix(const uint8_t src[FONTROW][FONTCOL], PixelsArray &dst, int posx, int posy, const RgbColor &color)
 {
@@ -363,6 +345,7 @@ void copyNumberToMatrix(int n, PixelsArray &dst, const RgbColor &color)
   ::copyCharToMatrix(_font_number[abs(n % 10)], dst, x, 0 + 6, color); // Display "Second number"
 }
 
+
 enum RandomColorMode
 {
   ColorRandomNo = 0,
@@ -370,6 +353,7 @@ enum RandomColorMode
   ColorRandomLetter,
   ColorRandomWord
 };
+
 
 class LedStripMode
 {
@@ -391,7 +375,7 @@ protected:
     // Clear pixels
     setPixelsColor(pVOID);
   }
-
+  
 public:
   LedStripMode(String name, PixelsContainer *pPixelContainer)
     : _name(name)
@@ -420,6 +404,7 @@ public:
   {
     _colorRandomMode = c;
   }
+
 
   virtual void begin() = 0;
   virtual void handle() = 0;
@@ -450,6 +435,7 @@ public:
   {
     return true;
   }
+
 };
 
 #define LedStripModeTimeName "Time"
@@ -567,6 +553,7 @@ public:
   }
 };
 
+
 class LedStripModeSeconds : public LedStripMode
 {
 private:
@@ -642,6 +629,7 @@ public:
     return true;
   }
 };
+
 
 class LedStripModeTemperature : public LedStripMode
 {
@@ -793,6 +781,7 @@ public:
   }
 };
 
+
 class LedStripModeTestStrip : public LedStripMode
 {
 private:
@@ -842,6 +831,7 @@ public:
   }
 };
 
+
 class MyLedStrip
 {
 protected:
@@ -868,7 +858,7 @@ protected:
     for (int r = 0; r < NROW; r++) {
       for (int c = 0; c < NCOL; c++) {
         Pixel p = pPixel->pixelsArray.getPixel(r, c);
-        const uint16_t *i = _ledConfiguration[_ledConfigurationIndex]->getLedsMatrixId(r, c);
+        const uint8_t *i = _ledConfiguration[_ledConfigurationIndex]->getLedsMatrixId(r, c);
 
         if (!p.display) continue;
 
@@ -880,7 +870,7 @@ protected:
     // Fill leds strip with edge pixels
     for (int e = 0; e < NEDGE; e++) {
       Pixel p = pPixel->pixelsEdge[e];
-      const uint16_t *i = _ledConfiguration[_ledConfigurationIndex]->getLedsEdgeId(e);
+      const uint8_t *i = _ledConfiguration[_ledConfigurationIndex]->getLedsEdgeId(e);
 
       if (!p.display) continue;
 
@@ -910,7 +900,8 @@ protected:
     {
       int sd = _config.brightnessAutoMinDay;      // minimum brightness during the day
       int sn = _config.brightnessAutoMinNight;    // minimum brightness during the night
-      int sm = 255;                               // maximum brightness
+      //int sm = 255;                               // maximum brightness
+      int sm = _config.brightnessMax;         // maximum brightness auto
       int lmin = 0;                               // minimum lux sensitivity allowed
       int lmax = _config.luxSensitivity * 10;     // maximum lux sensitivity allowed
 
@@ -951,10 +942,10 @@ public:
     , _automaticBrightness(false)
     , _modeIndex(0)
   {
+
     _ledConfiguration.push_back(new LedConfiguration40x40());
     _ledConfiguration.push_back(new LedConfiguration100x100_1());
     _ledConfiguration.push_back(new LedConfiguration100x100_2());
-    _ledConfiguration.push_back(new LedConfiguration100x100_3());
 
     _modeList.push_back(new LedStripModeNothing(&_pixels));
     _modeList.push_back(new LedStripModeTime(&_pixels));
@@ -999,9 +990,9 @@ public:
     end();
 
     if (!_pStrip)
-    {
+    { 
       _ledConfigurationIndex = _config.ledConfig;
-
+      
       // Cannot use DMA because DMA GPIO is already used by serial/USB bridge :(
       _pStrip = new MyNeoPixelBrightnessBus(_ledConfiguration[_ledConfigurationIndex]->ledsNumber(), D4);
       _pStrip->Begin();
@@ -1128,6 +1119,9 @@ public:
   }
 };
 
+
+
+
 class LedStripAnimation
 {
 protected:
@@ -1245,7 +1239,7 @@ public:
 
   void begin()
   {
-    _frame.init(50);
+    _frame.init(50.0 * _config.animSpeed / 5.0);
 
     initPixelsList();
     clearPixelsColor();
@@ -1283,10 +1277,11 @@ private:
 
   RgbColor generateFireColor()
   {
-    RgbColor c = RgbColor(58, 58, 6);
-    c.Darken(random(15));
-    c.R += random(15);
-    return c;
+    uint8_t bMax = (uint8_t)((uint16_t)_config.animBrightnessMax * 255 / 100);
+    return RgbColor(
+      (uint8_t)((uint16_t)(200 + random(55)) * bMax / 255),
+      (uint8_t)((uint16_t)(30 + random(120)) * bMax / 255),
+      (uint8_t)((uint16_t)random(20) * bMax / 255));
   }
 
 public:
@@ -1297,7 +1292,7 @@ public:
 
   void begin()
   {
-    _frame.init(8);
+    _frame.init(8.0 * _config.animSpeed / 5.0);
   }
 
   void handle()
@@ -1336,21 +1331,22 @@ class LedStripAnimationMatrix : public LedStripAnimation
 private:
   Frame _frame;
   int _matrixColumn[NCOL];
-  int _matrixColumnSize;
+  int _matrixColumnSize[NCOL];
 
 public:
   LedStripAnimationMatrix(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
     : LedStripAnimation("Matrix", pPixelContainerInput, pPixelContainerOutput)
-    , _matrixColumnSize(9)
   {
   }
 
   void begin()
   {
-    _frame.init(8);
+    _frame.init(8.0 * _config.animSpeed / 10.0);
 
-    for (int i = 0; i < NCOL; i++)
+    for (int i = 0; i < NCOL; i++) {
       _matrixColumn[i] = -1;
+      _matrixColumnSize[i] = 0;
+    }
   }
 
   void handle()
@@ -1365,26 +1361,37 @@ public:
     // Create a new column if possible (= -1)
     for (int c = 0; c < NCOL; c++) {
       if (_matrixColumn[c] == -1) {
-        if (random(30) == 0) {
+        if (random(10) == 0) {
           _matrixColumn[c] = 0;
+          _matrixColumnSize[c] = 8 + random(12); // 8 à 19 pixels
         }
       }
     }
+
+    uint8_t bMax = (uint8_t)((uint16_t)_config.animBrightnessMax * 255 / 100);
 
     // Update display columns
     for (int c = 0; c < NCOL; c++) {
       if (_matrixColumn[c] == -1)
         continue;
 
-      Pixel green = pGREEN;
-      for (int r = _matrixColumn[c]; r > _matrixColumn[c] - _matrixColumnSize; r--) {
-        _pPixelContainerOutput->pixelsArray.setPixel(green, r, c);
-        green.color.Darken(30);
+      Pixel head = Pixel(RgbColor(
+        (uint8_t)((uint16_t)200 * bMax / 255), bMax,
+        (uint8_t)((uint16_t)200 * bMax / 255)));
+      Pixel trail = Pixel(RgbColor(0, bMax, 0));
+      for (int r = _matrixColumn[c]; r > _matrixColumn[c] - _matrixColumnSize[c]; r--) {
+        int dist = _matrixColumn[c] - r;
+        if (dist == 0) {
+          _pPixelContainerOutput->pixelsArray.setPixel(head, r, c);
+        } else {
+          _pPixelContainerOutput->pixelsArray.setPixel(trail, r, c);
+          if (dist >= 5) trail.color.Darken(35);
+        }
       }
 
       _matrixColumn[c]++;
 
-      if (_matrixColumn[c] > NROW + _matrixColumnSize)
+      if (_matrixColumn[c] > NROW + _matrixColumnSize[c])
         _matrixColumn[c] = -1;
     }
 
@@ -1423,7 +1430,7 @@ public:
 
   void begin()
   {
-    _frame.init(10);
+    _frame.init(10.0 * _config.animSpeed / 5.0);
   }
 
   void handle()
@@ -1433,7 +1440,7 @@ public:
 
     clearPixelsColor();
 
-    _rainbowIndex += 0.001;
+    _rainbowIndex += 0.004;
 
     if (_rainbowIndex > 1.0)
       _rainbowIndex = 0.0;
@@ -1441,7 +1448,8 @@ public:
     // Copy foreground matrix pixels
     for (int c = 0; c < NCOL; c++) {
       for (int r = 0; r < NROW; r++) {
-        double hsl = ((double)((r * NCOL) + c) / (double)(NROW * NCOL)) * (60.0 / 360.0);
+
+        double hsl = (double)((r * NCOL) + c) / (double)(NROW * NCOL);
         hsl += _rainbowIndex;
         if (hsl > 1.0) hsl -= 1.0;
 
@@ -1486,7 +1494,7 @@ public:
 
   void begin()
   {
-    _frame.init(4);
+    _frame.init(4.0 * _config.animSpeed / 5.0);
 
     for (int i = 0; i < NCOL; i++)
       _matrixColumn[i] = -1;
@@ -1515,7 +1523,8 @@ public:
       if (_matrixColumn[c] == -1)
         continue;
 
-      Pixel green = pWHITE;
+      uint8_t bMax = (uint8_t)((uint16_t)_config.animBrightnessMax * 255 / 100);
+      Pixel green = Pixel(RgbColor(bMax, bMax, bMax));
       for (int r = _matrixColumn[c]; r > _matrixColumn[c] - _matrixColumnSize; r--) {
         _pPixelContainerOutput->pixelsArray.setPixel(green, r, c);
         green.color.Darken(128);
@@ -1560,7 +1569,7 @@ public:
 
   void begin()
   {
-    _frame.init(5);
+    _frame.init(5.0 * _config.animSpeed / 5.0);
   }
 
   Pixel generateFire()
@@ -1582,9 +1591,13 @@ public:
 
     if (_dateTime.second / 10 % 2)
     {
-      Pixel white = Pixel(RgbColor(255, 255, 255));
-      Pixel red = Pixel(RgbColor(255, 0, 0));
-      Pixel brown = Pixel(RgbColor(125, 57, 0));
+      uint8_t bMax = (uint8_t)((uint16_t)_config.animBrightnessMax * 255 / 100);
+      Pixel white = Pixel(RgbColor(bMax, bMax, bMax));
+      Pixel red = Pixel(RgbColor(bMax, 0, 0));
+      Pixel brown = Pixel(RgbColor(
+        (uint8_t)((uint16_t)125 * bMax / 255),
+        (uint8_t)((uint16_t)57 * bMax / 255),
+        0));
 
       _pPixelContainerOutput->pixelsArray.setPixel(generateFire(), 2, 3);
       _pPixelContainerOutput->pixelsArray.setPixel(generateFire(), 2, 5);
@@ -1667,6 +1680,7 @@ public:
   }
 };
 
+
 class LedStripAnimationLove : public LedStripAnimation
 {
 private:
@@ -1680,7 +1694,7 @@ public:
 
   void begin()
   {
-    _frame.init(5);
+    _frame.init(5.0 * _config.animSpeed / 5.0);
   }
 
   void handle()
@@ -1693,8 +1707,12 @@ public:
     if (_dateTime.second / 10 % 2)
     {
       //Pixel white = Pixel(RgbColor(255, 255, 255));
-      Pixel red = Pixel(RgbColor(255, 0, 0));
-      Pixel pink = Pixel(RgbColor(0x69, 0x28, 0xDE));
+      uint8_t bMax = (uint8_t)((uint16_t)_config.animBrightnessMax * 255 / 100);
+      Pixel red = Pixel(RgbColor(bMax, 0, 0));
+      Pixel pink = Pixel(RgbColor(
+        (uint8_t)((uint16_t)0x69 * bMax / 255),
+        (uint8_t)((uint16_t)0x28 * bMax / 255),
+        (uint8_t)((uint16_t)0xDE * bMax / 255)));
 
       _pPixelContainerOutput->pixelsArray.setPixel(pink, 1, 2);
       _pPixelContainerOutput->pixelsArray.setPixel(pink, 1, 3);
@@ -1776,53 +1794,81 @@ public:
   }
 };
 
-class LedStripAnimationRipple : public LedStripAnimation
+class LedStripAnimationPulse : public LedStripAnimation
 {
 private:
-  struct Ripple {
-    int originR, originC;
-    int radius;
-    RgbColor baseColor;
-    bool active;
-  };
-
-  static const int MAX_RIPPLES = 2;
-  Ripple _ripples[MAX_RIPPLES];
   Frame _frame;
-
-  bool isInBounds(int r, int c)
-  {
-    return r >= 0 && r < NROW &&c >= 0 && c < NCOL;
-  }
-
-  void createNewRipple(int index)
-  {
-    _ripples[index].originR = random(NROW);
-    _ripples[index].originC = random(NCOL);
-    _ripples[index].radius = 0;
-    _ripples[index].baseColor = RgbColor(random(128, 255), random(64), random(255));
-    _ripples[index].active = true;
-  }
-
-  double euclideanDistance(int r1, int c1, int r2, int c2)
-  {
-    return sqrt((r1 - r2) * (r1 - r2) + (c1 - c2) * (c1 - c2));
-  }
+  uint16_t _phase;
 
 public:
-  LedStripAnimationRipple(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
-    : LedStripAnimation("Ripple", pPixelContainerInput, pPixelContainerOutput)
+  LedStripAnimationPulse(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimation("Pulse", pPixelContainerInput, pPixelContainerOutput)
+    , _phase(0)
   {
   }
 
   void begin()
   {
-    _frame.init(8);
-    for (int i = 0; i < MAX_RIPPLES; i++)
-      _ripples[i].active = false;
+    _frame.init(20.0 * _config.animSpeed / 5.0);
+    _phase = 0;
+  }
 
-    // Start the first wave
-    createNewRipple(0);
+  void handle()
+  {
+    if (!_frame.next())
+      return;
+
+    _phase = (_phase + 3) & 511;
+    uint8_t v = (_phase < 256) ? (uint8_t)_phase : (uint8_t)(511 - _phase);
+    uint8_t bMin = (uint8_t)((uint16_t)_config.animBrightnessMin * 255 / 100);
+    uint8_t bMax = (uint8_t)((uint16_t)_config.animBrightnessMax * 255 / 100);
+    uint8_t b = (bMax > bMin) ? (bMin + (uint8_t)((uint16_t)v * (bMax - bMin) / 255)) : bMin;
+
+    clearPixelsColor();
+
+    for (int c = 0; c < NCOL; c++) {
+      for (int r = 0; r < NROW; r++) {
+        Pixel pf = _pPixelContainerInput->pixelsArray.getPixel(r, c);
+        if (pf.display) {
+          pf.color = RgbColor(
+            (uint8_t)((uint16_t)pf.color.R * b / 255),
+            (uint8_t)((uint16_t)pf.color.G * b / 255),
+            (uint8_t)((uint16_t)pf.color.B * b / 255));
+          _pPixelContainerOutput->pixelsArray.setPixel(pf, r, c);
+        }
+      }
+    }
+    for (int e = 0; e < NEDGE; e++) {
+      Pixel pf = _pPixelContainerInput->pixelsEdge[e];
+      if (pf.display) {
+        pf.color = RgbColor(
+          (uint8_t)((uint16_t)pf.color.R * b / 255),
+          (uint8_t)((uint16_t)pf.color.G * b / 255),
+          (uint8_t)((uint16_t)pf.color.B * b / 255));
+        _pPixelContainerOutput->pixelsEdge[e] = pf;
+      }
+    }
+    _pPixelContainerOutput->hasChanged = true;
+  }
+};
+
+class LedStripAnimationSparkle : public LedStripAnimation
+{
+private:
+  Frame _frame;
+  uint8_t _sparks[NROW][NCOL];
+
+public:
+  LedStripAnimationSparkle(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimation("Sparkle", pPixelContainerInput, pPixelContainerOutput)
+  {
+    memset(_sparks, 0, sizeof(_sparks));
+  }
+
+  void begin()
+  {
+    _frame.init(15.0 * _config.animSpeed / 10.0);
+    memset(_sparks, 0, sizeof(_sparks));
   }
 
   void handle()
@@ -1832,48 +1878,147 @@ public:
 
     clearPixelsColor();
 
-    for (int r = 0; r < NROW; r++) {
-      for (int c = 0; c < NCOL; c++) {
-        Pixel p;
-        p.display = false;
-
-        for (int i = 0; i < MAX_RIPPLES; i++) {
-          if (!_ripples[i].active)
-            continue;
-
-          double dist = euclideanDistance(r, c, _ripples[i].originR, _ripples[i].originC);
-
-          if (abs(dist - _ripples[i].radius) < 0.5) {
-            RgbColor color = _ripples[i].baseColor;
-            int darkenAmount = (int)(dist * 10);
-            color.Darken(darkenAmount);
-
-            p.color = color;
+    for (int c = 0; c < NCOL; c++) {
+      for (int r = 0; r < NROW; r++) {
+        Pixel pf = _pPixelContainerInput->pixelsArray.getPixel(r, c);
+        if (pf.display) {
+          _sparks[r][c] = 0;
+          _pPixelContainerOutput->pixelsArray.setPixel(pf, r, c);
+        } else {
+          if (_sparks[r][c] > 40)
+            _sparks[r][c] -= 40;
+          else {
+            _sparks[r][c] = 0;
+            if (random(NROW * NCOL * 2) == 0)
+              _sparks[r][c] = 220;
+          }
+          if (_sparks[r][c] > 0) {
+            Pixel p;
+            p.color = RgbColor(
+              (uint8_t)((uint16_t)_sparks[r][c] * _config.animBrightnessMax / 100),
+              (uint8_t)((uint16_t)_sparks[r][c] * _config.animBrightnessMax / 100),
+              (uint8_t)((uint16_t)_sparks[r][c] * _config.animBrightnessMax / 100));
             p.display = true;
-            break;
+            _pPixelContainerOutput->pixelsArray.setPixel(p, r, c);
           }
         }
-
-        if (p.display)
-          _pPixelContainerOutput->pixelsArray.setPixel(p, r, c);
       }
     }
+    for (int e = 0; e < NEDGE; e++) {
+      Pixel pf = _pPixelContainerInput->pixelsEdge[e];
+      if (pf.display)
+        _pPixelContainerOutput->pixelsEdge[e] = pf;
+    }
+    _pPixelContainerOutput->hasChanged = true;
+  }
+};
 
-    for (int i = 0; i < MAX_RIPPLES; i++) {
-      if (_ripples[i].active) {
-        _ripples[i].radius++;
+class LedStripAnimationWave : public LedStripAnimation
+{
+private:
+  Frame _frame;
+  uint8_t _phase;
 
-        if (_ripples[i].radius > (NROW + NCOL) / 2) {
-          _ripples[i].active = false;
+public:
+  LedStripAnimationWave(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimation("Wave", pPixelContainerInput, pPixelContainerOutput)
+    , _phase(0)
+  {
+  }
+
+  void begin()
+  {
+    _frame.init(15.0 * _config.animSpeed / 5.0);
+    _phase = 0;
+  }
+
+  void handle()
+  {
+    if (!_frame.next())
+      return;
+
+    _phase += 2;
+
+    uint8_t bMin = (uint8_t)((uint16_t)_config.animBrightnessMin * 255 / 100);
+    uint8_t bMax = (uint8_t)((uint16_t)_config.animBrightnessMax * 255 / 100);
+    uint8_t bRange = (bMax > bMin) ? (bMax - bMin) : 0;
+
+    clearPixelsColor();
+
+    for (int c = 0; c < NCOL; c++) {
+      uint8_t colPhase = _phase + (uint8_t)(c * 255 / (NCOL - 1));
+      uint8_t tri = (colPhase < 128) ? (uint8_t)(colPhase << 1) : (uint8_t)((255 - colPhase) << 1);
+      uint8_t b = bMin + (uint8_t)((uint16_t)tri * bRange / 255);
+
+      for (int r = 0; r < NROW; r++) {
+        Pixel pf = _pPixelContainerInput->pixelsArray.getPixel(r, c);
+        if (pf.display) {
+          pf.color = RgbColor(
+            (uint8_t)((uint16_t)pf.color.R * b / 255),
+            (uint8_t)((uint16_t)pf.color.G * b / 255),
+            (uint8_t)((uint16_t)pf.color.B * b / 255));
+          _pPixelContainerOutput->pixelsArray.setPixel(pf, r, c);
         }
       }
-
-      if (!_ripples[i].active && random(100) < 10) {
-        createNewRipple(i);
+    }
+    for (int e = 0; e < NEDGE; e++) {
+      Pixel pf = _pPixelContainerInput->pixelsEdge[e];
+      if (pf.display) {
+        uint8_t ePhase = _phase + (uint8_t)(e * 64);
+        uint8_t tri = (ePhase < 128) ? (uint8_t)(ePhase << 1) : (uint8_t)((255 - ePhase) << 1);
+        uint8_t b = bMin + (uint8_t)((uint16_t)tri * bRange / 255);
+        pf.color = RgbColor(
+          (uint8_t)((uint16_t)pf.color.R * b / 255),
+          (uint8_t)((uint16_t)pf.color.G * b / 255),
+          (uint8_t)((uint16_t)pf.color.B * b / 255));
+        _pPixelContainerOutput->pixelsEdge[e] = pf;
       }
     }
+    _pPixelContainerOutput->hasChanged = true;
+  }
+};
 
-    // Copy foreground matrix pixels
+class LedStripAnimationLightning : public LedStripAnimation
+{
+protected:
+  Frame _frame;
+
+  enum Phase { PAUSE, BUILD, FLASH, FADE };
+  Phase _phase;
+
+  bool _boltGrid[NROW][NCOL];
+  int  _buildRow;
+  int  _flashTimer;
+  int  _pauseTimer;
+  int  _fadeProgress;
+
+  void generateBolt()
+  {
+    memset(_boltGrid, 0, sizeof(_boltGrid));
+    int8_t c = random(NCOL);
+    for (int r = 0; r < NROW; r++) {
+      _boltGrid[r][c] = true;
+      c = (int8_t)constrain(c + (int8_t)(random(3) - 1), 0, NCOL - 1);
+    }
+    int numBranches = random(3);
+    for (int b = 0; b < numBranches; b++) {
+      int startRow = 1 + random(NROW / 2);
+      int8_t bc = -1;
+      for (int col = 0; col < NCOL; col++) {
+        if (_boltGrid[startRow][col]) { bc = col; break; }
+      }
+      if (bc < 0) continue;
+      bc = (int8_t)constrain(bc + (int8_t)(random(3) - 1), 0, NCOL - 1);
+      for (int r = startRow + 1; r < NROW; r++) {
+        _boltGrid[r][bc] = true;
+        bc = (int8_t)constrain(bc + (int8_t)(random(3) - 1), 0, NCOL - 1);
+        if (random(3) == 0) break;
+      }
+    }
+  }
+
+  void copyForeground()
+  {
     for (int c = 0; c < NCOL; c++) {
       for (int r = 0; r < NROW; r++) {
         Pixel pf = _pPixelContainerInput->pixelsArray.getPixel(r, c);
@@ -1881,160 +2026,34 @@ public:
           _pPixelContainerOutput->pixelsArray.setPixel(pf, r, c);
       }
     }
-
-    // Copy foreground edge pixels
     for (int e = 0; e < NEDGE; e++) {
       Pixel pf = _pPixelContainerInput->pixelsEdge[e];
       if (pf.display)
         _pPixelContainerOutput->pixelsEdge[e] = pf;
     }
-
-    _pPixelContainerOutput->hasChanged = true;
-  }
-};
-
-class LedStripAnimationMinuteFall : public LedStripAnimation
-{
-private:
-  struct FallingPixel : PixelPos {
-    int ce;
-    int cc;
-    int cr;
-  };
-
-  Frame _frame;
-  int _lastMinute;
-  bool _animationInProgress;
-  int _animationPhase; // 0: falling old pixels, 1: rising new pixels
-
-  cl_Lst<PixelPos> _oldPixelPositions;
-  cl_Lst<FallingPixel> _fallingPixels;
-
-  void getPixelsList()
-  {
-    _oldPixelPositions.clear();
-
-    // Retrieve currently displayed pixels (old minute)
-    for (int c = 0; c < NCOL; c++) {
-      for (int r = 0; r < NROW; r++) {
-        Pixel p = _pPixelContainerInput->pixelsArray.getPixel(r, c);
-        if (p.display) {
-          PixelPos pp;
-          pp.e = -1;
-          pp.c = c;
-          pp.r = r;
-          pp.p = p;
-          _oldPixelPositions.push_back(pp);
-        }
-      }
-    }
-
-    // Retrieve edge pixels (old minute)
-    for (int e = 0; e < NEDGE; e++) {
-      Pixel p = _pPixelContainerInput->pixelsEdge[e];
-      if (p.display) {
-        PixelPos pp;
-        pp.e = e;
-        pp.c = -1;
-        pp.r = -1;
-        pp.p = p;
-        _oldPixelPositions.push_back(pp);
-      }
-    }
-  }
-
-  void startFallingAnimation()
-  {
-    // Clear falling pixels list
-    _fallingPixels.clear();
-
-    // Add all pixels that need to fall
-    for (int i = 0; i < _oldPixelPositions.size(); i++) {
-      FallingPixel fp;
-
-      fp.r = _oldPixelPositions[i].r;
-      fp.c = _oldPixelPositions[i].c;
-      fp.e = _oldPixelPositions[i].e;
-
-      fp.cr = -random(3, 20); // Random delay in frames
-      fp.cc = -random(3, 20); // Random delay in frames
-      fp.ce = -random(3, 20); // Random delay in frames
-
-      fp.p = _oldPixelPositions[i].p;
-
-      _fallingPixels.push_back(fp);
-    }
-
-    _animationPhase = 0;
-  }
-
-  void startRisingAnimation()
-  {
-    // Clear rising pixels list
-    _fallingPixels.clear();
-
-    // Create all rising pixels at once based on current input
-    for (int c = 0; c < NCOL; c++) {
-      for (int r = 0; r < NROW; r++) {
-        Pixel targetPixel = _pPixelContainerInput->pixelsArray.getPixel(r, c);
-        if (!targetPixel.display) continue;
-
-        FallingPixel fp;
-        fp.r = r;
-        fp.c = c;
-        fp.e = -1;
-        fp.cr = -random(3, 20); // Random delay in frames
-        fp.cc = -random(3, 20); // Random delay in frames
-        fp.ce = -random(3, 20); // Random delay in frames
-        fp.p = targetPixel;
-
-        _fallingPixels.push_back(fp);
-      }
-    }
-
-    // Handle edge pixels too
-    for (int e = 0; e < NEDGE; e++) {
-      Pixel targetPixel = _pPixelContainerInput->pixelsEdge[e];
-      if (!targetPixel.display) continue;
-
-      FallingPixel fp;
-      fp.r = -1;
-      fp.c = -1;
-      fp.e = e;
-      fp.cr = -random(3, 20); // Random delay in frames
-      fp.cc = -random(3, 20); // Random delay in frames
-      fp.ce = -random(3, 20); // Random delay in frames
-      fp.p = targetPixel;
-
-      _fallingPixels.push_back(fp);
-    }
-
-    _animationPhase = 1;
   }
 
 public:
-  LedStripAnimationMinuteFall(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
-    : LedStripAnimation("PixelsFalling", pPixelContainerInput, pPixelContainerOutput)
-    , _lastMinute(-1)
-    , _animationInProgress(false)
-    , _animationPhase(0)
+  LedStripAnimationLightning(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimation("Lightning", pPixelContainerInput, pPixelContainerOutput)
+    , _phase(PAUSE), _buildRow(0), _flashTimer(0), _pauseTimer(0), _fadeProgress(0)
   {
+    memset(_boltGrid, 0, sizeof(_boltGrid));
+  }
+
+  void setPauseTimer()
+  {
+    int r = random(10);
+    if (r < 2)      _pauseTimer = 3  + random(12);   // double-flash rapide
+    else if (r < 6) _pauseTimer = 40 + random(80);   // pause normale
+    else            _pauseTimer = 120 + random(200);  // longue attente
   }
 
   void begin()
   {
-    _frame.init(15); // Slow animation (fps)
-    _lastMinute = _dateTime.minute;
-    _animationInProgress = false;
-
-    // Clear falling pixels lists
-    _fallingPixels.clear();
-    //_risingPixels.clear();
-
-    // Force refresh of input pixels because
-    // we copy them to the output buffer only
-    // When they change. (To limit CPU usage)
-    _pPixelContainerInput->hasChanged = true;
+    _frame.init(30.0 * _config.animSpeed / 10.0);
+    _phase = PAUSE;
+    setPauseTimer();
   }
 
   void handle()
@@ -2042,109 +2061,89 @@ public:
     if (!_frame.next())
       return;
 
-    // Check if minute has changed
-    if (_dateTime.minute != _lastMinute && !_animationInProgress) {
-      _lastMinute = _dateTime.minute;
-      _animationInProgress = true;
-      startFallingAnimation();
-    }
-
-    getPixelsList();
-
-    if (!_animationInProgress) {
-      // No animation, just copy input to output
-      *_pPixelContainerOutput = *_pPixelContainerInput;
-      _pPixelContainerOutput->hasChanged = true;
-      return;
-    }
-
     clearPixelsColor();
+    uint8_t bMax = (uint8_t)((uint16_t)_config.animBrightnessMax * 255 / 100);
 
-    if (_animationPhase == 0) {
-      bool allFallen = true;
+    switch (_phase)
+    {
+      case PAUSE:
+        copyForeground();
+        if (--_pauseTimer <= 0) {
+          generateBolt();
+          _buildRow = 0;
+          _phase = BUILD;
+        }
+        break;
 
-      for (int i = 0; i < _fallingPixels.size(); i++) {
-        _fallingPixels[i].cr++;
-
-        // Matrix pixel
-        if (_fallingPixels[i].e == -1) {
-          // If the pixel current position is under the matrix, do nothing (no display)
-          if (_fallingPixels[i].cr > NROW) continue;
-
-          // If the pixel current position is above the original position, display at original position (delay phase)
-          else if (_fallingPixels[i].cr < _fallingPixels[i].r) {
-            _pPixelContainerOutput->pixelsArray.setPixel(_fallingPixels[i].p, _fallingPixels[i].r, _fallingPixels[i].c);
-            allFallen = false;
-          }
-
-          // If the pixel current position is below the original position, display at current position (falling)
-          else {
-            _pPixelContainerOutput->pixelsArray.setPixel(_fallingPixels[i].p, _fallingPixels[i].cr, _fallingPixels[i].c);
-            allFallen = false;
+      case BUILD:
+        _buildRow = min(_buildRow + 2, NROW);
+        for (int r = 0; r < _buildRow; r++) {
+          for (int col = 0; col < NCOL; col++) {
+            if (_boltGrid[r][col]) {
+              Pixel p;
+              p.color = RgbColor(bMax, bMax, bMax);
+              p.display = true;
+              _pPixelContainerOutput->pixelsArray.setPixel(p, r, col);
+            }
           }
         }
+        copyForeground();
+        if (_buildRow >= NROW) {
+          _flashTimer = 3;
+          _phase = FLASH;
+        }
+        break;
 
-        // Edge pixel
-        if (_fallingPixels[i].c == -1 && _fallingPixels[i].r == -1) {
-          // If pixel current position is in delay phase, display it at edge position
-          if (_fallingPixels[i].cr < 0) {
-            _pPixelContainerOutput->pixelsEdge[_fallingPixels[i].e] = _fallingPixels[i].p;
-            allFallen = false;
+      case FLASH:
+      {
+        uint8_t fb = bMax / 2;
+        for (int r = 0; r < NROW; r++) {
+          for (int col = 0; col < NCOL; col++) {
+            Pixel p;
+            p.color = RgbColor(fb, fb, fb);
+            p.display = true;
+            _pPixelContainerOutput->pixelsArray.setPixel(p, r, col);
           }
         }
-      }
-
-      if (allFallen) {
-        // All pixels have fallen, switch to rising phase
-        startRisingAnimation();
-      }
-    }
-
-    if (_animationPhase == 1) {
-      // Second step: rising pixels of new time
-      bool allRisen = true;
-
-      // Animate all rising pixels
-      for (int i = 0; i < _fallingPixels.size(); i++) {
-        _fallingPixels[i].cr++;
-
-        // Matrix pixel
-        if (_fallingPixels[i].e == -1) {
-          // If the pixel current position is in delay phase (above matrix), wait
-          if (_fallingPixels[i].cr < 0) {
-            allRisen = false;
-            continue;
-          }
-
-          // If the pixel current position is falling to destination
-          else if (_fallingPixels[i].cr <= _fallingPixels[i].r) {
-            _pPixelContainerOutput->pixelsArray.setPixel(_fallingPixels[i].p, _fallingPixels[i].cr, _fallingPixels[i].c);
-            allRisen = false;
-          }
-
-          // If the pixel current position has reached its destination
-          else {
-            _pPixelContainerOutput->pixelsArray.setPixel(_fallingPixels[i].p, _fallingPixels[i].r, _fallingPixels[i].c);
-          }
-        }
-
-        // Edge pixel
-        if (_fallingPixels[i].c == -1 && _fallingPixels[i].r == -1) {
-          // If pixel current position is in delay phase, wait
-          if (_fallingPixels[i].cr < 0) {
-            allRisen = false;
-          }
-
-          // Display pixel at edge position (reached destination)
-          else {
-            _pPixelContainerOutput->pixelsEdge[_fallingPixels[i].e] = _fallingPixels[i].p;
-          }
+        for (int e = 0; e < NEDGE; e++) {
+          Pixel p;
+          p.color = RgbColor(fb, fb, fb);
+          p.display = true;
+          _pPixelContainerOutput->pixelsEdge[e] = p;
         }
       }
+        if (--_flashTimer <= 0) {
+          _fadeProgress = 0;
+          _phase = FADE;
+        }
+        break;
 
-      if (allRisen) {
-        // Animation complete
-        _animationInProgress = false;
+      case FADE:
+      {
+        bool anyVisible = false;
+        for (int r = 0; r < NROW; r++) {
+          int bright = 255 - max(0, _fadeProgress - r) * 20;
+          if (bright < 0) bright = 0;
+          if (bright > 0) {
+            anyVisible = true;
+            uint8_t b = (uint8_t)((uint16_t)bright * bMax / 255);
+            for (int col = 0; col < NCOL; col++) {
+              if (_boltGrid[r][col]) {
+                Pixel p;
+                p.color = RgbColor(b, b, b);
+                p.display = true;
+                _pPixelContainerOutput->pixelsArray.setPixel(p, r, col);
+              }
+            }
+          }
+        }
+        copyForeground();
+        _fadeProgress++;
+        if (!anyVisible) {
+          _phase = PAUSE;
+          setPauseTimer();
+        }
+        break;
       }
     }
 
@@ -2152,27 +2151,490 @@ public:
   }
 };
 
+class LedStripAnimationStorm : public LedStripAnimationLightning
+{
+public:
+  LedStripAnimationStorm(PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
+    : LedStripAnimationLightning(pPixelContainerInput, pPixelContainerOutput)
+  {
+    _name = "Storm";
+  }
+
+  void handle()
+  {
+    if (!_frame.next())
+      return;
+
+    clearPixelsColor();
+    uint8_t bMax = (uint8_t)((uint16_t)_config.animBrightnessMax * 255 / 100);
+
+    switch (_phase)
+    {
+      case PAUSE:
+        copyForeground();
+        if (--_pauseTimer <= 0) {
+          generateBolt();
+          _buildRow = 0;
+          _phase = BUILD;
+        }
+        break;
+
+      case BUILD:
+        _buildRow = min(_buildRow + 2, NROW);
+        for (int r = 0; r < _buildRow; r++) {
+          for (int col = 0; col < NCOL; col++) {
+            if (_boltGrid[r][col]) {
+              Pixel p;
+              p.color = RgbColor(bMax, bMax, bMax);
+              p.display = true;
+              _pPixelContainerOutput->pixelsArray.setPixel(p, r, col);
+            }
+          }
+        }
+        copyForeground();
+        if (_buildRow >= NROW) {
+          _fadeProgress = 0;
+          _phase = FADE;
+        }
+        break;
+
+      case FLASH:
+        break;
+
+      case FADE:
+      {
+        bool anyVisible = false;
+        for (int r = 0; r < NROW; r++) {
+          int bright = 255 - max(0, _fadeProgress - r) * 20;
+          if (bright < 0) bright = 0;
+          if (bright > 0) {
+            anyVisible = true;
+            uint8_t b = (uint8_t)((uint16_t)bright * bMax / 255);
+            for (int col = 0; col < NCOL; col++) {
+              if (_boltGrid[r][col]) {
+                Pixel p;
+                p.color = RgbColor(b, b, b);
+                p.display = true;
+                _pPixelContainerOutput->pixelsArray.setPixel(p, r, col);
+              }
+            }
+          }
+        }
+        copyForeground();
+        _fadeProgress++;
+        if (!anyVisible) {
+          _phase = PAUSE;
+          setPauseTimer();
+        }
+        break;
+      }
+    }
+
+    _pPixelContainerOutput->hasChanged = true;
+  }
+};
+
+// ---- Tetris ----
+
+static const int8_t TET_PIECES[7][4][4][2] = {
+  // I
+  {{{0,0},{0,1},{0,2},{0,3}}, {{0,2},{1,2},{2,2},{3,2}}, {{0,0},{0,1},{0,2},{0,3}}, {{0,1},{1,1},{2,1},{3,1}}},
+  // O
+  {{{0,1},{0,2},{1,1},{1,2}}, {{0,1},{0,2},{1,1},{1,2}}, {{0,1},{0,2},{1,1},{1,2}}, {{0,1},{0,2},{1,1},{1,2}}},
+  // T
+  {{{0,1},{1,0},{1,1},{1,2}}, {{0,1},{1,1},{1,2},{2,1}}, {{1,0},{1,1},{1,2},{2,1}}, {{0,1},{1,0},{1,1},{2,1}}},
+  // S
+  {{{0,1},{0,2},{1,0},{1,1}}, {{0,1},{1,1},{1,2},{2,2}}, {{0,1},{0,2},{1,0},{1,1}}, {{0,1},{1,1},{1,2},{2,2}}},
+  // Z
+  {{{0,0},{0,1},{1,1},{1,2}}, {{0,2},{1,1},{1,2},{2,1}}, {{0,0},{0,1},{1,1},{1,2}}, {{0,2},{1,1},{1,2},{2,1}}},
+  // J
+  {{{0,0},{1,0},{1,1},{1,2}}, {{0,1},{0,2},{1,1},{2,1}}, {{1,0},{1,1},{1,2},{2,2}}, {{0,1},{1,1},{2,0},{2,1}}},
+  // L
+  {{{0,2},{1,0},{1,1},{1,2}}, {{0,1},{1,1},{2,1},{2,2}}, {{1,0},{1,1},{1,2},{2,0}}, {{0,0},{0,1},{1,1},{2,1}}}
+};
+
+static const RgbColor TET_COLORS[7] = {
+  RgbColor(  0, 200, 200),  // I cyan
+  RgbColor(200, 200,   0),  // O yellow
+  RgbColor(150,   0, 200),  // T purple
+  RgbColor(  0, 200,   0),  // S green
+  RgbColor(200,   0,   0),  // Z red
+  RgbColor(  0,   0, 200),  // J blue
+  RgbColor(200, 100,   0),  // L orange
+};
+
+class LedStripAnimationTetris : public LedStripAnimation
+{
+public:
+  static LedStripAnimationTetris *instance;
+
+  enum TetAction { ACT_NONE=0, ACT_LEFT, ACT_RIGHT, ACT_ROTATE, ACT_DOWN, ACT_DROP, ACT_START };
+  enum TetState  { STATE_IDLE, STATE_PLAYING, STATE_GAME_OVER };
+
+private:
+  Frame    _frame;
+  uint8_t  _board[NROW][NCOL];
+  int8_t   _pieceType, _pieceRot, _pieceRow, _pieceCol, _nextPiece;
+  uint32_t _lastTick, _tickInterval;
+  uint16_t _score;
+  uint8_t  _lines, _level;
+  TetState  _state;
+  TetAction _pendingAction;
+
+  void getCells(int8_t type, int8_t rot, int8_t row, int8_t col, int8_t out[4][2])
+  {
+    for (int i = 0; i < 4; i++) {
+      out[i][0] = row + TET_PIECES[type][rot][i][0];
+      out[i][1] = col + TET_PIECES[type][rot][i][1];
+    }
+  }
+
+  bool canPlace(int8_t type, int8_t rot, int8_t row, int8_t col)
+  {
+    int8_t cells[4][2];
+    getCells(type, rot, row, col, cells);
+    for (int i = 0; i < 4; i++) {
+      int8_t r = cells[i][0], c = cells[i][1];
+      if (r < 0 || r >= NROW || c < 0 || c >= NCOL) return false;
+      if (_board[r][c]) return false;
+    }
+    return true;
+  }
+
+  void clearLines()
+  {
+    uint8_t cleared = 0;
+    for (int r = NROW - 1; r >= 0; r--) {
+      bool full = true;
+      for (int c = 0; c < NCOL; c++) if (!_board[r][c]) { full = false; break; }
+      if (full) {
+        for (int rr = r; rr > 0; rr--) memcpy(_board[rr], _board[rr-1], NCOL);
+        memset(_board[0], 0, NCOL);
+        cleared++; r++;
+      }
+    }
+    if (cleared) {
+      const uint16_t pts[4] = {100, 300, 500, 800};
+      _score += pts[min((int)cleared - 1, 3)] * (_level + 1);
+      _lines += cleared;
+      _level  = _lines / 10;
+      _tickInterval = max(100UL, 800UL - (uint32_t)_level * 70UL);
+    }
+  }
+
+  void spawnPiece(int8_t type)
+  {
+    _pieceType = type;
+    _pieceRot  = 0;
+    _pieceRow  = 0;
+    _pieceCol  = NCOL / 2 - 2;
+    if (!canPlace(_pieceType, _pieceRot, _pieceRow, _pieceCol))
+      _state = STATE_GAME_OVER;
+  }
+
+  void lockPiece()
+  {
+    int8_t cells[4][2];
+    getCells(_pieceType, _pieceRot, _pieceRow, _pieceCol, cells);
+    for (int i = 0; i < 4; i++) {
+      int8_t r = cells[i][0], c = cells[i][1];
+      if (r >= 0 && r < NROW && c >= 0 && c < NCOL)
+        _board[r][c] = _pieceType + 1;
+    }
+    clearLines();
+    spawnPiece(_nextPiece);
+    _nextPiece = random(7);
+  }
+
+  void startGame()
+  {
+    memset(_board, 0, sizeof(_board));
+    _score = 0; _lines = 0; _level = 0; _tickInterval = 800;
+    _nextPiece = random(7);
+    _lastTick  = millis();
+    _state     = STATE_PLAYING;
+    spawnPiece(random(7));
+  }
+
+  void renderBoard()
+  {
+    clearPixelsColor();
+    uint8_t bMax = (uint8_t)((uint16_t)_config.animBrightnessMax * 255 / 100);
+
+    for (int r = 0; r < NROW; r++) {
+      for (int c = 0; c < NCOL; c++) {
+        if (_board[r][c]) {
+          RgbColor col = TET_COLORS[_board[r][c] - 1];
+          Pixel p;
+          p.color = RgbColor(
+            (uint8_t)((uint16_t)col.R * bMax / 512),
+            (uint8_t)((uint16_t)col.G * bMax / 512),
+            (uint8_t)((uint16_t)col.B * bMax / 512));
+          p.display = true;
+          _pPixelContainerOutput->pixelsArray.setPixel(p, r, c);
+        } else if (_state == STATE_GAME_OVER && (millis() / 300) % 2 == 0) {
+          Pixel p; p.display = true;
+          p.color = RgbColor((uint8_t)((uint16_t)200 * bMax / 255), 0, 0);
+          _pPixelContainerOutput->pixelsArray.setPixel(p, r, c);
+        }
+      }
+    }
+
+    if (_state == STATE_PLAYING) {
+      int8_t cells[4][2];
+      getCells(_pieceType, _pieceRot, _pieceRow, _pieceCol, cells);
+      for (int i = 0; i < 4; i++) {
+        int8_t r = cells[i][0], c = cells[i][1];
+        if (r >= 0 && r < NROW && c >= 0 && c < NCOL) {
+          RgbColor col = TET_COLORS[_pieceType];
+          Pixel p;
+          p.color = RgbColor(
+            (uint8_t)((uint16_t)col.R * bMax / 255),
+            (uint8_t)((uint16_t)col.G * bMax / 255),
+            (uint8_t)((uint16_t)col.B * bMax / 255));
+          p.display = true;
+          _pPixelContainerOutput->pixelsArray.setPixel(p, r, c);
+        }
+      }
+    }
+
+    _pPixelContainerOutput->hasChanged = true;
+  }
+
+public:
+  LedStripAnimationTetris(PixelsContainer *in, PixelsContainer *out)
+    : LedStripAnimation("Tetris", in, out)
+    , _pieceType(0), _pieceRot(0), _pieceRow(0), _pieceCol(0), _nextPiece(0)
+    , _lastTick(0), _tickInterval(800)
+    , _score(0), _lines(0), _level(0)
+    , _state(STATE_IDLE), _pendingAction(ACT_NONE)
+  {
+    memset(_board, 0, sizeof(_board));
+    instance = this;
+  }
+
+  void begin()
+  {
+    _frame.init(30.0);
+    startGame();
+  }
+
+  void action(TetAction act) { _pendingAction = act; }
+  TetState getState()        { return _state; }
+  uint16_t getScore()        { return _score; }
+  uint8_t  getLines()        { return _lines; }
+  uint8_t  getLevel()        { return _level; }
+  int8_t   getNext()         { return _nextPiece; }
+
+  void handle()
+  {
+    TetAction act = _pendingAction;
+    _pendingAction = ACT_NONE;
+
+    if (_state == STATE_GAME_OVER) {
+      if (act == ACT_START) startGame();
+    } else if (_state == STATE_PLAYING) {
+      if      (act == ACT_LEFT   && canPlace(_pieceType, _pieceRot, _pieceRow, _pieceCol-1)) _pieceCol--;
+      else if (act == ACT_RIGHT  && canPlace(_pieceType, _pieceRot, _pieceRow, _pieceCol+1)) _pieceCol++;
+      else if (act == ACT_ROTATE) {
+        int8_t nr = (_pieceRot + 1) % 4;
+        if (canPlace(_pieceType, nr, _pieceRow, _pieceCol)) _pieceRot = nr;
+      }
+      else if (act == ACT_DOWN) {
+        if (canPlace(_pieceType, _pieceRot, _pieceRow+1, _pieceCol)) _pieceRow++;
+        else lockPiece();
+        _lastTick = millis();
+      }
+      else if (act == ACT_DROP) {
+        while (canPlace(_pieceType, _pieceRot, _pieceRow+1, _pieceCol)) _pieceRow++;
+        lockPiece();
+        _lastTick = millis();
+      }
+
+      uint32_t now = millis();
+      if (now - _lastTick >= _tickInterval) {
+        _lastTick = now;
+        if (canPlace(_pieceType, _pieceRot, _pieceRow+1, _pieceCol)) _pieceRow++;
+        else lockPiece();
+      }
+    }
+
+    if (_frame.next()) renderBoard();
+  }
+};
+
+LedStripAnimationTetris* LedStripAnimationTetris::instance = nullptr;
+
+class LedStripAnimationSnake : public LedStripAnimation
+{
+public:
+  static LedStripAnimationSnake *instance;
+
+  enum SnaAction { ACT_NONE=0, ACT_UP, ACT_DOWN, ACT_LEFT, ACT_RIGHT, ACT_START };
+  enum SnaState  { STATE_IDLE, STATE_PLAYING, STATE_GAME_OVER };
+  struct Pos { int8_t x, y; };
+
+private:
+  Frame    _frame;
+  Pos      _body[NROW * NCOL];
+  int      _length;
+  int8_t   _dirX, _dirY;
+  int8_t   _nextDirX, _nextDirY;
+  Pos      _food;
+  uint16_t _score;
+  SnaState  _state;
+  uint32_t _lastTick;
+  uint32_t _tickInterval;
+  SnaAction _pendingAction;
+
+  void spawnFood()
+  {
+    Pos free[NROW * NCOL];
+    int nFree = 0;
+    for (int r = 0; r < NROW; r++) {
+      for (int c = 0; c < NCOL; c++) {
+        bool occ = false;
+        for (int i = 0; i < _length; i++)
+          if (_body[i].y == r && _body[i].x == c) { occ = true; break; }
+        if (!occ) free[nFree++] = {(int8_t)c, (int8_t)r};
+      }
+    }
+    if (nFree > 0) _food = free[random(nFree)];
+  }
+
+  void startGame()
+  {
+    _length = 3;
+    _body[0] = {5, 5}; _body[1] = {4, 5}; _body[2] = {3, 5};
+    _dirX = 1; _dirY = 0; _nextDirX = 1; _nextDirY = 0;
+    _score = 0; _tickInterval = 350; _lastTick = millis();
+    _state = STATE_PLAYING;
+    spawnFood();
+  }
+
+  void tick()
+  {
+    _dirX = _nextDirX; _dirY = _nextDirY;
+    int8_t nx = _body[0].x + _dirX;
+    int8_t ny = _body[0].y + _dirY;
+
+    if (nx < 0 || nx >= NCOL || ny < 0 || ny >= NROW) { _state = STATE_GAME_OVER; return; }
+    for (int i = 0; i < _length - 1; i++)
+      if (_body[i].x == nx && _body[i].y == ny) { _state = STATE_GAME_OVER; return; }
+
+    bool ate = (nx == _food.x && ny == _food.y);
+    int newLen = ate ? min(_length + 1, NROW * NCOL) : _length;
+    for (int i = newLen - 1; i > 0; i--) _body[i] = _body[i-1];
+    _body[0] = {nx, ny};
+    _length = newLen;
+    if (ate) {
+      _score += 10;
+      if (_tickInterval > 100) _tickInterval -= 5;
+      spawnFood();
+    }
+  }
+
+  void renderBoard()
+  {
+    clearPixelsColor();
+    uint8_t bMax = (uint8_t)((uint16_t)_config.animBrightnessMax * 255 / 100);
+
+    bool blink = (millis() / 300) % 2 == 0;
+
+    if (_state == STATE_GAME_OVER && blink) {
+      bool occ[NROW][NCOL] = {};
+      for (int i = 0; i < _length; i++) occ[_body[i].y][_body[i].x] = true;
+      Pixel p; p.display = true;
+      p.color = RgbColor((uint8_t)((uint16_t)200 * bMax / 255), 0, 0);
+      for (int r = 0; r < NROW; r++)
+        for (int c = 0; c < NCOL; c++)
+          if (!occ[r][c]) _pPixelContainerOutput->pixelsArray.setPixel(p, r, c);
+    } else if (_state == STATE_PLAYING && blink) {
+      Pixel p; p.display = true;
+      p.color = RgbColor((uint8_t)((uint16_t)255 * bMax / 255), (uint8_t)((uint16_t)80 * bMax / 255), 0);
+      _pPixelContainerOutput->pixelsArray.setPixel(p, _food.y, _food.x);
+    }
+
+    for (int i = _length - 1; i >= 0; i--) {
+      uint8_t g = (i == 0) ? 255 : (uint8_t)max(60, 220 - i * 8);
+      uint8_t b = (i == 0) ? 80  : 0;
+      Pixel p; p.display = true;
+      p.color = RgbColor(0, (uint8_t)((uint16_t)g * bMax / 255), (uint8_t)((uint16_t)b * bMax / 255));
+      _pPixelContainerOutput->pixelsArray.setPixel(p, _body[i].y, _body[i].x);
+    }
+    _pPixelContainerOutput->hasChanged = true;
+  }
+
+public:
+  LedStripAnimationSnake(PixelsContainer *in, PixelsContainer *out)
+    : LedStripAnimation("Snake", in, out)
+    , _length(0), _dirX(1), _dirY(0), _nextDirX(1), _nextDirY(0)
+    , _score(0), _tickInterval(350), _lastTick(0)
+    , _state(STATE_IDLE), _pendingAction(ACT_NONE)
+  { instance = this; }
+
+  void begin() { _frame.init(30.0); startGame(); }
+  void action(SnaAction act) { _pendingAction = act; }
+  SnaState getState() { return _state; }
+  uint16_t getScore() { return _score; }
+
+  void handle()
+  {
+    SnaAction act = _pendingAction;
+    _pendingAction = ACT_NONE;
+
+    if (_state == STATE_GAME_OVER) {
+      if (act == ACT_START) startGame();
+    } else if (_state == STATE_PLAYING) {
+      switch (act) {
+        case ACT_UP:    if (_dirY == 0) { _nextDirX=0;  _nextDirY=-1; } break;
+        case ACT_DOWN:  if (_dirY == 0) { _nextDirX=0;  _nextDirY=1;  } break;
+        case ACT_LEFT:  if (_dirX == 0) { _nextDirX=-1; _nextDirY=0;  } break;
+        case ACT_RIGHT: if (_dirX == 0) { _nextDirX=1;  _nextDirY=0;  } break;
+        default: break;
+      }
+      uint32_t now = millis();
+      if (now - _lastTick >= _tickInterval) { _lastTick = now; tick(); }
+    }
+    if (_frame.next()) renderBoard();
+  }
+};
+
+LedStripAnimationSnake* LedStripAnimationSnake::instance = nullptr;
+
 class MyLedStripAnimator : public MyLedStrip
 {
 protected:
   PixelsContainer _animatedPixels;
   cl_Lst<LedStripAnimation *> _animationList;
   int _animationIndex;
+  LedStripAnimationTetris *_tetrisAnim;
+  bool _tetrisActive;
+  LedStripAnimationSnake *_snakeAnim;
+  bool _snakeActive;
+  int  _savedAnimIndex;
 
   bool handleAnimation()
   {
+    if (_tetrisActive) {
+      if (_animatedPixels.hasChanged) return false;
+      _tetrisAnim->handle();
+      if (_animatedPixels.hasChanged) _pixels.hasChanged = false;
+      return true;
+    }
+    if (_snakeActive) {
+      if (_animatedPixels.hasChanged) return false;
+      _snakeAnim->handle();
+      if (_animatedPixels.hasChanged) _pixels.hasChanged = false;
+      return true;
+    }
+
     if (_animationIndex < 0) return false;
     if (_animationIndex > _animationList.size() - 1) return false;
-
-    // check if the animated pixel buffer is displayed
-    // if not, do not update the animated pixel buffer
     if (_animatedPixels.hasChanged) return false;
 
-    // update the animated pixel buffer
     _animationList[_animationIndex]->handle();
 
-    // if output pixels buffer is updated
-    // then simulate update of the input buffer
     if (_animatedPixels.hasChanged)
       _pixels.hasChanged = false;
 
@@ -2183,6 +2645,9 @@ public:
   MyLedStripAnimator()
     : MyLedStrip()
     , _animationIndex(0)
+    , _tetrisActive(false)
+    , _snakeActive(false)
+    , _savedAnimIndex(0)
   {
     _animationList.push_back(new LedStripAnimationNormal(&_pixels, &_animatedPixels));
     _animationList.push_back(new LedStripAnimationBlink(&_pixels, &_animatedPixels));
@@ -2192,9 +2657,50 @@ public:
     _animationList.push_back(new LedStripAnimationSnowFlake(&_pixels, &_animatedPixels));
     _animationList.push_back(new LedStripAnimationCake(&_pixels, &_animatedPixels));
     _animationList.push_back(new LedStripAnimationLove(&_pixels, &_animatedPixels));
-    _animationList.push_back(new LedStripAnimationRipple(&_pixels, &_animatedPixels));
-    _animationList.push_back(new LedStripAnimationMinuteFall(&_pixels, &_animatedPixels));
+    _animationList.push_back(new LedStripAnimationPulse(&_pixels, &_animatedPixels));
+    _animationList.push_back(new LedStripAnimationSparkle(&_pixels, &_animatedPixels));
+    _animationList.push_back(new LedStripAnimationWave(&_pixels, &_animatedPixels));
+    _animationList.push_back(new LedStripAnimationLightning(&_pixels, &_animatedPixels));
+    _animationList.push_back(new LedStripAnimationStorm(&_pixels, &_animatedPixels));
+    _tetrisAnim = new LedStripAnimationTetris(&_pixels, &_animatedPixels);
+    _snakeAnim  = new LedStripAnimationSnake(&_pixels, &_animatedPixels);
   }
+
+  void tetrisStart()
+  {
+    _savedAnimIndex = _animationIndex;
+    _tetrisActive   = true;
+    _tetrisAnim->begin();
+  }
+
+  void tetrisStop()
+  {
+    _tetrisActive  = false;
+    _animationIndex = _savedAnimIndex;
+    if (_animationIndex >= 0 && _animationIndex < _animationList.size())
+      _animationList[_animationIndex]->begin();
+    _pixels.hasChanged = true;
+  }
+
+  bool isTetrisActive() { return _tetrisActive; }
+
+  void snakeStart()
+  {
+    _savedAnimIndex = _animationIndex;
+    _snakeActive    = true;
+    _snakeAnim->begin();
+  }
+
+  void snakeStop()
+  {
+    _snakeActive    = false;
+    _animationIndex = _savedAnimIndex;
+    if (_animationIndex >= 0 && _animationIndex < _animationList.size())
+      _animationList[_animationIndex]->begin();
+    _pixels.hasChanged = true;
+  }
+
+  bool isSnakeActive() { return _snakeActive; }
 
   bool setAnimation(int mode)
   {
@@ -2207,6 +2713,13 @@ public:
     _mqtt.publish(mqttTopicPubLedAnim.topic().c_str(), String(mode).c_str());
 
     return true;
+  }
+
+  void setAnimSpeed(byte speed)
+  {
+    _config.animSpeed = max((byte)1, min((byte)20, speed));
+    if (_animationIndex >= 0 && _animationIndex < _animationList.size())
+      _animationList[_animationIndex]->begin();
   }
 
   int getAnimationIndex()

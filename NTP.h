@@ -183,7 +183,7 @@ boolean summerTime(unsigned long timeStamp) {
 }
 
 unsigned long adjustTimeZone(unsigned long timeStamp, int timeZone, bool isDayLightSavingSaving) {
-  timeStamp += timeZone * 360; // adjust timezone
+  timeStamp += (long)timeZone * 3600; // adjust timezone (unit = 1/10th hour → seconds)
   if (isDayLightSavingSaving && summerTime(timeStamp)) timeStamp += 3600; // Sommerzeit beachten
   return timeStamp;
 }

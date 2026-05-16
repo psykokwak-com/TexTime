@@ -75,7 +75,8 @@ void send_network_configuration_values_html()
   String values = "";
 
   values += "ssid|" + (String)_config.ssid + "|input\n";
-  values += "password|" + (String)_config.password + "|input\n";
+  values += "password||input\n";
+  values += "appassword||input\n";
   values += "ipaddress|" + (String)_config.IP[0] + "." + (String)_config.IP[1] + "." + (String)_config.IP[2] + "." + (String)_config.IP[3] + "|input\n";
   values += "netmask|" + (String)_config.Netmask[0] + "." + (String)_config.Netmask[1] + "." + (String)_config.Netmask[2] + "." + (String)_config.Netmask[3] + "|input\n";
   values += "gateway|" + (String)_config.Gateway[0] + "." + (String)_config.Gateway[1] + "." + (String)_config.Gateway[2] + "." + (String)_config.Gateway[3] + "|input\n";

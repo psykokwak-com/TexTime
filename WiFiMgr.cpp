@@ -9,7 +9,7 @@ WiFiMgrClass::WiFiMgrClass()
   , _STAkey("")
   , _devicename("")
   , _STAlastTry(0)
-  , _STAtryTimeout(10 * 1000)
+  , _STAtryTimeout(30 * 1000)
   , _APssid("")
   , _APkey("")
   , _APlastTry(0)
@@ -45,7 +45,7 @@ void WiFiMgrClass::setSTAIPip(IPAddress ip, IPAddress gw, IPAddress mask, IPAddr
   setSTAIPdhcp(false);
 }
 
-void WiFiMgrClass::tryToConnect(String ssid, String key, String devicename)
+void WiFiMgrClass::tryToConnect(const String& ssid, const String& key, const String& devicename)
 {
   _STAssid = ssid;
   _STAkey = key;
@@ -70,9 +70,10 @@ void WiFiMgrClass::tryToReconnect()
   wifi_station_set_hostname(_devicename.c_str()); //See more at : http ://www.esp8266.com/viewtopic.php?f=29&t=11124#sthash.458xtq2U.dpuf
 
   Serial.print("Trying to connect to ");
-  Serial.print(_STAssid.c_str());
-  Serial.print(" with key : ");
-  Serial.println(_STAkey.c_str());
+  Serial.println(_STAssid.c_str());
+
+  if (!_STADHCP)
+    WiFi.config(_STAIPip, _STAIPgw, _STAIPmask, _STAIPdns);
 
   WiFi.begin(_STAssid, _STAkey);
 
@@ -83,15 +84,16 @@ void WiFiMgrClass::tryToReconnect()
 
 void WiFiMgrClass::setAPMode()
 {
-  IPAddress apIP(192, 168, 1, 1);
+  IPAddress apIP(192, 168, 4, 1);
   IPAddress apNetMsk(255, 255, 255, 0);
 
+  WiFi.setAutoReconnect(false);
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, apNetMsk);
 
   Serial.println("Setting AP mode");
 
-  if (_APkey.length() == 0)
+  if (_APkey.length() < 8)
     WiFi.softAP(_APssid);
   else
     WiFi.softAP(_APssid, _APkey);
@@ -111,9 +113,6 @@ bool WiFiMgrClass::handle()
       return false;
 
     Serial.println("WiFi Connected");
-
-    if (!_STADHCP)
-      WiFi.config(_STAIPip, _STAIPgw, _STAIPmask, _STAIPdns);
 
     Serial.print("WiFi IP : ");
     Serial.println(WiFi.localIP());

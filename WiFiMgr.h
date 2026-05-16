@@ -19,9 +19,9 @@ public:
   void setSTAIPdhcp(bool dhcp);
   void setSTAIPip(IPAddress ip, IPAddress gw, IPAddress mask, IPAddress dns);
 
-  void setAPssid(String ssid, String key = "");
+  void setAPssid(String ssid, String key);
 
-  void tryToConnect(String ssid, String key, String devicename);
+  void tryToConnect(const String& ssid, const String& key, const String& devicename);
   bool handle();
 
 protected:
@@ -29,12 +29,12 @@ private:
   String _STAssid;
   String _STAkey;
   String _devicename;
-  unsigned int _STAlastTry;
-  unsigned int _STAtryTimeout;
+  unsigned long _STAlastTry;
+  unsigned long _STAtryTimeout;
   String _APssid;
   String _APkey;
-  unsigned int _APlastTry;
-  unsigned int _APtryTimeout;
+  unsigned long _APlastTry;
+  unsigned long _APtryTimeout;
   bool _STAconnected;
   IPAddress _STAIPip;
   IPAddress _STAIPgw;

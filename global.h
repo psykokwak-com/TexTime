@@ -1,6 +1,8 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
+#define AP_DEFAULT_PASSWORD "TexTime-Setup"
+#define EEPROM_SIZE 1024
 
 ESP8266HTTPUpdateServer _httpUpdater;
 ESP8266WebServer _server(80);
@@ -34,12 +36,20 @@ struct strConfig {
   byte ledConfig;                       // 1 Byte - EEPROM 395
   byte luxSensitivity;                  // 1 Byte - EEPROM 396
   byte language;                        // 1 Byte - EEPROM 397
+  byte brightnessMax;                   // 1 Byte - EEPROM 398  
+
 
   String MQTTServer;                    // up to 64 Byte - EEPROM 512
   String MQTTLogin;                     // up to 64 Byte - EEPROM 576
   String MQTTPassword;                  // up to 64 Byte - EEPROM 640
   long MQTTPort;                        // 4 Byte - EEPROM 704
   long MQTTPubInterval;                 // 4 Byte - EEPROM 708
+
+  String APPassword;                    // up to 64 Byte - EEPROM 712
+
+  byte animSpeed;          // 1 Byte - EEPROM 776  (1-20, 10=normal)
+  byte animBrightnessMin;  // 1 Byte - EEPROM 777  (0-100 percent)
+  byte animBrightnessMax;  // 1 Byte - EEPROM 778  (0-100 percent)
 
 } _config;
 
@@ -72,20 +82,15 @@ long EEPROMReadlong(long address){
 
 // Check the Values is between 0-255
 boolean checkRange(String Value){
-  if (Value.toInt() < 0 || Value.toInt() > 255)
-  {
-    return false;
-  }
-  else
-  {
-    return true;
-  }
+  int v = Value.toInt();
+  return (v >= 0 && v <= 255);
 }
 
-void WriteStringToEEPROM(int beginaddress, String string){
-  char  charBuf[string.length() + 1];
-  string.toCharArray(charBuf, string.length() + 1);
-  for (unsigned int t =  0; t < sizeof(charBuf); t++)
+void WriteStringToEEPROM(int beginaddress, String string, int maxLen = 63){
+  if ((int)string.length() > maxLen) string = string.substring(0, maxLen);
+  char  charBuf[64];
+  string.toCharArray(charBuf, sizeof(charBuf));
+  for (unsigned int t = 0; t < sizeof(charBuf); t++)
   {
     EEPROM.write(beginaddress + t, charBuf[t]);
   }
@@ -101,12 +106,11 @@ String  ReadStringFromEEPROM(int beginaddress){
 
   while (1)
   {
+    if (counter >= 64) break;
     rChar = EEPROM.read(beginaddress + counter);
     if (rChar == 0) break;
-    if (counter > 63) break;
     counter++;
     retString.concat(rChar);
-
   }
   return retString;
 }
@@ -120,7 +124,7 @@ String  ReadStringFromEEPROM(int beginaddress){
 
 void ResetEEPROM()
 {
-  for (int i = 0; i < 511; i++)
+  for (int i = 0; i < EEPROM_SIZE; i++)
     EEPROM.write(i, 0xFF);
 
   EEPROM.commit();
@@ -179,12 +183,19 @@ void WriteConfig(){
   EEPROM.write(395, _config.ledConfig);
   EEPROM.write(396, _config.luxSensitivity);
   EEPROM.write(397, _config.language);
+  EEPROM.write(398, _config.brightnessMax);  
 
   WriteStringToEEPROM(512, _config.MQTTServer);
   WriteStringToEEPROM(576, _config.MQTTLogin);
   WriteStringToEEPROM(640, _config.MQTTPassword);
   EEPROMWritelong(704, _config.MQTTPort);
   EEPROMWritelong(708, _config.MQTTPubInterval);
+
+  WriteStringToEEPROM(712, _config.APPassword);
+
+  EEPROM.write(776, _config.animSpeed);
+  EEPROM.write(777, _config.animBrightnessMin);
+  EEPROM.write(778, _config.animBrightnessMax);
 
   EEPROM.commit();
 }
@@ -198,6 +209,7 @@ boolean ReadConfig(){
     _config.isDayLightSaving = EEPROM.read(17);
     _config.Update_Time_Via_NTP_Every = EEPROMReadlong(18); // 4 Byte
     _config.timeZone = EEPROMReadlong(22); // 4 Byte
+    if (_config.timeZone < -120 || _config.timeZone > 130) _config.timeZone = 10; // sanity check (unit = 1/10th hour)
     _config.IP[0] = EEPROM.read(32);
     _config.IP[1] = EEPROM.read(33);
     _config.IP[2] = EEPROM.read(34);
@@ -231,6 +243,7 @@ boolean ReadConfig(){
     _config.colorRandom = EEPROM.read(392);
     _config.brightnessAutoMinDay = EEPROM.read(393);
     _config.brightnessAutoMinNight = EEPROM.read(394);
+    _config.brightnessMax = EEPROM.read(398);
     _config.ledConfig = EEPROM.read(395);
     _config.luxSensitivity = EEPROM.read(396);
     _config.language = EEPROM.read(397);
@@ -240,6 +253,16 @@ boolean ReadConfig(){
     _config.MQTTPassword = ReadStringFromEEPROM(640);
     _config.MQTTPort = EEPROMReadlong(704);
     _config.MQTTPubInterval = EEPROMReadlong(708);
+
+    _config.APPassword = ReadStringFromEEPROM(712);
+    if (_config.APPassword.length() < 8) _config.APPassword = AP_DEFAULT_PASSWORD;
+
+    _config.animSpeed = EEPROM.read(776);
+    if (_config.animSpeed < 1 || _config.animSpeed > 20) _config.animSpeed = 10;
+    _config.animBrightnessMin = EEPROM.read(777);
+    if (_config.animBrightnessMin > 100) _config.animBrightnessMin = 10;
+    _config.animBrightnessMax = EEPROM.read(778);
+    if (_config.animBrightnessMax > 100 || _config.animBrightnessMax <= _config.animBrightnessMin) _config.animBrightnessMax = 100;
 
     return true;
 
@@ -270,7 +293,7 @@ void printConfig(){
 
  
   Serial.printf("SSID:%s\n", _config.ssid.c_str());
-  Serial.printf("PWD:%s\n", _config.password.c_str());
+  Serial.printf("PWD:***\n");
   Serial.printf("NTP ServerName:%s\n", _config.ntpServerName.c_str());
   Serial.printf("Device Name:%s\n", _config.DeviceName.c_str());
 
@@ -283,6 +306,7 @@ void printConfig(){
   Serial.printf("Color Random:%d\n", _config.colorRandom);
   Serial.printf("Minimum brightness auto during the day:%d\n", _config.brightnessAutoMinDay);
   Serial.printf("Minimum brightness auto during the night:%d\n", _config.brightnessAutoMinNight);
+  Serial.printf("Max brightness:%d\n", _config.brightnessMax);
   Serial.printf("Led Configuration:%d\n", _config.ledConfig);
 }
 
