@@ -2113,6 +2113,7 @@ public:
           p.display = true;
           _pPixelContainerOutput->pixelsEdge[e] = p;
         }
+        copyForeground();
       }
         if (--_flashTimer <= 0) {
           _fadeProgress = 0;
