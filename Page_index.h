@@ -43,6 +43,14 @@ const char PAGE_index[] PROGMEM = R"=====(
           <span class="nav-icon">🔄</span>
           <span>Firmware Update</span>
         </button>
+        <a class="nav-item" href="/tetris.html" style="text-decoration:none;">
+          <span class="nav-icon">🎮</span>
+          <span>Tetris</span>
+        </a>
+        <a class="nav-item" href="/snake.html" style="text-decoration:none;">
+          <span class="nav-icon">🐍</span>
+          <span>Snake</span>
+        </a>
       </div>
     </nav>
 
@@ -216,6 +224,30 @@ const char PAGE_index[] PROGMEM = R"=====(
                   <label for="animation" class="form-label">Animation</label>
                   <select id="animation" name="animation" class="form-control" onchange="updateanimation()">
                   </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="animspeed" class="form-label">Animation speed (1=slow, 20=fast)</label>
+                  <div class="range-group">
+                    <input type="range" id="animspeed" name="animspeed" class="range-input" min="1" max="20" step="1" oninput="updateanimspeed()">
+                    <div class="range-value" id="animspeedt">--</div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="animbrightmin" class="form-label">Animation min brightness (%)</label>
+                  <div class="range-group">
+                    <input type="range" id="animbrightmin" name="animbrightmin" class="range-input" min="0" max="100" step="1" oninput="updateanimbrightmin()">
+                    <div class="range-value" id="animbrightmint">--</div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="animbrightmax" class="form-label">Animation max brightness (%)</label>
+                  <div class="range-group">
+                    <input type="range" id="animbrightmax" name="animbrightmax" class="range-input" min="0" max="100" step="1" oninput="updateanimbrightmax()">
+                    <div class="range-value" id="animbrightmaxt">--</div>
+                  </div>
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-block">Save Configuration</button>
@@ -778,6 +810,24 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function updateanimation() {
       setValues("/admin/led?animation=" + document.getElementById("animation").value);
+    }
+
+    function updateanimspeed() {
+      const value = document.getElementById("animspeed").value;
+      document.getElementById("animspeedt").textContent = value;
+      debouncedUpdate("animspeed", value);
+    }
+
+    function updateanimbrightmin() {
+      const value = document.getElementById("animbrightmin").value;
+      document.getElementById("animbrightmint").textContent = value;
+      debouncedUpdate("animbrightmin", value);
+    }
+
+    function updateanimbrightmax() {
+      const value = document.getElementById("animbrightmax").value;
+      document.getElementById("animbrightmaxt").textContent = value;
+      debouncedUpdate("animbrightmax", value);
     }
 
     function validatebrightnessauto() {
