@@ -1038,5 +1038,38 @@ body {
     height: 10px;
   }
 }
+
+/* Scheduler editor card — compact overrides */
+.sched-editor { padding: 0.65rem !important; }
+.sched-editor .card-title { font-size: 0.95rem; margin-bottom: 0.35rem; }
+.sched-editor .form-group { margin-bottom: 0.3rem; }
+.sched-editor .form-label { font-size: 0.72rem; margin-bottom: 0.1rem; }
+.sched-editor .form-control { padding: 0.22rem 0.45rem; font-size: 0.78rem; }
+.sched-editor .range-group { gap: 0.3rem; }
+.sched-editor .range-input { height: 3px; }
+.sched-editor .range-value { font-size: 0.75rem; min-width: 1.8rem; }
+.sched-editor .sched-rule-item { padding: 0.25rem 0.5rem; margin-bottom: 0.2rem; }
+.sched-editor .sched-rule-num { min-width: 1rem; height: 1rem; font-size: 0.65rem; }
+.sched-editor .sched-rule-led { width: 0.85rem; height: 0.85rem; }
+.sched-editor .btn { padding: 0.28rem 0.6rem; font-size: 0.8rem; }
+
+/* Scheduler grid */
+.sched-grid-wrap { overflow-x: auto; margin-top: 0.5rem; user-select: none; -webkit-user-select: none; }
+.sched-table { border-collapse: collapse; width: 100%; font-size: 0.72rem; }
+.sched-table th { padding: 0.25rem 0.4rem; background: var(--surface); border: 1px solid var(--border); text-align: center; font-weight: 600; }
+.sched-hour { padding: 0.25rem 0.4rem; background: var(--surface); border: 1px solid var(--border); font-weight: 500; white-space: nowrap; font-size: 0.7rem; }
+.sched-cell { border: 1px solid var(--border); min-width: 2.2rem; overflow: hidden; }
+.sched-half { text-align: center; cursor: pointer; height: 0.9rem; line-height: 0.9rem; font-size: 0.6rem; overflow: hidden; transition: opacity 0.15s; }
+.sched-half:hover { opacity: 0.75; outline: 2px solid var(--primary-color); outline-offset: -1px; }
+.sched-half + .sched-half { border-top: 1px solid rgba(128,128,128,0.25); }
+.sched-half.sched-cur { outline: 2px solid #fff; outline-offset: -2px; }
+
+/* Scheduler rules list */
+.sched-rule-item { display:flex; align-items:center; gap:0.5rem; padding:0.4rem 0.6rem; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:0.35rem; cursor:pointer; transition:background 0.15s; }
+.sched-rule-item:hover { background:var(--surface-hover); }
+.sched-rule-active { border-color:var(--primary-color) !important; background:rgba(37,99,235,0.07); }
+.sched-rule-num { min-width:1.2rem; height:1.2rem; border-radius:0.2rem; background:var(--primary-color); color:#fff; font-size:0.7rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; padding:0 0.2rem; }
+.sched-rule-led { width:1rem; height:1rem; border-radius:2px; border:1px solid var(--border); flex-shrink:0; }
+.sched-rule-del { background:none; border:none; cursor:pointer; color:var(--text-secondary); font-size:0.75rem; padding:0.1rem 0.3rem; border-radius:2px; line-height:1; }
 )=====";
- 
+
