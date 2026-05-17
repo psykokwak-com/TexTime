@@ -1103,7 +1103,6 @@ body {
 .sched-half:hover { opacity: 0.75; outline: 2px solid var(--primary-color); outline-offset: -1px; }
 .sched-half + .sched-half { border-top: 1px solid rgba(128,128,128,0.25); }
 .sched-half.sched-cur { outline: 2px solid #fff; outline-offset: -2px; }
-
 /* Scheduler rules list */
 .sched-rule-item { display:flex; align-items:center; gap:0.5rem; padding:0.4rem 0.6rem; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:0.35rem; cursor:pointer; transition:background 0.15s; }
 .sched-rule-item:hover { background:var(--surface-hover); }
@@ -1111,5 +1110,6 @@ body {
 .sched-rule-num { min-width:1.2rem; height:1.2rem; border-radius:0.2rem; background:var(--primary-color); color:#fff; font-size:0.7rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; padding:0 0.2rem; }
 .sched-rule-led { width:1rem; height:1rem; border-radius:2px; border:1px solid var(--border); flex-shrink:0; }
 .sched-rule-del { background:none; border:none; cursor:pointer; color:var(--text-secondary); font-size:0.75rem; padding:0.1rem 0.3rem; border-radius:2px; line-height:1; }
+.sched-rule-del:hover { background:var(--error-color); color:#fff; }
 )=====";
 

@@ -2,7 +2,9 @@
 #define GLOBAL_H
 
 #define AP_DEFAULT_PASSWORD "TexTime-Setup"
-#define EEPROM_SIZE 1024
+#define EEPROM_SIZE 4096
+#define SCHEDULER_EEPROM_BASE 1024
+#define SCHEDULER_SLOT_SIZE 8
 
 ESP8266HTTPUpdateServer _httpUpdater;
 ESP8266WebServer _server(80);
@@ -53,10 +55,6 @@ struct strConfig {
 
 } _config;
 
-
-// Scheduler EEPROM layout: 336 slots (7 days × 48 half-hours) × 8 bytes, starting at 1024
-#define SCHEDULER_EEPROM_BASE 1024
-#define SCHEDULER_SLOT_SIZE   8
 
 //  Auxiliary function to handle EEPROM
 
