@@ -43,6 +43,10 @@ const char PAGE_index[] PROGMEM = R"=====(
           <span class="nav-icon">🔄</span>
           <span>Firmware Update</span>
         </button>
+        <button class="nav-item" data-section="scheduler">
+          <span class="nav-icon">&#x23F0;</span>
+          <span>Scheduler</span>
+        </button>
         <a class="nav-item" href="/tetris.html" style="text-decoration:none;">
           <span class="nav-icon">🎮</span>
           <span>Tetris</span>
@@ -471,6 +475,75 @@ const char PAGE_index[] PROGMEM = R"=====(
           </div>
         </section>
 
+        <!-- Scheduler Section -->
+        <section id="scheduler-section" class="content-section">
+          <div class="dashboard-grid">
+            <div class="card">
+              <div class="card-title">Weekly Schedule</div>
+              <div class="form-group">
+                <div class="checkbox-group">
+                  <input type="checkbox" id="schedulerEnabled" class="checkbox" onchange="saveSchedulerEnabled()">
+                  <label for="schedulerEnabled" class="form-label">Enable scheduler (applies each half-hour, overrides general settings)</label>
+                </div>
+              </div>
+              <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.75rem">Select a rule on the right, then click/drag cells to paint them. Click a painted cell again to erase it.</p>
+              <div id="schedGrid" class="sched-grid-wrap"><div class="loading">Loading...</div></div>
+            </div>
+            <div class="card sched-editor">
+              <div class="card-title">Rules</div>
+              <div id="schedRulesList" style="margin-bottom:0.4rem"></div>
+              <button class="btn btn-secondary btn-block" onclick="schedAddRule()" style="margin-bottom:0.4rem">+ New rule</button>
+              <hr style="border:none;border-top:1px solid var(--border);margin-bottom:0.4rem">
+              <div class="form-group">
+                <label class="form-label">Display mode</label>
+                <select id="schedMode" class="form-control" onchange="schedEditorChange()"></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Color</label>
+                <input type="color" id="schedColor" value="#ffffff" class="form-control" style="height:2rem;padding:0.1rem;cursor:pointer" onchange="schedEditorChange()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Color randomization</label>
+                <select id="schedColorRandom" class="form-control" onchange="schedEditorChange()">
+                  <option value="0">No Random</option>
+                  <option value="1">Random all</option>
+                  <option value="2">Random letter</option>
+                  <option value="3">Random word</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Animation</label>
+                <select id="schedAnimation" class="form-control" onchange="schedEditorChange()"></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Speed (1=slow, 20=fast)</label>
+                <div class="range-group">
+                  <input type="range" id="schedAnimSpeed" class="range-input" min="1" max="20" step="1" oninput="document.getElementById('schedAnimSpeedT').textContent=this.value;schedEditorChange()">
+                  <div class="range-value" id="schedAnimSpeedT">10</div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Min brightness (%)</label>
+                <div class="range-group">
+                  <input type="range" id="schedAnimBrightMin" class="range-input" min="0" max="100" step="1" oninput="document.getElementById('schedAnimBrightMinT').textContent=this.value;schedEditorChange()">
+                  <div class="range-value" id="schedAnimBrightMinT">10</div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Max brightness (%)</label>
+                <div class="range-group">
+                  <input type="range" id="schedAnimBrightMax" class="range-input" min="0" max="100" step="1" oninput="document.getElementById('schedAnimBrightMaxT').textContent=this.value;schedEditorChange()">
+                  <div class="range-value" id="schedAnimBrightMaxT">100</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+                <button class="btn btn-secondary" onclick="schedRaz()" style="flex:1">RAZ</button>
+                <button class="btn btn-primary" id="schedSaveBtn" onclick="saveAllScheduler()" style="flex:2">Save</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Update Section -->
         <section id="update-section" class="content-section">
           <div class="dashboard-grid">
@@ -610,7 +683,8 @@ const char PAGE_index[] PROGMEM = R"=====(
       'network': 'Network Configuration',
       'ntp': 'Time Configuration',
       'mqtt': 'MQTT Configuration',
-      'update': 'Firmware Update'
+      'update': 'Firmware Update',
+      'scheduler': 'Display Scheduler'
     };
 
     // Utility functions
@@ -732,6 +806,9 @@ const char PAGE_index[] PROGMEM = R"=====(
           break;
         case 'mqtt':
           loadMqttSettings();
+          break;
+        case 'scheduler':
+          loadSchedulerSettings();
           break;
       }
     }
@@ -1320,6 +1397,267 @@ const char PAGE_index[] PROGMEM = R"=====(
         closeMobileMenu();
       }
     });
+
+    // ── Scheduler ──────────────────────────────────────────────────────────────
+    function toHex2(v){var h=Math.round(v).toString(16);return h.length<2?'0'+h:h;}
+    function schedTextColor(r,g,b){return (r*299+g*587+b*114)/1000>128?'#111':'#fff';}
+    var schedCells=new Array(336).fill(null);
+    var schedRules=[];
+    var schedCurrentRule=0;
+    var schedModeNames=[],schedAnimNames=[];
+    var schedDragging=false,schedDragMode=null;
+
+    function schedEditorChange() {
+      if(!schedRules.length) return;
+      var r=schedRules[schedCurrentRule];
+      r.mode=parseInt(document.getElementById('schedMode').value);
+      r.anim=parseInt(document.getElementById('schedAnimation').value);
+      r.colorRandom=parseInt(document.getElementById('schedColorRandom').value);
+      r.animSpeed=parseInt(document.getElementById('schedAnimSpeed').value);
+      r.animBrightMin=parseInt(document.getElementById('schedAnimBrightMin').value);
+      r.animBrightMax=parseInt(document.getElementById('schedAnimBrightMax').value);
+      var ch=document.getElementById('schedColor').value.replace('#','');
+      r.r=parseInt(ch.substr(0,2),16)||0;
+      r.g=parseInt(ch.substr(2,2),16)||0;
+      r.b=parseInt(ch.substr(4,2),16)||0;
+      schedRenderRulesList();
+      var hex='#'+toHex2(r.r)+toHex2(r.g)+toHex2(r.b);
+      var tc=schedTextColor(r.r,r.g,r.b);
+      document.querySelectorAll('#schedGrid .sched-half.sched-cur').forEach(function(el){
+        el.style.background=hex; el.style.color=tc;
+      });
+    }
+
+    function schedLoadEditor(rule) {
+      document.getElementById('schedMode').value=rule.mode;
+      document.getElementById('schedColorRandom').value=rule.colorRandom;
+      document.getElementById('schedAnimation').value=rule.anim;
+      document.getElementById('schedAnimSpeed').value=rule.animSpeed;
+      document.getElementById('schedAnimSpeedT').textContent=rule.animSpeed;
+      document.getElementById('schedAnimBrightMin').value=rule.animBrightMin;
+      document.getElementById('schedAnimBrightMinT').textContent=rule.animBrightMin;
+      document.getElementById('schedAnimBrightMax').value=rule.animBrightMax;
+      document.getElementById('schedAnimBrightMaxT').textContent=rule.animBrightMax;
+      document.getElementById('schedColor').value='#'+toHex2(rule.r)+toHex2(rule.g)+toHex2(rule.b);
+    }
+
+    function schedRenderRulesList() {
+      var el=document.getElementById('schedRulesList');
+      var crNames=['no random','rnd all','rnd letter','rnd word'];
+      var html='';
+      schedRules.forEach(function(rule,i){
+        var ledHex='#'+toHex2(rule.r)+toHex2(rule.g)+toHex2(rule.b);
+        var mname=schedModeNames[rule.mode]||'mode '+rule.mode;
+        var crname=crNames[rule.colorRandom]||'';
+        var aname=schedAnimNames[rule.anim]||'anim '+rule.anim;
+        var label=mname+' - '+crname+' - '+aname;
+        var active=i===schedCurrentRule;
+        html+='<div class="sched-rule-item'+(active?' sched-rule-active':'')+'" onclick="schedSelectRule('+i+')">'
+          +'<div class="sched-rule-num">'+(i+1)+'</div>'
+          +'<div style="flex:1;font-size:0.8rem">'+label+'</div>'
+          +'<div class="sched-rule-led" style="background:'+ledHex+'" title="LED color"></div>'
+          +'<button class="sched-rule-del" onclick="event.stopPropagation();schedDelRule('+i+')" title="Delete">&#x2715;</button>'
+          +'</div>';
+      });
+      el.innerHTML=html;
+    }
+
+    function schedSelectRule(idx) {
+      schedCurrentRule=idx;
+      schedLoadEditor(schedRules[idx]);
+      schedRenderRulesList();
+      renderSchedulerGrid();
+    }
+
+    function schedAddRule() {
+      schedRules.push({mode:0,anim:0,colorRandom:0,animSpeed:10,animBrightMin:10,animBrightMax:100,r:0,g:0,b:0});
+      schedSelectRule(schedRules.length-1);
+    }
+
+    function schedDelRule(idx) {
+      if(schedRules.length<=1) return;
+      schedRules.splice(idx,1);
+      for(var i=0;i<336;i++){
+        if(schedCells[i]===idx) schedCells[i]=null;
+        else if(schedCells[i]>idx) schedCells[i]--;
+      }
+      if(schedCurrentRule>=schedRules.length) schedCurrentRule=schedRules.length-1;
+      schedLoadEditor(schedRules[schedCurrentRule]);
+      schedRenderRulesList();
+      renderSchedulerGrid();
+    }
+
+    function renderSchedulerGrid() {
+      var days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      var html='<table class="sched-table"><thead><tr><th></th>';
+      days.forEach(function(d){html+='<th>'+d+'</th>';});
+      html+='</tr></thead><tbody>';
+      for(var h=0;h<24;h++){
+        html+='<tr><td class="sched-hour">'+(h<10?'0':'')+h+'h</td>';
+        for(var d=0;d<7;d++){
+          html+='<td class="sched-cell">';
+          for(var m=0;m<2;m++){
+            var idx=d*48+h*2+m;
+            var ri=schedCells[idx];
+            var style='',label='';
+            if(ri!==null&&ri!==undefined){
+              var rr=schedRules[ri];
+              style='background:#'+toHex2(rr.r)+toHex2(rr.g)+toHex2(rr.b)+';color:'+schedTextColor(rr.r,rr.g,rr.b)+';';
+              label=String(ri+1);
+            }
+            var isCur=(ri===schedCurrentRule)?'sched-cur':'';
+            html+='<div class="sched-half '+isCur+'" data-d="'+d+'" data-h="'+h+'" data-m="'+(m*30)+'" style="'+style+'">'+label+'</div>';
+          }
+          html+='</td>';
+        }
+        html+='</tr>';
+      }
+      html+='</tbody></table>';
+      document.getElementById('schedGrid').innerHTML=html;
+      schedInitGridEvents();
+    }
+
+    function schedCellAt(el) {
+      var c=el&&el.closest?el.closest('[data-d]'):null;
+      if(!c||!c.classList.contains('sched-half')) return null;
+      var d=parseInt(c.dataset.d),h=parseInt(c.dataset.h),m=parseInt(c.dataset.m);
+      return {el:c,idx:d*48+h*2+(m>=30?1:0)};
+    }
+
+    function schedPaintEl(info) {
+      var ri=schedCells[info.idx];
+      if(ri!==null&&ri!==undefined){
+        var rr=schedRules[ri];
+        info.el.style.background='#'+toHex2(rr.r)+toHex2(rr.g)+toHex2(rr.b);
+        info.el.style.color=schedTextColor(rr.r,rr.g,rr.b);
+        info.el.textContent=String(ri+1);
+        info.el.className='sched-half'+(ri===schedCurrentRule?' sched-cur':'');
+      } else {
+        info.el.style.cssText='';
+        info.el.textContent='';
+        info.el.className='sched-half';
+      }
+    }
+
+    function schedInitGridEvents() {
+      var grid=document.getElementById('schedGrid');
+      if(!grid||grid._ei) return;
+      grid._ei=true;
+      function ptInfo(x,y){return schedCellAt(document.elementFromPoint(x,y));}
+      function onStart(x,y){
+        var info=ptInfo(x,y); if(!info) return;
+        schedDragging=true;
+        schedDragMode=(schedCells[info.idx]===schedCurrentRule)?'remove':'add';
+        schedCells[info.idx]=schedDragMode==='add'?schedCurrentRule:null;
+        schedPaintEl(info);
+      }
+      function onMove(x,y){
+        if(!schedDragging) return;
+        var info=ptInfo(x,y); if(!info) return;
+        if(schedDragMode==='add'&&schedCells[info.idx]!==schedCurrentRule){
+          schedCells[info.idx]=schedCurrentRule; schedPaintEl(info);
+        } else if(schedDragMode==='remove'&&schedCells[info.idx]!==null){
+          schedCells[info.idx]=null; schedPaintEl(info);
+        }
+      }
+      function onEnd(){schedDragging=false;schedDragMode=null;}
+      grid.addEventListener('mousedown',function(e){onStart(e.clientX,e.clientY);e.preventDefault();});
+      document.addEventListener('mousemove',function(e){onMove(e.clientX,e.clientY);});
+      document.addEventListener('mouseup',onEnd);
+      grid.addEventListener('touchstart',function(e){onStart(e.touches[0].clientX,e.touches[0].clientY);e.preventDefault();},{passive:false});
+      document.addEventListener('touchmove',function(e){if(schedDragging){onMove(e.touches[0].clientX,e.touches[0].clientY);e.preventDefault();}},{passive:false});
+      document.addEventListener('touchend',onEnd);
+    }
+
+    function schedRaz() {
+      if(!confirm('Clear all scheduled slots?')) return;
+      schedCells=new Array(336).fill(null);
+      renderSchedulerGrid();
+    }
+
+    function loadSchedulerSettings() {
+      setValues('/admin/schedulerconfig')
+        .then(function(){
+          return fetch('/admin/generalmodesvalues').then(function(r){return r.text();}).then(function(txt){
+            schedModeNames=[];
+            txt.split('\n').forEach(function(l){var p=l.split('|');if(p.length>=2&&p[1])schedModeNames.push(p[1]);});
+          });
+        })
+        .then(function(){
+          return fetch('/admin/generalanimationsvalues').then(function(r){return r.text();}).then(function(txt){
+            schedAnimNames=[];
+            txt.split('\n').forEach(function(l){var p=l.split('|');if(p.length>=2&&p[1])schedAnimNames.push(p[1]);});
+            var ms=document.getElementById('schedMode');ms.innerHTML='';
+            schedModeNames.forEach(function(n,i){var o=document.createElement('option');o.value=i;o.textContent=n;ms.appendChild(o);});
+            var as=document.getElementById('schedAnimation');as.innerHTML='';
+            schedAnimNames.forEach(function(n,i){var o=document.createElement('option');o.value=i;o.textContent=n;as.appendChild(o);});
+          });
+        })
+        .then(function(){
+          return fetch('/admin/schedulerdata').then(function(r){return r.text();}).then(function(txt){
+            schedCells=new Array(336).fill(null);
+            schedRules=[];
+            var ruleMap={};
+            for(var i=0;i<336;i++){
+              var hex=txt.substr(i*16,16);
+              if(hex.length<16) continue;
+              var b0=parseInt(hex.substr(0,2),16);
+              if(b0===0xFF) continue;
+              var key=hex;
+              if(ruleMap[key]===undefined){
+                var b1=parseInt(hex.substr(2,2),16);
+                var b2=parseInt(hex.substr(4,2),16);
+                ruleMap[key]=schedRules.length;
+                schedRules.push({
+                  mode:b0,anim:b1,
+                  colorRandom:b2&0x03,animSpeed:((b2>>2)&0x1F)+1,
+                  animBrightMin:parseInt(hex.substr(6,2),16),
+                  animBrightMax:parseInt(hex.substr(8,2),16),
+                  r:parseInt(hex.substr(10,2),16),
+                  g:parseInt(hex.substr(12,2),16),
+                  b:parseInt(hex.substr(14,2),16)
+                });
+              }
+              schedCells[i]=ruleMap[key];
+            }
+            if(!schedRules.length) schedRules.push({mode:1,anim:0,colorRandom:0,animSpeed:10,animBrightMin:10,animBrightMax:100,r:255,g:255,b:255});
+            schedCurrentRule=0;
+            schedLoadEditor(schedRules[0]);
+            schedRenderRulesList();
+            renderSchedulerGrid();
+          });
+        });
+    }
+
+    function saveSchedulerEnabled() {
+      var en=document.getElementById('schedulerEnabled').checked?'1':'0';
+      fetch('/admin/save/schedulerenabled',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'enabled='+en});
+    }
+
+    async function saveAllScheduler() {
+      var btn=document.getElementById('schedSaveBtn');
+      setSaveButtonState(btn,'saving');
+      try {
+        var hex='';
+        for(var i=0;i<336;i++){
+          var ri=schedCells[i];
+          if(ri===null||ri===undefined){
+            hex+='FFFFFFFFFFFFFFFF';
+          } else {
+            var rule=schedRules[ri];
+            var packed=(rule.colorRandom&0x03)|((rule.animSpeed-1)<<2);
+            hex+=toHex2(rule.mode)+toHex2(rule.anim)+toHex2(packed)
+                +toHex2(rule.animBrightMin)+toHex2(rule.animBrightMax)
+                +toHex2(rule.r)+toHex2(rule.g)+toHex2(rule.b);
+          }
+        }
+        await fetch('/admin/save/schedulerbulk',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+hex});
+        await fetch('/admin/scheduler/apply',{method:'POST'});
+        setSaveButtonState(btn,'success');
+      } catch(e){setSaveButtonState(btn,'error');}
+    }
+    // ── End Scheduler ──────────────────────────────────────────────────────────
+
   </script>
 </body>
 </html>

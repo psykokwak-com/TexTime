@@ -45,6 +45,7 @@
 #include "Page_mqtt.h"
 #include "Page_script.js.h"
 #include "Page_style.css.h"
+#include "Page_scheduler.h"
 #include "Page_tetris.h"
 #include "Page_snake.h"
 
@@ -69,7 +70,7 @@ void setup() {
   Serial.println("Booting");
 
   // Config load 
-  EEPROM.begin(EEPROM_SIZE);
+  EEPROM.begin(4096); // 1024 for config + 2688 for scheduler (336 slots × 8 bytes)
   CFG_saved = ReadConfig();
   if (!CFG_saved)
   {
@@ -413,6 +414,12 @@ void setup() {
     _server.send(400, "text/html", "Page not Found");
   });
 
+  _server.on("/admin/schedulerconfig", send_scheduler_config);
+  _server.on("/admin/schedulerdata", send_scheduler_data);
+  _server.on("/admin/save/schedulerbulk", HTTP_POST, save_scheduler_bulk);
+  _server.on("/admin/scheduler/apply", HTTP_POST, apply_scheduler_now);
+  _server.on("/admin/save/schedulerenabled", HTTP_POST, save_scheduler_enabled);
+
   _httpUpdater.setup(&_server);
   _server.begin();
   Serial.println("HTTP server started");
@@ -522,6 +529,7 @@ void loop() {
   mqttPollingPublisher();
 
   // Handle led display
+  handleScheduler();
   QTLed.handle();
 
   // For debug purpose only

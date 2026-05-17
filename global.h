@@ -54,6 +54,10 @@ struct strConfig {
 } _config;
 
 
+// Scheduler EEPROM layout: 336 slots (7 days × 48 half-hours) × 8 bytes, starting at 1024
+#define SCHEDULER_EEPROM_BASE 1024
+#define SCHEDULER_SLOT_SIZE   8
+
 //  Auxiliary function to handle EEPROM
 
 void EEPROMWritelong(int address, long value){
