@@ -1444,6 +1444,10 @@ const char PAGE_index[] PROGMEM = R"=====(
           removeDuplicateOptions(document.getElementById('lang'));
           removeDuplicateOptions(document.getElementById('mode'));
           removeDuplicateOptions(document.getElementById('animation'));
+          // Sync slider display values (setValues doesn't fire oninput)
+          document.getElementById('animspeedt').textContent = document.getElementById('animspeed').value;
+          document.getElementById('animbrightmint').textContent = document.getElementById('animbrightmin').value;
+          document.getElementById('animbrightmaxt').textContent = document.getElementById('animbrightmax').value;
           initializeColorPicker();
           // Sync language from loaded value and re-apply translations
           var langEl = document.getElementById('lang');
