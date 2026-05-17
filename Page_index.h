@@ -21,31 +21,31 @@ const char PAGE_index[] PROGMEM = R"=====(
       <div class="sidebar-nav">
         <button class="nav-item active" data-section="info">
           <span class="nav-icon">ℹ</span>
-          <span>System Information</span>
+          <span data-i18n="nav.info">System Information</span>
         </button>
         <button class="nav-item" data-section="general">
           <span class="nav-icon">⚙</span>
-          <span>General Settings</span>
+          <span data-i18n="nav.general">General Settings</span>
         </button>
         <button class="nav-item" data-section="network">
           <span class="nav-icon">📶</span>
-          <span>Network Configuration</span>
+          <span data-i18n="nav.network">Network Configuration</span>
         </button>
         <button class="nav-item" data-section="ntp">
           <span class="nav-icon">🕐</span>
-          <span>Time Configuration</span>
+          <span data-i18n="nav.ntp">Time Configuration</span>
         </button>
         <button class="nav-item" data-section="mqtt">
           <span class="nav-icon">📡</span>
-          <span>MQTT Configuration</span>
+          <span data-i18n="nav.mqtt">MQTT Configuration</span>
         </button>
         <button class="nav-item" data-section="update">
           <span class="nav-icon">🔄</span>
-          <span>Firmware Update</span>
+          <span data-i18n="nav.update">Firmware Update</span>
         </button>
         <button class="nav-item" data-section="scheduler">
           <span class="nav-icon">&#x23F0;</span>
-          <span>Scheduler</span>
+          <span data-i18n="nav.scheduler">Scheduler</span>
         </button>
         <a class="nav-item" href="/tetris.html" style="text-decoration:none;">
           <span class="nav-icon">🎮</span>
@@ -76,58 +76,58 @@ const char PAGE_index[] PROGMEM = R"=====(
         <section id="info-section" class="content-section active">
           <div class="dashboard-grid">
             <div class="card">
-              <div class="card-title">System Status</div>
+              <div class="card-title" data-i18n="card.system_status">System Status</div>
               <div class="status-grid">
                 <div class="status-item">
-                  <div class="status-label">Current Date</div>
+                  <div class="status-label" data-i18n="lbl.current_date">Current Date</div>
                   <div class="status-value" id="x_date">Loading...</div>
                 </div>
                 <div class="status-item">
-                  <div class="status-label">Uptime</div>
+                  <div class="status-label" data-i18n="lbl.uptime">Uptime</div>
                   <div class="status-value" id="x_boot">Loading...</div>
                 </div>
                 <div class="status-item">
-                  <div class="status-label">Firmware Build</div>
+                  <div class="status-label" data-i18n="lbl.firmware_build">Firmware Build</div>
                   <div class="status-value" id="x_version">Loading...</div>
                 </div>
               </div>
             </div>
 
             <div class="card">
-              <div class="card-title">Network Information</div>
+              <div class="card-title" data-i18n="card.network_info">Network Information</div>
               <div class="status-grid">
                 <div class="status-item">
-                  <div class="status-label">WiFi Network</div>
+                  <div class="status-label" data-i18n="lbl.wifi_network">WiFi Network</div>
                   <div class="status-value" id="x_ssid">Loading...</div>
                 </div>
                 <div class="status-item">
-                  <div class="status-label">Signal Strength</div>
+                  <div class="status-label" data-i18n="lbl.signal_strength">Signal Strength</div>
                   <div class="status-value"><span id="x_rssi">-</span>%</div>
                 </div>
                 <div class="status-item">
-                  <div class="status-label">IP Address</div>
+                  <div class="status-label" data-i18n="lbl.ip_address">IP Address</div>
                   <div class="status-value" id="x_ip">Loading...</div>
                 </div>
                 <div class="status-item">
-                  <div class="status-label">MAC Address</div>
+                  <div class="status-label" data-i18n="lbl.mac_address">MAC Address</div>
                   <div class="status-value" id="x_mac">Loading...</div>
                 </div>
               </div>
             </div>
 
             <div class="card">
-              <div class="card-title">Sensor Readings</div>
+              <div class="card-title" data-i18n="card.sensors">Sensor Readings</div>
               <div class="status-grid">
                 <div class="status-item">
-                  <div class="status-label">Ambient Light</div>
+                  <div class="status-label" data-i18n="lbl.ambient_light">Ambient Light</div>
                   <div class="status-value"><span id="x_als">-</span> lux</div>
                 </div>
                 <div class="status-item">
-                  <div class="status-label">Display Brightness</div>
+                  <div class="status-label" data-i18n="lbl.display_brightness">Display Brightness</div>
                   <div class="status-value" id="x_brightness">-</div>
                 </div>
                 <div class="status-item">
-                  <div class="status-label">Temperature</div>
+                  <div class="status-label" data-i18n="lbl.temperature">Temperature</div>
                   <div class="status-value"><span id="x_temp">-</span> °C</div>
                 </div>
               </div>
@@ -139,29 +139,29 @@ const char PAGE_index[] PROGMEM = R"=====(
         <section id="general-section" class="content-section">
           <div class="dashboard-grid">
             <div class="card">
-              <div class="card-title">Brightness Control</div>
+              <div class="card-title" data-i18n="card.brightness">Brightness Control</div>
               <form id="general-form" onsubmit="return saveGeneralSettings(event)">
 
             <div class="form-group">
               <div class="checkbox-group">
                 <input type="checkbox" id="brightnessauto" name="brightnessauto" class="checkbox" onchange="updatebrightnessauto()">
-                <label for="brightnessauto" class="form-label">Automatic brightness</label>
+                <label for="brightnessauto" class="form-label" data-i18n="lbl.auto_brightness">Automatic brightness</label>
               </div>
             </div>
 
             <div class="form-group">
-              <label for="brightnesssensibility" class="form-label">Brightness sensitivity</label>
+              <label for="brightnesssensibility" class="form-label" data-i18n="lbl.brightness_sensitivity">Brightness sensitivity</label>
               <select id="brightnesssensibility" name="brightnesssensibility" class="form-control" onchange="updatebrightnesssensibility()">
-                <option value="10">Very high</option>
-                <option value="20">High</option>
-                <option value="30">Normal</option>
-                <option value="40">Low</option>
-                <option value="50">Very low</option>
+                <option value="10" data-i18n="opt.very_high">Very high</option>
+                <option value="20" data-i18n="opt.high">High</option>
+                <option value="30" data-i18n="opt.normal">Normal</option>
+                <option value="40" data-i18n="opt.low">Low</option>
+                <option value="50" data-i18n="opt.very_low">Very low</option>
               </select>
             </div>
 
             <div class="form-group">
-              <label for="brightness" class="form-label">Manual brightness</label>
+              <label for="brightness" class="form-label" data-i18n="lbl.manual_brightness">Manual brightness</label>
               <div class="range-group">
                 <input type="range" id="brightness" name="brightness" class="range-input" max="255" min="0" step="1" oninput="updatebrightness()">
                 <div class="range-value" id="brightnesst">--</div>
@@ -169,7 +169,7 @@ const char PAGE_index[] PROGMEM = R"=====(
             </div>
 
             <div class="form-group">
-              <label for="brightnessday" class="form-label">Minimum day brightness</label>
+              <label for="brightnessday" class="form-label" data-i18n="lbl.day_brightness">Minimum day brightness</label>
               <div class="range-group">
                 <input type="range" id="brightnessday" name="brightnessday" class="range-input" max="255" min="0" step="1" oninput="updatebrightnessday()">
                 <div class="range-value" id="brightnessdayt">--</div>
@@ -177,7 +177,7 @@ const char PAGE_index[] PROGMEM = R"=====(
             </div>
 
             <div class="form-group">
-              <label for="brightnessnight" class="form-label">Minimum night brightness</label>
+              <label for="brightnessnight" class="form-label" data-i18n="lbl.night_brightness">Minimum night brightness</label>
               <div class="range-group">
                 <input type="range" id="brightnessnight" name="brightnessnight" class="range-input" max="255" min="0" step="1" oninput="updatebrightnessnight()">
                 <div class="range-value" id="brightnessnightt">--</div>
@@ -186,16 +186,16 @@ const char PAGE_index[] PROGMEM = R"=====(
           </div>
 
             <div class="card">
-              <div class="card-title">Display Configuration</div>
+              <div class="card-title" data-i18n="card.display_config">Display Configuration</div>
 
               <div class="form-group">
-                <label for="ledconfig" class="form-label">Clock type</label>
+                <label for="ledconfig" class="form-label" data-i18n="lbl.clock_type">Clock type</label>
                 <select id="ledconfig" name="ledconfig" class="form-control">
                 </select>
               </div>
 
             <div class="form-group">
-              <label class="form-label">Color</label>
+              <label class="form-label" data-i18n="lbl.color">Color</label>
               <div style="display:flex;gap:0.75rem;align-items:center">
                 <div id="colorSwatch" class="cpicker-swatch" title="Pick color" style="width:3rem;height:2.5rem;background:#ff0000;border:2px solid #ccc;border-radius:4px;cursor:pointer;flex-shrink:0"></div>
                 <input type="text" id="colorText" class="color-text-input" placeholder="#FF0000" maxlength="7">
@@ -212,35 +212,35 @@ const char PAGE_index[] PROGMEM = R"=====(
             </div>
 
             <div class="form-group">
-              <label for="colorrandom" class="form-label">Color randomization</label>
+              <label for="colorrandom" class="form-label" data-i18n="lbl.color_random">Color randomization</label>
               <select id="colorrandom" name="colorrandom" class="form-control" onchange="updatecolorrandom()">
-                <option value="0">No Random</option>
-                <option value="1">Random all</option>
-                <option value="2">Random letter</option>
-                <option value="3">Random word</option>
+                <option value="0" data-i18n="opt.no_random">No Random</option>
+                <option value="1" data-i18n="opt.random_all">Random all</option>
+                <option value="2" data-i18n="opt.random_letter">Random letter</option>
+                <option value="3" data-i18n="opt.random_word">Random word</option>
               </select>
             </div>
 
             <div class="form-group">
-              <label for="lang" class="form-label">Language</label>
+              <label for="lang" class="form-label" data-i18n="lbl.language">Language</label>
               <select id="lang" name="lang" class="form-control" onchange="updatelang()">
               </select>
             </div>
 
             <div class="form-group">
-              <label for="mode" class="form-label">Display mode</label>
+              <label for="mode" class="form-label" data-i18n="lbl.display_mode">Display mode</label>
               <select id="mode" name="mode" class="form-control" onchange="updatemode()">
               </select>
             </div>
 
                 <div class="form-group">
-                  <label for="animation" class="form-label">Animation</label>
+                  <label for="animation" class="form-label" data-i18n="lbl.animation">Animation</label>
                   <select id="animation" name="animation" class="form-control" onchange="updateanimation()">
                   </select>
                 </div>
 
                 <div class="form-group">
-                  <label for="animspeed" class="form-label">Animation speed (1=slow, 20=fast)</label>
+                  <label for="animspeed" class="form-label" data-i18n="lbl.anim_speed">Animation speed (1=slow, 20=fast)</label>
                   <div class="range-group">
                     <input type="range" id="animspeed" name="animspeed" class="range-input" min="1" max="20" step="1" oninput="updateanimspeed()">
                     <div class="range-value" id="animspeedt">--</div>
@@ -248,7 +248,7 @@ const char PAGE_index[] PROGMEM = R"=====(
                 </div>
 
                 <div class="form-group">
-                  <label for="animbrightmin" class="form-label">Animation min brightness (%)</label>
+                  <label for="animbrightmin" class="form-label" data-i18n="lbl.anim_bright_min">Animation min brightness (%)</label>
                   <div class="range-group">
                     <input type="range" id="animbrightmin" name="animbrightmin" class="range-input" min="0" max="100" step="1" oninput="updateanimbrightmin()">
                     <div class="range-value" id="animbrightmint">--</div>
@@ -256,14 +256,14 @@ const char PAGE_index[] PROGMEM = R"=====(
                 </div>
 
                 <div class="form-group">
-                  <label for="animbrightmax" class="form-label">Animation max brightness (%)</label>
+                  <label for="animbrightmax" class="form-label" data-i18n="lbl.anim_bright_max">Animation max brightness (%)</label>
                   <div class="range-group">
                     <input type="range" id="animbrightmax" name="animbrightmax" class="range-input" min="0" max="100" step="1" oninput="updateanimbrightmax()">
                     <div class="range-value" id="animbrightmaxt">--</div>
                   </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-block">Save Configuration</button>
+                <button type="submit" class="btn btn-primary btn-block" data-i18n="btn.save">Save Configuration</button>
               </form>
             </div>
           </div>
@@ -273,71 +273,71 @@ const char PAGE_index[] PROGMEM = R"=====(
         <section id="network-section" class="content-section">
           <div class="dashboard-grid">
             <div class="card compact-status">
-              <div class="card-title">Connection Status</div>
+              <div class="card-title" data-i18n="card.connection_status">Connection Status</div>
               <div class="status-item">
-                <div class="status-label">Current Status</div>
+                <div class="status-label" data-i18n="lbl.current_status">Current Status</div>
                 <div class="status-value" id="connectionstatedisplay">Checking...</div>
                 <div id="connectionstate" style="display: none;">Checking...</div>
               </div>
             </div>
 
             <div class="card">
-              <div class="card-title">WiFi Settings</div>
+              <div class="card-title" data-i18n="card.wifi_settings">WiFi Settings</div>
               <form id="network-form" onsubmit="return saveNetworkSettings(event)">
             <div class="form-group">
-              <label for="ssid" class="form-label">Network name (SSID)</label>
+              <label for="ssid" class="form-label" data-i18n="lbl.ssid">Network name (SSID)</label>
               <input type="text" id="ssid" name="ssid" class="form-control" placeholder="Enter network name">
             </div>
 
             <div class="form-group">
-              <label for="password" class="form-label">Password</label>
+              <label for="password" class="form-label" data-i18n="lbl.password">Password</label>
               <input type="password" id="password" name="password" class="form-control" placeholder="Enter network password">
             </div>
 
             <div class="form-group">
-              <label for="devicename" class="form-label">Device name</label>
+              <label for="devicename" class="form-label" data-i18n="lbl.device_name">Device name</label>
               <input type="text" id="devicename" name="devicename" class="form-control" placeholder="TexTime">
             </div>
 
             <div class="form-group">
               <div class="checkbox-group">
                 <input type="checkbox" id="dhcp" name="dhcp" class="checkbox" onchange="validateNetworkSettings()">
-                <label for="dhcp" class="form-label">Use DHCP (automatic IP configuration)</label>
+                <label for="dhcp" class="form-label" data-i18n="lbl.dhcp">Use DHCP (automatic IP configuration)</label>
               </div>
             </div>
 
             <div id="static-config">
               <div class="form-group">
-                <label class="form-label">IP Address</label>
+                <label class="form-label" data-i18n="lbl.ip_address">IP Address</label>
                 <input type="text" id="ipaddress" name="ipaddress" class="form-control" placeholder="192.168.1.100" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
               </div>
 
               <div class="form-group">
-                <label class="form-label">Subnet Mask</label>
+                <label class="form-label" data-i18n="lbl.subnet_mask">Subnet Mask</label>
                 <input type="text" id="netmask" name="netmask" class="form-control" placeholder="255.255.255.0" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
               </div>
 
               <div class="form-group">
-                <label class="form-label">Gateway</label>
+                <label class="form-label" data-i18n="lbl.gateway">Gateway</label>
                 <input type="text" id="gateway" name="gateway" class="form-control" placeholder="192.168.1.1" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
               </div>
 
               <div class="form-group">
-                <label class="form-label">DNS Server</label>
+                <label class="form-label" data-i18n="lbl.dns_server">DNS Server</label>
                 <input type="text" id="dnsserver" name="dnsserver" class="form-control" placeholder="8.8.8.8" pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
               </div>
             </div>
 
-                <button type="submit" class="btn btn-primary btn-block">Save & Restart</button>
+                <button type="submit" class="btn btn-primary btn-block" data-i18n="btn.save_restart">Save & Restart</button>
               </form>
             </div>
 
             <div class="card">
-              <div class="card-title">Available Networks</div>
+              <div class="card-title" data-i18n="card.available_networks">Available Networks</div>
               <div id="networks" class="networks-list">
-                <div class="loading">Scanning for networks...</div>
+                <div class="loading" data-i18n="msg.scanning">Scanning for networks...</div>
               </div>
-              <button type="button" onclick="refreshNetworks()" class="btn btn-secondary btn-block">Refresh Networks</button>
+              <button type="button" onclick="refreshNetworks()" class="btn btn-secondary btn-block" data-i18n="btn.refresh_networks">Refresh Networks</button>
             </div>
           </div>
         </section>
@@ -346,23 +346,23 @@ const char PAGE_index[] PROGMEM = R"=====(
         <section id="ntp-section" class="content-section">
           <div class="dashboard-grid">
             <div class="card">
-              <div class="card-title">Time Synchronization Settings</div>
+              <div class="card-title" data-i18n="card.ntp_settings">Time Synchronization Settings</div>
               <form id="ntp-form" onsubmit="return saveNtpSettings(event)">
             <div class="form-group">
-              <label for="ntpserver" class="form-label">NTP Server</label>
+              <label for="ntpserver" class="form-label" data-i18n="lbl.ntp_server">NTP Server</label>
               <input type="text" id="ntpserver" name="ntpserver" class="form-control" maxlength="172" placeholder="pool.ntp.org">
             </div>
 
             <div class="form-group">
-              <label for="update" class="form-label">Update interval</label>
+              <label for="update" class="form-label" data-i18n="lbl.update_interval">Update interval</label>
               <div class="form-control-group">
                 <input type="number" id="update" name="update" class="form-control" maxlength="6" placeholder="3600" min="0">
-                <span>seconds (0 = disabled)</span>
+                <span data-i18n="lbl.seconds_disabled">seconds (0 = disabled)</span>
               </div>
             </div>
 
             <div class="form-group">
-              <label for="tz" class="form-label">Timezone</label>
+              <label for="tz" class="form-label" data-i18n="lbl.timezone">Timezone</label>
               <select id="tz" name="tz" class="form-control">
                 <option value="-120">(GMT-12:00) Baker Island</option>
                 <option value="-110">(GMT-11:00) Samoa</option>
@@ -403,11 +403,11 @@ const char PAGE_index[] PROGMEM = R"=====(
             <div class="form-group">
               <div class="checkbox-group">
                 <input type="checkbox" id="dst" name="dst" class="checkbox">
-                <label for="dst" class="form-label">Enable daylight saving time</label>
+                <label for="dst" class="form-label" data-i18n="lbl.dst">Enable daylight saving time</label>
               </div>
             </div>
 
-                <button type="submit" class="btn btn-primary btn-block">Save Configuration</button>
+                <button type="submit" class="btn btn-primary btn-block" data-i18n="btn.save">Save Configuration</button>
               </form>
             </div>
           </div>
@@ -417,58 +417,58 @@ const char PAGE_index[] PROGMEM = R"=====(
         <section id="mqtt-section" class="content-section">
           <div class="dashboard-grid">
             <div class="card compact-status">
-              <div class="card-title">Connection Status</div>
+              <div class="card-title" data-i18n="card.connection_status">Connection Status</div>
               <div class="status-item">
-                <div class="status-label">MQTT Connection</div>
+                <div class="status-label" data-i18n="lbl.mqtt_connection">MQTT Connection</div>
                 <div class="status-value" id="mqttconnectionstate">Checking...</div>
               </div>
             </div>
 
             <div class="card">
-              <div class="card-title">MQTT Broker Settings</div>
+              <div class="card-title" data-i18n="card.mqtt_settings">MQTT Broker Settings</div>
               <form id="mqtt-form" onsubmit="return saveMqttSettings(event)">
             <div class="form-group">
-              <label for="host" class="form-label">Broker host</label>
+              <label for="host" class="form-label" data-i18n="lbl.broker_host">Broker host</label>
               <input type="text" id="host" name="host" class="form-control" placeholder="mqtt.broker.com">
             </div>
 
             <div class="form-group">
-              <label for="port" class="form-label">Broker port</label>
+              <label for="port" class="form-label" data-i18n="lbl.broker_port">Broker port</label>
               <input type="number" id="port" name="port" class="form-control" placeholder="1883" min="1" max="65535">
             </div>
 
             <div class="form-group">
-              <label for="login" class="form-label">Username (optional)</label>
+              <label for="login" class="form-label" data-i18n="lbl.mqtt_user">Username (optional)</label>
               <input type="text" id="login" name="login" class="form-control" placeholder="Username">
             </div>
 
             <div class="form-group">
-              <label for="mqttpassword" class="form-label">Password (optional)</label>
+              <label for="mqttpassword" class="form-label" data-i18n="lbl.mqtt_password">Password (optional)</label>
               <input type="password" id="mqttpassword" name="password" class="form-control" placeholder="Password">
             </div>
 
             <div class="form-group">
-              <label for="interval" class="form-label">Publish interval</label>
+              <label for="interval" class="form-label" data-i18n="lbl.publish_interval">Publish interval</label>
               <div class="form-control-group">
                 <input type="number" id="interval" name="interval" class="form-control" placeholder="30" min="5">
-                <span>seconds</span>
+                <span data-i18n="lbl.seconds">seconds</span>
               </div>
             </div>
 
-                <button type="submit" class="btn btn-primary btn-block">Save Configuration</button>
+                <button type="submit" class="btn btn-primary btn-block" data-i18n="btn.save">Save Configuration</button>
               </form>
             </div>
 
             <div class="card">
-              <div class="card-title">MQTT Topics</div>
+              <div class="card-title" data-i18n="card.mqtt_topics">MQTT Topics</div>
 
               <div style="margin-bottom: 1.5rem;">
-                <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Subscriber Topics</h4>
+                <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);" data-i18n="lbl.sub_topics">Subscriber Topics</h4>
                 <div id="sublist" class="alert" style="font-size: 0.875rem; background: var(--surface); border-color: var(--border);">Loading...</div>
               </div>
 
               <div>
-                <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Publisher Topics</h4>
+                <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);" data-i18n="lbl.pub_topics">Publisher Topics</h4>
                 <div id="publist" class="alert" style="font-size: 0.875rem; background: var(--surface); border-color: var(--border);">Loading...</div>
               </div>
             </div>
@@ -479,66 +479,77 @@ const char PAGE_index[] PROGMEM = R"=====(
         <section id="scheduler-section" class="content-section">
           <div class="dashboard-grid">
             <div class="card">
-              <div class="card-title">Weekly Schedule</div>
+              <div class="card-title" data-i18n="card.weekly_schedule">Weekly Schedule</div>
               <div class="form-group">
                 <div class="checkbox-group">
                   <input type="checkbox" id="schedulerEnabled" class="checkbox" onchange="saveSchedulerEnabled()">
-                  <label for="schedulerEnabled" class="form-label">Enable scheduler (applies each half-hour, overrides general settings)</label>
+                  <label for="schedulerEnabled" class="form-label" data-i18n="lbl.scheduler_enable">Enable scheduler (applies each half-hour, overrides general settings)</label>
                 </div>
               </div>
-              <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.75rem">Select a rule on the right, then click/drag cells to paint them. Click a painted cell again to erase it.</p>
-              <div id="schedGrid" class="sched-grid-wrap"><div class="loading">Loading...</div></div>
+              <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.75rem" data-i18n="msg.sched_hint">Select a rule on the right, then click/drag cells to paint them. Click a painted cell again to erase it.</p>
+              <div id="schedGrid" class="sched-grid-wrap"><div class="loading" data-i18n="msg.loading">Loading...</div></div>
             </div>
             <div class="card sched-editor">
-              <div class="card-title">Rules</div>
+              <div class="card-title" data-i18n="card.rules">Rules</div>
               <div id="schedRulesList" style="margin-bottom:0.4rem"></div>
-              <button class="btn btn-secondary btn-block" onclick="schedAddRule()" style="margin-bottom:0.4rem">+ New rule</button>
+              <button class="btn btn-secondary btn-block" onclick="schedAddRule()" style="margin-bottom:0.4rem" data-i18n="btn.new_rule">+ New rule</button>
               <hr style="border:none;border-top:1px solid var(--border);margin-bottom:0.4rem">
               <div class="form-group">
-                <label class="form-label">Display mode</label>
+                <label class="form-label" data-i18n="lbl.display_mode">Display mode</label>
                 <select id="schedMode" class="form-control" onchange="schedEditorChange()"></select>
               </div>
               <div class="form-group">
-                <label class="form-label">Color</label>
-                <input type="color" id="schedColor" value="#ffffff" class="form-control" style="height:2rem;padding:0.1rem;cursor:pointer" onchange="schedEditorChange()">
+                <label class="form-label" data-i18n="lbl.color">Color</label>
+                <div style="display:flex;gap:0.75rem;align-items:center">
+                  <div id="schedColorSwatch" class="cpicker-swatch" title="Pick color" style="width:3rem;height:2.5rem;background:#ffffff;border:2px solid #ccc;border-radius:4px;cursor:pointer;flex-shrink:0"></div>
+                  <input type="hidden" id="schedColor" value="#ffffff">
+                </div>
+                <div id="schedCpickerPanel" class="cpicker-panel" style="display:none">
+                  <div id="schedSvSquare" class="cpicker-sv">
+                    <div class="cpicker-sv-white"></div>
+                    <div class="cpicker-sv-black"></div>
+                    <div id="schedSvThumb" class="cpicker-sv-thumb"></div>
+                  </div>
+                  <input type="range" id="schedHueSlider" class="cpicker-hue" min="0" max="359" value="0">
+                </div>
               </div>
               <div class="form-group">
-                <label class="form-label">Color randomization</label>
+                <label class="form-label" data-i18n="lbl.color_random">Color randomization</label>
                 <select id="schedColorRandom" class="form-control" onchange="schedEditorChange()">
-                  <option value="0">No Random</option>
-                  <option value="1">Random all</option>
-                  <option value="2">Random letter</option>
-                  <option value="3">Random word</option>
+                  <option value="0" data-i18n="opt.no_random">No Random</option>
+                  <option value="1" data-i18n="opt.random_all">Random all</option>
+                  <option value="2" data-i18n="opt.random_letter">Random letter</option>
+                  <option value="3" data-i18n="opt.random_word">Random word</option>
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label">Animation</label>
+                <label class="form-label" data-i18n="lbl.animation">Animation</label>
                 <select id="schedAnimation" class="form-control" onchange="schedEditorChange()"></select>
               </div>
               <div class="form-group">
-                <label class="form-label">Speed (1=slow, 20=fast)</label>
+                <label class="form-label" data-i18n="lbl.sched_speed">Speed (1=slow, 20=fast)</label>
                 <div class="range-group">
                   <input type="range" id="schedAnimSpeed" class="range-input" min="1" max="20" step="1" oninput="document.getElementById('schedAnimSpeedT').textContent=this.value;schedEditorChange()">
                   <div class="range-value" id="schedAnimSpeedT">10</div>
                 </div>
               </div>
               <div class="form-group">
-                <label class="form-label">Min brightness (%)</label>
+                <label class="form-label" data-i18n="lbl.sched_bright_min">Min brightness (%)</label>
                 <div class="range-group">
                   <input type="range" id="schedAnimBrightMin" class="range-input" min="0" max="100" step="1" oninput="document.getElementById('schedAnimBrightMinT').textContent=this.value;schedEditorChange()">
                   <div class="range-value" id="schedAnimBrightMinT">10</div>
                 </div>
               </div>
               <div class="form-group">
-                <label class="form-label">Max brightness (%)</label>
+                <label class="form-label" data-i18n="lbl.sched_bright_max">Max brightness (%)</label>
                 <div class="range-group">
                   <input type="range" id="schedAnimBrightMax" class="range-input" min="0" max="100" step="1" oninput="document.getElementById('schedAnimBrightMaxT').textContent=this.value;schedEditorChange()">
                   <div class="range-value" id="schedAnimBrightMaxT">100</div>
                 </div>
               </div>
               <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
-                <button class="btn btn-secondary" onclick="schedRaz()" style="flex:1">RAZ</button>
-                <button class="btn btn-primary" id="schedSaveBtn" onclick="saveAllScheduler()" style="flex:2">Save</button>
+                <button class="btn btn-secondary" onclick="schedRaz()" style="flex:1" data-i18n="btn.raz">RAZ</button>
+                <button class="btn btn-primary" id="schedSaveBtn" onclick="saveAllScheduler()" style="flex:2" data-i18n="btn.save">Save</button>
               </div>
             </div>
           </div>
@@ -548,21 +559,20 @@ const char PAGE_index[] PROGMEM = R"=====(
         <section id="update-section" class="content-section">
           <div class="dashboard-grid">
             <div class="card">
-              <div class="card-title">Firmware Update</div>
-              <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">Upload a new firmware file to update your TexTime device.</p>
+              <div class="card-title" data-i18n="card.firmware_update">Firmware Update</div>
+              <p style="margin-bottom: 1.5rem; color: var(--text-secondary);" data-i18n="msg.firmware_desc">Upload a new firmware file to update your TexTime device.</p>
 
               <div class="alert alert-warning" style="margin-bottom: 1.5rem;">
-                <strong>Warning:</strong> Only upload firmware files specifically designed for TexTime.
-                Uploading incorrect firmware can permanently damage your device.
+                <strong data-i18n="msg.warning_label">Warning:</strong> <span data-i18n="msg.firmware_warning">Only upload firmware files specifically designed for TexTime. Uploading incorrect firmware can permanently damage your device.</span>
               </div>
 
               <form action="/update" method="post" enctype="multipart/form-data">
                 <div class="form-group">
-                  <label for="firmware" class="form-label">Select firmware file (.bin)</label>
+                  <label for="firmware" class="form-label" data-i18n="lbl.firmware_file">Select firmware file (.bin)</label>
                   <input type="file" id="firmware" name="firmware" class="form-control" accept=".bin" required>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-block">Upload Firmware</button>
+                <button type="submit" class="btn btn-primary btn-block" data-i18n="btn.upload_firmware">Upload Firmware</button>
               </form>
             </div>
           </div>
@@ -580,7 +590,259 @@ const char PAGE_index[] PROGMEM = R"=====(
   <div class="overlay" id="overlay"></div>
 
   <script>
-    // Custom color picker — HSV square + hue slider, no native <input type="color">
+    // i18n dictionary
+    var I18N = {
+      0: {
+        'nav.info': 'Informations système',
+        'nav.general': 'Paramètres généraux',
+        'nav.network': 'Configuration réseau',
+        'nav.ntp': 'Configuration horaire',
+        'nav.mqtt': 'Configuration MQTT',
+        'nav.update': 'Mise à jour firmware',
+        'card.system_status': 'État du système',
+        'lbl.current_date': 'Date actuelle',
+        'lbl.uptime': 'Temps de fonctionnement',
+        'lbl.firmware_build': 'Version firmware',
+        'card.network_info': 'Informations réseau',
+        'lbl.wifi_network': 'Réseau WiFi',
+        'lbl.signal_strength': 'Force du signal',
+        'lbl.ip_address': 'Adresse IP',
+        'lbl.mac_address': 'Adresse MAC',
+        'card.sensors': 'Capteurs',
+        'lbl.ambient_light': 'Lumière ambiante',
+        'lbl.display_brightness': 'Luminosité affichage',
+        'lbl.temperature': 'Température',
+        'card.brightness': 'Contrôle de luminosité',
+        'lbl.auto_brightness': 'Luminosité automatique',
+        'lbl.brightness_sensitivity': 'Sensibilité luminosité',
+        'opt.very_high': 'Très haute',
+        'opt.high': 'Haute',
+        'opt.normal': 'Normale',
+        'opt.low': 'Faible',
+        'opt.very_low': 'Très faible',
+        'lbl.manual_brightness': 'Luminosité manuelle',
+        'lbl.day_brightness': 'Luminosité jour minimum',
+        'lbl.night_brightness': 'Luminosité nuit minimum',
+        'card.display_config': 'Configuration affichage',
+        'lbl.clock_type': "Type d'horloge",
+        'lbl.color': 'Couleur',
+        'lbl.color_random': 'Couleur aléatoire',
+        'opt.no_random': 'Aucun',
+        'opt.random_all': 'Tout aléatoire',
+        'opt.random_letter': 'Lettre aléatoire',
+        'opt.random_word': 'Mot aléatoire',
+        'lbl.language': 'Langue',
+        'lbl.display_mode': "Mode d'affichage",
+        'lbl.animation': 'Animation',
+        'lbl.anim_speed': 'Vitesse animation (1=lent, 20=rapide)',
+        'lbl.anim_bright_min': 'Luminosité min animation (%)',
+        'lbl.anim_bright_max': 'Luminosité max animation (%)',
+        'btn.save': 'Enregistrer',
+        'btn.save_restart': 'Enregistrer et redémarrer',
+        'btn.refresh_networks': 'Actualiser les réseaux',
+        'btn.upload_firmware': 'Téléverser le firmware',
+        'btn.saving': 'Enregistrement...',
+        'btn.saved': '✓ Enregistré',
+        'btn.error': '✗ Erreur',
+        'card.connection_status': 'État de connexion',
+        'lbl.current_status': 'État actuel',
+        'card.wifi_settings': 'Paramètres WiFi',
+        'lbl.ssid': 'Nom du réseau (SSID)',
+        'lbl.password': 'Mot de passe',
+        'lbl.device_name': 'Nom du dispositif',
+        'lbl.dhcp': 'Utiliser DHCP (configuration IP automatique)',
+        'lbl.subnet_mask': 'Masque de sous-réseau',
+        'lbl.gateway': 'Passerelle',
+        'lbl.dns_server': 'Serveur DNS',
+        'card.available_networks': 'Réseaux disponibles',
+        'msg.scanning': 'Recherche de réseaux...',
+        'card.ntp_settings': 'Paramètres de synchronisation horaire',
+        'lbl.ntp_server': 'Serveur NTP',
+        'lbl.update_interval': 'Intervalle de mise à jour',
+        'lbl.seconds_disabled': 'secondes (0 = désactivé)',
+        'lbl.timezone': 'Fuseau horaire',
+        'lbl.dst': "Activer l'heure d'été",
+        'lbl.mqtt_connection': 'Connexion MQTT',
+        'card.mqtt_settings': 'Paramètres du broker MQTT',
+        'lbl.broker_host': 'Hôte du broker',
+        'lbl.broker_port': 'Port du broker',
+        'lbl.mqtt_user': 'Identifiant (optionnel)',
+        'lbl.mqtt_password': 'Mot de passe (optionnel)',
+        'lbl.publish_interval': 'Intervalle de publication',
+        'lbl.seconds': 'secondes',
+        'card.mqtt_topics': 'Topics MQTT',
+        'lbl.sub_topics': 'Topics abonnés',
+        'lbl.pub_topics': 'Topics publiés',
+        'card.firmware_update': 'Mise à jour firmware',
+        'msg.firmware_desc': 'Téléversez un nouveau fichier firmware pour mettre à jour votre appareil TexTime.',
+        'msg.warning_label': 'Attention :',
+        'msg.firmware_warning': "Téléversez uniquement des fichiers firmware conçus pour TexTime. Un firmware incorrect peut endommager définitivement votre appareil.",
+        'lbl.firmware_file': 'Sélectionner le fichier firmware (.bin)',
+        'msg.loading': 'Chargement...',
+        'msg.no_networks': 'Aucun réseau trouvé',
+        'msg.network_restart': "Paramètres réseau enregistrés ! L'appareil redémarre...",
+        'status.connected': 'Connecté',
+        'status.connect': 'Connecter',
+        'status.scanning': 'Recherche...',
+        'status.disconnected': 'Déconnecté',
+        'status.connection_failed': 'Connexion échouée',
+        'status.no_network': 'Aucun réseau disponible',
+        'status.idle': 'Inactif',
+        'status.connecting': 'Connexion...',
+        'nav.scheduler': 'Programmateur',
+        'card.weekly_schedule': 'Programme hebdomadaire',
+        'lbl.scheduler_enable': "Activer le programmateur (s'applique chaque demi-heure, remplace les paramètres généraux)",
+        'msg.sched_hint': "Sélectionnez une règle à droite, puis cliquez/glissez pour peindre les cases. Recliquez une case pour l'effacer.",
+        'card.rules': 'Règles',
+        'btn.new_rule': '+ Nouvelle règle',
+        'lbl.sched_speed': 'Vitesse (1=lent, 20=rapide)',
+        'lbl.sched_bright_min': 'Luminosité min (%)',
+        'lbl.sched_bright_max': 'Luminosité max (%)',
+        'btn.raz': 'RAZ',
+        'msg.sched_raz_confirm': 'Effacer tous les créneaux ?',
+        'day.mon': 'Lun', 'day.tue': 'Mar', 'day.wed': 'Mer',
+        'day.thu': 'Jeu', 'day.fri': 'Ven', 'day.sat': 'Sam', 'day.sun': 'Dim'
+      },
+      1: {
+        'nav.info': 'System Information',
+        'nav.general': 'General Settings',
+        'nav.network': 'Network Configuration',
+        'nav.ntp': 'Time Configuration',
+        'nav.mqtt': 'MQTT Configuration',
+        'nav.update': 'Firmware Update',
+        'card.system_status': 'System Status',
+        'lbl.current_date': 'Current Date',
+        'lbl.uptime': 'Uptime',
+        'lbl.firmware_build': 'Firmware Build',
+        'card.network_info': 'Network Information',
+        'lbl.wifi_network': 'WiFi Network',
+        'lbl.signal_strength': 'Signal Strength',
+        'lbl.ip_address': 'IP Address',
+        'lbl.mac_address': 'MAC Address',
+        'card.sensors': 'Sensor Readings',
+        'lbl.ambient_light': 'Ambient Light',
+        'lbl.display_brightness': 'Display Brightness',
+        'lbl.temperature': 'Temperature',
+        'card.brightness': 'Brightness Control',
+        'lbl.auto_brightness': 'Automatic brightness',
+        'lbl.brightness_sensitivity': 'Brightness sensitivity',
+        'opt.very_high': 'Very high',
+        'opt.high': 'High',
+        'opt.normal': 'Normal',
+        'opt.low': 'Low',
+        'opt.very_low': 'Very low',
+        'lbl.manual_brightness': 'Manual brightness',
+        'lbl.day_brightness': 'Minimum day brightness',
+        'lbl.night_brightness': 'Minimum night brightness',
+        'card.display_config': 'Display Configuration',
+        'lbl.clock_type': 'Clock type',
+        'lbl.color': 'Color',
+        'lbl.color_random': 'Color randomization',
+        'opt.no_random': 'No Random',
+        'opt.random_all': 'Random all',
+        'opt.random_letter': 'Random letter',
+        'opt.random_word': 'Random word',
+        'lbl.language': 'Language',
+        'lbl.display_mode': 'Display mode',
+        'lbl.animation': 'Animation',
+        'lbl.anim_speed': 'Animation speed (1=slow, 20=fast)',
+        'lbl.anim_bright_min': 'Animation min brightness (%)',
+        'lbl.anim_bright_max': 'Animation max brightness (%)',
+        'btn.save': 'Save Configuration',
+        'btn.save_restart': 'Save & Restart',
+        'btn.refresh_networks': 'Refresh Networks',
+        'btn.upload_firmware': 'Upload Firmware',
+        'btn.saving': 'Saving...',
+        'btn.saved': '✓ Saved',
+        'btn.error': '✗ Error',
+        'card.connection_status': 'Connection Status',
+        'lbl.current_status': 'Current Status',
+        'card.wifi_settings': 'WiFi Settings',
+        'lbl.ssid': 'Network name (SSID)',
+        'lbl.password': 'Password',
+        'lbl.device_name': 'Device name',
+        'lbl.dhcp': 'Use DHCP (automatic IP configuration)',
+        'lbl.subnet_mask': 'Subnet Mask',
+        'lbl.gateway': 'Gateway',
+        'lbl.dns_server': 'DNS Server',
+        'card.available_networks': 'Available Networks',
+        'msg.scanning': 'Scanning for networks...',
+        'card.ntp_settings': 'Time Synchronization Settings',
+        'lbl.ntp_server': 'NTP Server',
+        'lbl.update_interval': 'Update interval',
+        'lbl.seconds_disabled': 'seconds (0 = disabled)',
+        'lbl.timezone': 'Timezone',
+        'lbl.dst': 'Enable daylight saving time',
+        'lbl.mqtt_connection': 'MQTT Connection',
+        'card.mqtt_settings': 'MQTT Broker Settings',
+        'lbl.broker_host': 'Broker host',
+        'lbl.broker_port': 'Broker port',
+        'lbl.mqtt_user': 'Username (optional)',
+        'lbl.mqtt_password': 'Password (optional)',
+        'lbl.publish_interval': 'Publish interval',
+        'lbl.seconds': 'seconds',
+        'card.mqtt_topics': 'MQTT Topics',
+        'lbl.sub_topics': 'Subscriber Topics',
+        'lbl.pub_topics': 'Publisher Topics',
+        'card.firmware_update': 'Firmware Update',
+        'msg.firmware_desc': 'Upload a new firmware file to update your TexTime device.',
+        'msg.warning_label': 'Warning:',
+        'msg.firmware_warning': 'Only upload firmware files specifically designed for TexTime. Uploading incorrect firmware can permanently damage your device.',
+        'lbl.firmware_file': 'Select firmware file (.bin)',
+        'msg.loading': 'Loading...',
+        'msg.no_networks': 'No networks found',
+        'msg.network_restart': 'Network settings saved! Device is restarting...',
+        'status.connected': 'Connected',
+        'status.connect': 'Connect',
+        'status.scanning': 'Scanning...',
+        'status.disconnected': 'Disconnected',
+        'status.connection_failed': 'Connection Failed',
+        'status.no_network': 'No Network Available',
+        'status.idle': 'Idle',
+        'status.connecting': 'Connecting...',
+        'nav.scheduler': 'Scheduler',
+        'card.weekly_schedule': 'Weekly Schedule',
+        'lbl.scheduler_enable': 'Enable scheduler (applies each half-hour, overrides general settings)',
+        'msg.sched_hint': 'Select a rule on the right, then click/drag cells to paint them. Click a painted cell again to erase it.',
+        'card.rules': 'Rules',
+        'btn.new_rule': '+ New rule',
+        'lbl.sched_speed': 'Speed (1=slow, 20=fast)',
+        'lbl.sched_bright_min': 'Min brightness (%)',
+        'lbl.sched_bright_max': 'Max brightness (%)',
+        'btn.raz': 'RAZ',
+        'msg.sched_raz_confirm': 'Clear all scheduled slots?',
+        'day.mon': 'Mon', 'day.tue': 'Tue', 'day.wed': 'Wed',
+        'day.thu': 'Thu', 'day.fri': 'Fri', 'day.sat': 'Sat', 'day.sun': 'Sun'
+      }
+    };
+
+    var currentLang = 0;
+
+    function T(key) {
+      var dict = I18N[currentLang] || I18N[0];
+      return dict[key] || key;
+    }
+
+    function applyI18n() {
+      document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        el.textContent = T(el.dataset.i18n);
+      });
+      document.getElementById('sectionTitle').textContent = T('nav.' + currentSection);
+    }
+
+    function initI18n() {
+      return fetch('/admin/langvalue')
+        .then(function(r) { return r.text(); })
+        .then(function(v) {
+          currentLang = parseInt(v) || 0;
+          applyI18n();
+        })
+        .catch(function() {
+          applyI18n();
+        });
+    }
+
+    // HSV color picker (general settings)
     var _cpH=0, _cpS=1, _cpV=1, _cpInit=false;
 
     function _cpHsvToHex(h,s,v) {
@@ -673,27 +935,17 @@ const char PAGE_index[] PROGMEM = R"=====(
     }
 
     // Dashboard Management
-    let currentSection = 'info';
-    let updateIntervals = {};
-
-    // Section titles mapping
-    const sectionTitles = {
-      'info': 'System Information',
-      'general': 'General Settings',
-      'network': 'Network Configuration',
-      'ntp': 'Time Configuration',
-      'mqtt': 'MQTT Configuration',
-      'update': 'Firmware Update',
-      'scheduler': 'Display Scheduler'
-    };
+    var currentSection = 'info';
+    var updateIntervals = {};
 
     // Utility functions
     function debounce(func, wait) {
-      let timeout;
-      return function executedFunction(...args) {
-        const later = () => {
+      var timeout;
+      return function executedFunction() {
+        var args = arguments;
+        var later = function() {
           clearTimeout(timeout);
-          func(...args);
+          func.apply(this, args);
         };
         clearTimeout(timeout);
         timeout = setTimeout(later, wait);
@@ -702,22 +954,19 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     // Navigation Management
     function switchSection(sectionName) {
-      // Update navigation
-      document.querySelectorAll('.nav-item').forEach(btn => {
+      document.querySelectorAll('.nav-item').forEach(function(btn) {
         btn.classList.remove('active');
       });
-      document.querySelector(`[data-section="${sectionName}"]`).classList.add('active');
+      var navBtn = document.querySelector('[data-section="' + sectionName + '"]');
+      if (navBtn) navBtn.classList.add('active');
 
-      // Update content
-      document.querySelectorAll('.content-section').forEach(section => {
+      document.querySelectorAll('.content-section').forEach(function(section) {
         section.classList.remove('active');
       });
-      document.getElementById(`${sectionName}-section`).classList.add('active');
+      document.getElementById(sectionName + '-section').classList.add('active');
 
-      // Update header title
-      document.getElementById('sectionTitle').textContent = sectionTitles[sectionName] || 'Dashboard';
+      document.getElementById('sectionTitle').textContent = T('nav.' + sectionName);
 
-      // Stop previous section updates
       if (updateIntervals[currentSection]) {
         clearInterval(updateIntervals[currentSection]);
         delete updateIntervals[currentSection];
@@ -725,34 +974,29 @@ const char PAGE_index[] PROGMEM = R"=====(
 
       currentSection = sectionName;
 
-      // Load section-specific data
       loadSectionData(sectionName);
-
-      // Close mobile menu
       closeMobileMenu();
     }
 
     // Mobile menu functions
     function toggleMobileMenu() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('overlay');
-
+      var sidebar = document.getElementById('sidebar');
+      var overlay = document.getElementById('overlay');
       sidebar.classList.toggle('open');
       overlay.classList.toggle('active');
     }
 
     function closeMobileMenu() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('overlay');
-
+      var sidebar = document.getElementById('sidebar');
+      var overlay = document.getElementById('overlay');
       sidebar.classList.remove('open');
       overlay.classList.remove('active');
     }
 
     // Theme toggle
     function toggleTheme() {
-      const html = document.documentElement;
-      const themeToggle = document.getElementById('themeToggle');
+      var html = document.documentElement;
+      var themeToggle = document.getElementById('themeToggle');
 
       if (html.getAttribute('data-theme') === 'dark') {
         html.setAttribute('data-theme', 'light');
@@ -765,25 +1009,24 @@ const char PAGE_index[] PROGMEM = R"=====(
       }
     }
 
-    // Load saved theme
     function loadTheme() {
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      const html = document.documentElement;
-      const themeToggle = document.getElementById('themeToggle');
+      var savedTheme = localStorage.getItem('theme') || 'light';
+      var html = document.documentElement;
+      var themeToggle = document.getElementById('themeToggle');
 
       html.setAttribute('data-theme', savedTheme);
       themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
     }
 
     function showLoading(elementId) {
-      const element = document.getElementById(elementId);
+      var element = document.getElementById(elementId);
       if (element) {
-        element.innerHTML = '<div class="loading">Loading...</div>';
+        element.innerHTML = '<div class="loading">' + T('msg.loading') + '</div>';
       }
     }
 
     function hideLoading(elementId) {
-      const element = document.getElementById(elementId);
+      var element = document.getElementById(elementId);
       if (element && element.querySelector('.loading')) {
         element.innerHTML = '';
       }
@@ -792,91 +1035,75 @@ const char PAGE_index[] PROGMEM = R"=====(
     // Load data for specific section
     function loadSectionData(sectionName) {
       switch(sectionName) {
-        case 'info':
-          loadSystemInfo();
-          break;
-        case 'general':
-          loadGeneralSettings();
-          break;
-        case 'network':
-          loadNetworkSettings();
-          break;
-        case 'ntp':
-          loadNtpSettings();
-          break;
-        case 'mqtt':
-          loadMqttSettings();
-          break;
-        case 'scheduler':
-          loadSchedulerSettings();
-          break;
+        case 'info':    loadSystemInfo();     break;
+        case 'general': loadGeneralSettings(); break;
+        case 'network': loadNetworkSettings(); break;
+        case 'ntp':     loadNtpSettings();     break;
+        case 'mqtt':      loadMqttSettings();      break;
+        case 'scheduler': loadSchedulerSettings(); break;
       }
     }
 
-    // Network display improvements
+    // Network display
     function displayNetworks(networks) {
-      const networksContainer = document.getElementById('networks');
+      var networksContainer = document.getElementById('networks');
       if (!networks || networks.length === 0) {
-        networksContainer.innerHTML = '<div class="loading">No networks found</div>';
+        networksContainer.innerHTML = '<div class="loading">' + T('msg.no_networks') + '</div>';
         return;
       }
 
-      // Remove duplicates based on SSID
-      const uniqueNetworks = networks.filter((network, index, self) =>
-        index === self.findIndex(n => n.ssid === network.ssid)
-      );
+      var uniqueNetworks = networks.filter(function(network, index, self) {
+        return index === self.findIndex(function(n) { return n.ssid === network.ssid; });
+      });
 
-      const networksHTML = uniqueNetworks.map(network => {
-        const signalBars = getSignalBars(network.rssi);
-        const isConnected = network.connected || false;
-        const security = network.security || 'Open';
+      var networksHTML = uniqueNetworks.map(function(network) {
+        var signalBars = getSignalBars(network.rssi);
+        var isConnected = network.connected || false;
+        var security = network.security || 'Open';
 
-        return `
-          <div class="network-item ${isConnected ? 'connected' : ''}" onclick="selssid('${network.ssid}')">
-            <div class="network-info">
-              <div class="network-name">${network.ssid}</div>
-              <div class="network-details">
-                <div class="network-signal">
-                  <div class="signal-bars">${signalBars}</div>
-                  <span>${network.rssi}%</span>
-                </div>
-                <div class="network-security">
-                  <span class="security-icon">${security === 'Open' ? '🔓' : '🔒'}</span>
-                  <span>${security}</span>
-                </div>
-              </div>
-            </div>
-            <div class="network-actions">
-              ${isConnected ?
-                '<span class="connected-badge">Connected</span>' :
-                '<button class="connect-btn" onclick="event.stopPropagation(); selssid(\'${network.ssid}\')">Connect</button>'
-              }
-            </div>
-          </div>
-        `;
+        return '<div class="network-item ' + (isConnected ? 'connected' : '') + '" onclick="selssid(\'' + network.ssid + '\')">' +
+          '<div class="network-info">' +
+            '<div class="network-name">' + network.ssid + '</div>' +
+            '<div class="network-details">' +
+              '<div class="network-signal">' +
+                '<div class="signal-bars">' + signalBars + '</div>' +
+                '<span>' + network.rssi + '%</span>' +
+              '</div>' +
+              '<div class="network-security">' +
+                '<span class="security-icon">' + (security === 'Open' ? '🔓' : '🔒') + '</span>' +
+                '<span>' + security + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="network-actions">' +
+            (isConnected ?
+              '<span class="connected-badge">' + T('status.connected') + '</span>' :
+              '<button class="connect-btn" onclick="event.stopPropagation(); selssid(\'' + network.ssid + '\')">' + T('status.connect') + '</button>'
+            ) +
+          '</div>' +
+        '</div>';
       }).join('');
 
       networksContainer.innerHTML = networksHTML;
     }
 
     function getSignalBars(rssi) {
-      const strength = Math.max(0, Math.min(100, rssi));
-      const bars = Math.ceil(strength / 20);
+      var strength = Math.max(0, Math.min(100, rssi));
+      var bars = Math.ceil(strength / 20);
 
-      return Array.from({length: 5}, (_, i) =>
-        `<div class="signal-bar ${i < bars ? 'active' : ''}"></div>`
-      ).join('');
+      return Array.from({length: 5}, function(_, i) {
+        return '<div class="signal-bar ' + (i < bars ? 'active' : '') + '"></div>';
+      }).join('');
     }
 
-    // Fix dropdown duplicates
     function removeDuplicateOptions(selectElement) {
-      const options = Array.from(selectElement.options);
-      const uniqueOptions = options.filter((option, index, self) =>
-        index === self.findIndex(o => o.value === option.value)
-      );
+      var options = Array.from(selectElement.options);
+      var uniqueOptions = options.filter(function(option, index, self) {
+        return index === self.findIndex(function(o) { return o.value === option.value; });
+      });
 
       selectElement.innerHTML = '';
-      uniqueOptions.forEach(option => selectElement.appendChild(option));
+      uniqueOptions.forEach(function(option) { selectElement.appendChild(option); });
     }
 
     // System Info functions
@@ -890,31 +1117,30 @@ const char PAGE_index[] PROGMEM = R"=====(
     }
 
     // General Settings functions
-    const debouncedUpdate = debounce((param, value) => {
-      setValues(`/admin/led?${param}=${value}`);
+    var debouncedUpdate = debounce(function(param, value) {
+      setValues('/admin/led?' + param + '=' + value);
     }, 300);
 
     function updatebrightness() {
-      const value = document.getElementById("brightness").value;
+      var value = document.getElementById("brightness").value;
       document.getElementById("brightnesst").textContent = value;
       debouncedUpdate("brightness", value);
     }
 
     function updatebrightnessday() {
-      const value = document.getElementById("brightnessday").value;
+      var value = document.getElementById("brightnessday").value;
       document.getElementById("brightnessdayt").textContent = value;
       debouncedUpdate("brightnessday", value);
     }
 
     function updatebrightnessnight() {
-      const value = document.getElementById("brightnessnight").value;
+      var value = document.getElementById("brightnessnight").value;
       document.getElementById("brightnessnightt").textContent = value;
       debouncedUpdate("brightnessnight", value);
     }
 
     function updatecolor(colorValue) {
-      // Remove # if present for API call
-      const cleanColor = colorValue.replace('#', '');
+      var cleanColor = colorValue.replace('#', '');
       debouncedUpdate("color", cleanColor);
     }
 
@@ -928,8 +1154,74 @@ const char PAGE_index[] PROGMEM = R"=====(
       }
     }
 
+    // HSV color picker (scheduler)
+    var _scpH=0, _scpS=1, _scpV=1, _scpInit=false;
+
+    function _scpApply(send) {
+      var hex=_cpHsvToHex(_scpH,_scpS,_scpV);
+      var sw=document.getElementById('schedColorSwatch');
+      var ci=document.getElementById('schedColor');
+      var sq=document.getElementById('schedSvSquare');
+      var th=document.getElementById('schedSvThumb');
+      var hs=document.getElementById('schedHueSlider');
+      if(sw) sw.style.backgroundColor=hex;
+      if(ci) ci.value=hex;
+      if(sq) sq.style.backgroundColor='hsl('+Math.round(_scpH)+',100%,50%)';
+      if(th){th.style.left=(_scpS*100)+'%'; th.style.top=((1-_scpV)*100)+'%';}
+      if(hs) hs.value=_scpH;
+      if(send) schedEditorChange();
+    }
+
+    function _scpSetFromHex(hex) {
+      if(!isValidHexColor(hex)) return;
+      var hsv=_cpHexToHsv(hex);
+      _scpH=hsv.h; _scpS=hsv.s; _scpV=hsv.v;
+      _scpApply(false);
+    }
+
+    function initSchedColorPicker() {
+      if(_scpInit) return;
+      _scpInit=true;
+      var swatch=document.getElementById('schedColorSwatch');
+      var panel=document.getElementById('schedCpickerPanel');
+      var sq=document.getElementById('schedSvSquare');
+      var hs=document.getElementById('schedHueSlider');
+      if(!swatch||!panel||!sq||!hs) return;
+      var panelOpen=false;
+
+      swatch.addEventListener('click', function(e) {
+        e.stopPropagation();
+        panelOpen=!panelOpen;
+        panel.style.display=panelOpen?'block':'none';
+      });
+      document.addEventListener('click', function(e) {
+        if(panelOpen && !panel.contains(e.target) && e.target!==swatch) {
+          panelOpen=false; panel.style.display='none';
+        }
+      });
+
+      var svDrag=false;
+      function onSV(e) {
+        e.preventDefault();
+        var rect=sq.getBoundingClientRect();
+        var cx=e.touches?e.touches[0].clientX:e.clientX;
+        var cy=e.touches?e.touches[0].clientY:e.clientY;
+        _scpS=Math.max(0,Math.min(1,(cx-rect.left)/rect.width));
+        _scpV=Math.max(0,Math.min(1,1-(cy-rect.top)/rect.height));
+        _scpApply(true);
+      }
+      sq.addEventListener('mousedown',  function(e){svDrag=true; onSV(e);});
+      sq.addEventListener('touchstart', function(e){svDrag=true; onSV(e);},{passive:false});
+      document.addEventListener('mousemove',  function(e){if(svDrag) onSV(e);});
+      document.addEventListener('touchmove',  function(e){if(svDrag) onSV(e);},{passive:false});
+      document.addEventListener('mouseup',    function(){svDrag=false;});
+      document.addEventListener('touchend',   function(){svDrag=false;});
+
+      hs.addEventListener('input', function(){_scpH=parseInt(this.value); _scpApply(true);});
+    }
+
     function hexToRgb(hex) {
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       return result ? {
         r: parseInt(result[1], 16),
         g: parseInt(result[2], 16),
@@ -946,7 +1238,9 @@ const char PAGE_index[] PROGMEM = R"=====(
     }
 
     function updatelang() {
-      setValues("/admin/led?lang=" + document.getElementById("lang").value);
+      currentLang = parseInt(document.getElementById("lang").value);
+      applyI18n();
+      setValues("/admin/led?lang=" + currentLang);
     }
 
     function updatemode() {
@@ -958,25 +1252,25 @@ const char PAGE_index[] PROGMEM = R"=====(
     }
 
     function updateanimspeed() {
-      const value = document.getElementById("animspeed").value;
+      var value = document.getElementById("animspeed").value;
       document.getElementById("animspeedt").textContent = value;
       debouncedUpdate("animspeed", value);
     }
 
     function updateanimbrightmin() {
-      const value = document.getElementById("animbrightmin").value;
+      var value = document.getElementById("animbrightmin").value;
       document.getElementById("animbrightmint").textContent = value;
       debouncedUpdate("animbrightmin", value);
     }
 
     function updateanimbrightmax() {
-      const value = document.getElementById("animbrightmax").value;
+      var value = document.getElementById("animbrightmax").value;
       document.getElementById("animbrightmaxt").textContent = value;
       debouncedUpdate("animbrightmax", value);
     }
 
     function validatebrightnessauto() {
-      const isAuto = document.getElementById('brightnessauto').checked;
+      var isAuto = document.getElementById('brightnessauto').checked;
 
       document.getElementById("brightness").disabled = isAuto;
       document.getElementById("brightnessday").disabled = !isAuto;
@@ -1001,40 +1295,32 @@ const char PAGE_index[] PROGMEM = R"=====(
       }
     }
 
-    // Utility function for save button feedback
     function setSaveButtonState(button, state) {
-      if (!button) {
-        return;
-      }
+      if (!button) return;
 
-      // Store original text if not already stored
-      if (!button.dataset.originalText) {
-        button.dataset.originalText = button.textContent;
-      }
-      const originalText = button.dataset.originalText;
-
+      var i18nKey = button.dataset.i18n;
       button.disabled = true;
 
       if (state === 'saving') {
-        button.textContent = 'Saving...';
+        button.textContent = T('btn.saving');
         button.style.backgroundColor = '#ffa500';
         button.style.color = 'white';
       } else if (state === 'success') {
-        button.textContent = '✓ Saved';
+        button.textContent = T('btn.saved');
         button.style.backgroundColor = '#28a745';
         button.style.color = 'white';
-        setTimeout(() => {
-          button.textContent = originalText;
+        setTimeout(function() {
+          button.textContent = i18nKey ? T(i18nKey) : T('btn.save');
           button.style.backgroundColor = '';
           button.style.color = '';
           button.disabled = false;
         }, 3000);
       } else if (state === 'error') {
-        button.textContent = '✗ Error';
+        button.textContent = T('btn.error');
         button.style.backgroundColor = '#dc3545';
         button.style.color = 'white';
-        setTimeout(() => {
-          button.textContent = originalText;
+        setTimeout(function() {
+          button.textContent = i18nKey ? T(i18nKey) : T('btn.save');
           button.style.backgroundColor = '';
           button.style.color = '';
           button.disabled = false;
@@ -1044,9 +1330,9 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function saveGeneralSettings(event) {
       event.preventDefault();
-      const form = event.target;
-      const button = form.querySelector('button[type="submit"]') || form.querySelector('button') || event.submitter;
-      const formData = new FormData(form);
+      var form = event.target;
+      var button = form.querySelector('button[type="submit"]') || form.querySelector('button') || event.submitter;
+      var formData = new FormData(form);
 
       setSaveButtonState(button, 'saving');
 
@@ -1054,16 +1340,15 @@ const char PAGE_index[] PROGMEM = R"=====(
         method: 'POST',
         body: formData
       })
-      .then(response => {
+      .then(function(response) {
         if (response.ok) {
           setSaveButtonState(button, 'success');
-          // Reload values to reflect changes
           loadGeneralSettings();
         } else {
           setSaveButtonState(button, 'error');
         }
       })
-      .catch(error => {
+      .catch(function() {
         setSaveButtonState(button, 'error');
       });
 
@@ -1073,19 +1358,18 @@ const char PAGE_index[] PROGMEM = R"=====(
     // Network Settings functions
     function loadNetworkSettings() {
       setValues("/admin/networkfieldsvalues")
-        .then(() => {
+        .then(function() {
           validateNetworkSettings();
           return refreshNetworks();
         })
-        .then(() => {
-          // Initial network status update
+        .then(function() {
           updateNetworkConnectionStatus();
         });
     }
 
     function validateNetworkSettings() {
-      const isDHCP = document.getElementById('dhcp').checked;
-      const staticConfig = document.getElementById('static-config');
+      var isDHCP = document.getElementById('dhcp').checked;
+      var staticConfig = document.getElementById('static-config');
 
       if (isDHCP) {
         staticConfig.style.opacity = '0.5';
@@ -1095,57 +1379,52 @@ const char PAGE_index[] PROGMEM = R"=====(
         staticConfig.style.pointerEvents = 'auto';
       }
 
-      ['ipaddress', 'netmask', 'gateway', 'dnsserver'].forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.disabled = isDHCP;
-        }
+      ['ipaddress', 'netmask', 'gateway', 'dnsserver'].forEach(function(id) {
+        var element = document.getElementById(id);
+        if (element) element.disabled = isDHCP;
       });
     }
 
     function refreshNetworks() {
       showLoading('networks');
       return setValues("/admin/networkconnectionvalues")
-        .then(() => {
+        .then(function() {
           hideLoading('networks');
-          // Update network connection status display
           updateNetworkConnectionStatus();
         })
-        .catch(error => {
+        .catch(function(error) {
           console.error('Failed to get network state:', error);
           document.getElementById('networks').innerHTML = '<div class="alert alert-error">Failed to scan networks</div>';
         });
     }
 
     function updateNetworkConnectionStatus() {
-      const connectionStateRaw = document.getElementById('connectionstate');
-      const connectionStateDisplay = document.getElementById('connectionstatedisplay');
+      var connectionStateRaw = document.getElementById('connectionstate');
+      var connectionStateDisplay = document.getElementById('connectionstatedisplay');
 
       if (connectionStateRaw && connectionStateDisplay && connectionStateRaw.textContent) {
-        const status = connectionStateRaw.textContent.trim();
+        var status = connectionStateRaw.textContent.trim();
 
-        // Remove existing status classes from display element
         connectionStateDisplay.classList.remove('connected', 'connecting', 'disconnected');
 
-        // Add appropriate status class and update display (keeping raw data intact)
         if (status === 'CONNECTED') {
           connectionStateDisplay.classList.add('status-indicator', 'connected');
-          connectionStateDisplay.innerHTML = '✅ Connected';
+          connectionStateDisplay.innerHTML = '✅ ' + T('status.connected');
         } else if (status === 'SCAN COMPLETED' || status === 'Checking...') {
           connectionStateDisplay.classList.add('status-indicator', 'connecting');
-          connectionStateDisplay.innerHTML = '🔍 Scanning...';
+          connectionStateDisplay.innerHTML = '🔍 ' + T('status.scanning');
         } else if (status === 'DISCONNECTED' || status === 'CONNECTION LOST') {
           connectionStateDisplay.classList.add('status-indicator', 'disconnected');
-          connectionStateDisplay.innerHTML = '❌ Disconnected';
+          connectionStateDisplay.innerHTML = '❌ ' + T('status.disconnected');
         } else if (status === 'CONNECT FAILED') {
           connectionStateDisplay.classList.add('status-indicator', 'disconnected');
-          connectionStateDisplay.innerHTML = '⚠️ Connection Failed';
+          connectionStateDisplay.innerHTML = '⚠️ ' + T('status.connection_failed');
         } else if (status === 'NO SSID AVAILBLE') {
           connectionStateDisplay.classList.add('status-indicator', 'disconnected');
-          connectionStateDisplay.innerHTML = '📡 No Network Available';
+          connectionStateDisplay.innerHTML = '📡 ' + T('status.no_network');
         } else if (status === 'Idle') {
           connectionStateDisplay.classList.add('status-indicator', 'connecting');
-          connectionStateDisplay.innerHTML = '⏳ Idle';
+          connectionStateDisplay.innerHTML = '⏳ ' + T('status.idle');
         } else {
           connectionStateDisplay.classList.add('status-indicator', 'disconnected');
           connectionStateDisplay.innerHTML = '🔄 ' + status;
@@ -1155,23 +1434,23 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function loadGeneralSettings() {
       setValues("/admin/generalledconfigvalues")
-        .then(() => setValues("/admin/generallangsvalues"))
-        .then(() => setValues("/admin/generalmodesvalues"))
-        .then(() => setValues("/admin/generalanimationsvalues"))
-        .then(() => setValues("/admin/generalfieldsvalues"))
-        .then(() => {
+        .then(function() { return setValues("/admin/generallangsvalues"); })
+        .then(function() { return setValues("/admin/generalmodesvalues"); })
+        .then(function() { return setValues("/admin/generalanimationsvalues"); })
+        .then(function() { return setValues("/admin/generalfieldsvalues"); })
+        .then(function() {
           validatebrightnessauto();
-          // Remove duplicates from dropdowns
           removeDuplicateOptions(document.getElementById('ledconfig'));
           removeDuplicateOptions(document.getElementById('lang'));
           removeDuplicateOptions(document.getElementById('mode'));
           removeDuplicateOptions(document.getElementById('animation'));
-          // Sync slider display values (setValues doesn't fire oninput)
-          document.getElementById('animspeedt').textContent = document.getElementById('animspeed').value;
-          document.getElementById('animbrightmint').textContent = document.getElementById('animbrightmin').value;
-          document.getElementById('animbrightmaxt').textContent = document.getElementById('animbrightmax').value;
-          // Initialize color picker after values are loaded
           initializeColorPicker();
+          // Sync language from loaded value and re-apply translations
+          var langEl = document.getElementById('lang');
+          if (langEl && langEl.value !== '') {
+            currentLang = parseInt(langEl.value);
+            applyI18n();
+          }
         });
     }
 
@@ -1181,9 +1460,9 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function saveNetworkSettings(event) {
       event.preventDefault();
-      const form = event.target;
-      const button = form.querySelector('button[type="submit"]') || form.querySelector('button') || event.submitter;
-      const formData = new FormData(form);
+      var form = event.target;
+      var button = form.querySelector('button[type="submit"]') || form.querySelector('button') || event.submitter;
+      var formData = new FormData(form);
 
       setSaveButtonState(button, 'saving');
 
@@ -1191,18 +1470,17 @@ const char PAGE_index[] PROGMEM = R"=====(
         method: 'POST',
         body: formData
       })
-      .then(response => {
+      .then(function(response) {
         if (response.ok) {
           setSaveButtonState(button, 'success');
-          // Network settings save triggers ESP restart, so show success and warn user
-          setTimeout(() => {
-            alert('Network settings saved! Device is restarting...');
+          setTimeout(function() {
+            alert(T('msg.network_restart'));
           }, 1000);
         } else {
           setSaveButtonState(button, 'error');
         }
       })
-      .catch(error => {
+      .catch(function() {
         setSaveButtonState(button, 'error');
       });
 
@@ -1216,9 +1494,9 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function saveNtpSettings(event) {
       event.preventDefault();
-      const form = event.target;
-      const button = form.querySelector('button[type="submit"]') || form.querySelector('button') || event.submitter;
-      const formData = new FormData(form);
+      var form = event.target;
+      var button = form.querySelector('button[type="submit"]') || form.querySelector('button') || event.submitter;
+      var formData = new FormData(form);
 
       setSaveButtonState(button, 'saving');
 
@@ -1226,16 +1504,15 @@ const char PAGE_index[] PROGMEM = R"=====(
         method: 'POST',
         body: formData
       })
-      .then(response => {
+      .then(function(response) {
         if (response.ok) {
           setSaveButtonState(button, 'success');
-          // Reload values to reflect changes
           loadNtpSettings();
         } else {
           setSaveButtonState(button, 'error');
         }
       })
-      .catch(error => {
+      .catch(function() {
         setSaveButtonState(button, 'error');
       });
 
@@ -1245,7 +1522,7 @@ const char PAGE_index[] PROGMEM = R"=====(
     // MQTT Settings functions
     function loadMqttSettings() {
       setValues("/admin/mqttfieldsvalues")
-        .then(() => {
+        .then(function() {
           getMqttState();
           updateIntervals.mqtt = setInterval(getMqttState, 3000);
         });
@@ -1253,27 +1530,24 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function getMqttState() {
       setValuesHighPriority("/admin/mqttconnectionvalues")
-        .then(() => {
-          // Update MQTT connection status display with visual indicator
+        .then(function() {
           updateMqttConnectionStatus();
         });
     }
 
     function updateMqttConnectionStatus() {
-      const connectionState = document.getElementById('mqttconnectionstate');
+      var connectionState = document.getElementById('mqttconnectionstate');
       if (connectionState && connectionState.textContent) {
-        const status = connectionState.textContent.trim();
+        var status = connectionState.textContent.trim();
 
-        // Remove existing status classes
         connectionState.classList.remove('connected', 'connecting', 'disconnected');
 
-        // Add appropriate status class and update display
         if (status === 'MQTT_CONNECTED') {
           connectionState.classList.add('status-indicator', 'connected');
-          connectionState.innerHTML = '✅ Connected';
+          connectionState.innerHTML = '✅ ' + T('status.connected');
         } else if (status.includes('CONNECTING') || status === 'Checking...') {
           connectionState.classList.add('status-indicator', 'connecting');
-          connectionState.innerHTML = '🔄 Connecting...';
+          connectionState.innerHTML = '🔄 ' + T('status.connecting');
         } else {
           connectionState.classList.add('status-indicator', 'disconnected');
           connectionState.innerHTML = '❌ ' + status.replace('MQTT_', '').replace('_', ' ');
@@ -1283,9 +1557,9 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function saveMqttSettings(event) {
       event.preventDefault();
-      const form = event.target;
-      const button = form.querySelector('button[type="submit"]') || form.querySelector('button') || event.submitter;
-      const formData = new FormData(form);
+      var form = event.target;
+      var button = form.querySelector('button[type="submit"]') || form.querySelector('button') || event.submitter;
+      var formData = new FormData(form);
 
       setSaveButtonState(button, 'saving');
 
@@ -1293,16 +1567,15 @@ const char PAGE_index[] PROGMEM = R"=====(
         method: 'POST',
         body: formData
       })
-      .then(response => {
+      .then(function(response) {
         if (response.ok) {
           setSaveButtonState(button, 'success');
-          // Reload values to reflect changes
           loadMqttSettings();
         } else {
           setSaveButtonState(button, 'error');
         }
       })
-      .catch(error => {
+      .catch(function() {
         setSaveButtonState(button, 'error');
       });
 
@@ -1312,70 +1585,60 @@ const char PAGE_index[] PROGMEM = R"=====(
     // Load function
     function load(src, type, callback) {
       if (type === 'js') {
-        const script = document.createElement('script');
+        var script = document.createElement('script');
         script.src = src;
         script.type = 'text/javascript';
         script.async = false;
-        script.onload = () => callback && callback();
-        script.onerror = () => console.error(`Failed to load script: ${src}`);
+        script.onload = function() { callback && callback(); };
+        script.onerror = function() { console.error('Failed to load script: ' + src); };
         document.head.appendChild(script);
       } else if (type === 'css') {
-        const link = document.createElement('link');
+        var link = document.createElement('link');
         link.href = src;
         link.rel = 'stylesheet';
         link.type = 'text/css';
-        link.onload = () => callback && callback();
-        link.onerror = () => console.error(`Failed to load stylesheet: ${src}`);
+        link.onload = function() { callback && callback(); };
+        link.onerror = function() { console.error('Failed to load stylesheet: ' + src); };
         document.head.appendChild(link);
       }
     }
 
     // Initialize app
     window.onload = function() {
-      load("style.css?t="+Date.now(), "css", function() {
-        // Load saved theme
+      load("style.css", "css", function() {
         loadTheme();
 
-        // Setup navigation
-        document.querySelectorAll('.nav-item').forEach(btn => {
-          btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item').forEach(function(btn) {
+          btn.addEventListener('click', function() {
             switchSection(btn.dataset.section);
           });
         });
 
-        // Setup mobile menu
-        const menuToggle = document.getElementById('menuToggle');
-        const overlay = document.getElementById('overlay');
-        const themeToggle = document.getElementById('themeToggle');
+        var menuToggle = document.getElementById('menuToggle');
+        var overlay = document.getElementById('overlay');
+        var themeToggle = document.getElementById('themeToggle');
 
         menuToggle.addEventListener('click', toggleMobileMenu);
         overlay.addEventListener('click', closeMobileMenu);
         themeToggle.addEventListener('click', toggleTheme);
 
-        // Load initial section
+        initI18n();
         loadSectionData(currentSection);
-
-        // Initialize color picker
         initializeColorPicker();
-
-        // Set initial header title
-        document.getElementById('sectionTitle').textContent = sectionTitles[currentSection] || 'Dashboard';
 
         console.log("TexTime dashboard loaded");
       });
     }
 
-    // Cleanup intervals when leaving page
-    window.addEventListener('beforeunload', () => {
-      Object.values(updateIntervals).forEach(interval => {
+    window.addEventListener('beforeunload', function() {
+      Object.values(updateIntervals).forEach(function(interval) {
         clearInterval(interval);
       });
     });
 
-    // Handle visibility change to pause/resume updates
     window.addEventListener('visibilitychange', function() {
       if (document.hidden) {
-        Object.values(updateIntervals).forEach(interval => {
+        Object.values(updateIntervals).forEach(function(interval) {
           clearInterval(interval);
         });
         updateIntervals = {};
@@ -1384,14 +1647,12 @@ const char PAGE_index[] PROGMEM = R"=====(
       }
     });
 
-    // Handle escape key to close mobile menu
     document.addEventListener('keydown', function(event) {
       if (event.key === 'Escape') {
         closeMobileMenu();
       }
     });
 
-    // Handle window resize
     window.addEventListener('resize', function() {
       if (window.innerWidth >= 1024) {
         closeMobileMenu();
@@ -1438,7 +1699,9 @@ const char PAGE_index[] PROGMEM = R"=====(
       document.getElementById('schedAnimBrightMinT').textContent=rule.animBrightMin;
       document.getElementById('schedAnimBrightMax').value=rule.animBrightMax;
       document.getElementById('schedAnimBrightMaxT').textContent=rule.animBrightMax;
-      document.getElementById('schedColor').value='#'+toHex2(rule.r)+toHex2(rule.g)+toHex2(rule.b);
+      var schex='#'+toHex2(rule.r)+toHex2(rule.g)+toHex2(rule.b);
+      document.getElementById('schedColor').value=schex;
+      _scpSetFromHex(schex);
     }
 
     function schedRenderRulesList() {
@@ -1488,7 +1751,7 @@ const char PAGE_index[] PROGMEM = R"=====(
     }
 
     function renderSchedulerGrid() {
-      var days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      var days=[T('day.mon'),T('day.tue'),T('day.wed'),T('day.thu'),T('day.fri'),T('day.sat'),T('day.sun')];
       var html='<table class="sched-table"><thead><tr><th></th>';
       days.forEach(function(d){html+='<th>'+d+'</th>';});
       html+='</tr></thead><tbody>';
@@ -1570,12 +1833,13 @@ const char PAGE_index[] PROGMEM = R"=====(
     }
 
     function schedRaz() {
-      if(!confirm('Clear all scheduled slots?')) return;
+      if(!confirm(T('msg.sched_raz_confirm'))) return;
       schedCells=new Array(336).fill(null);
       renderSchedulerGrid();
     }
 
     function loadSchedulerSettings() {
+      initSchedColorPicker();
       setValues('/admin/schedulerconfig')
         .then(function(){
           return fetch('/admin/generalmodesvalues').then(function(r){return r.text();}).then(function(txt){
@@ -1634,27 +1898,26 @@ const char PAGE_index[] PROGMEM = R"=====(
       fetch('/admin/save/schedulerenabled',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'enabled='+en});
     }
 
-    async function saveAllScheduler() {
+    function saveAllScheduler() {
       var btn=document.getElementById('schedSaveBtn');
       setSaveButtonState(btn,'saving');
-      try {
-        var hex='';
-        for(var i=0;i<336;i++){
-          var ri=schedCells[i];
-          if(ri===null||ri===undefined){
-            hex+='FFFFFFFFFFFFFFFF';
-          } else {
-            var rule=schedRules[ri];
-            var packed=(rule.colorRandom&0x03)|((rule.animSpeed-1)<<2);
-            hex+=toHex2(rule.mode)+toHex2(rule.anim)+toHex2(packed)
-                +toHex2(rule.animBrightMin)+toHex2(rule.animBrightMax)
-                +toHex2(rule.r)+toHex2(rule.g)+toHex2(rule.b);
-          }
+      var hex='';
+      for(var i=0;i<336;i++){
+        var ri=schedCells[i];
+        if(ri===null||ri===undefined){
+          hex+='FFFFFFFFFFFFFFFF';
+        } else {
+          var rule=schedRules[ri];
+          var packed=(rule.colorRandom&0x03)|((rule.animSpeed-1)<<2);
+          hex+=toHex2(rule.mode)+toHex2(rule.anim)+toHex2(packed)
+              +toHex2(rule.animBrightMin)+toHex2(rule.animBrightMax)
+              +toHex2(rule.r)+toHex2(rule.g)+toHex2(rule.b);
         }
-        await fetch('/admin/save/schedulerbulk',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+hex});
-        await fetch('/admin/scheduler/apply',{method:'POST'});
-        setSaveButtonState(btn,'success');
-      } catch(e){setSaveButtonState(btn,'error');}
+      }
+      fetch('/admin/save/schedulerbulk',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+hex})
+        .then(function(){return fetch('/admin/scheduler/apply',{method:'POST'});})
+        .then(function(){setSaveButtonState(btn,'success');})
+        .catch(function(){setSaveButtonState(btn,'error');});
     }
     // ── End Scheduler ──────────────────────────────────────────────────────────
 

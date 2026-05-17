@@ -222,6 +222,7 @@ void setup() {
   _server.on("/admin/generalanimationsvalues", send_general_animations_values_html);
   _server.on("/admin/generalledconfigvalues", send_general_ledconfig_values_html);
 
+  _server.on("/admin/langvalue", send_lang_value_html);
   _server.on("/admin/led", send_general_led);
 
   _server.on("/tetris.html", send_tetris_html);

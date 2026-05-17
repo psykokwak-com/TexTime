@@ -125,6 +125,11 @@ void send_general_animations_values_html()
   _server.send(200, "text/plain", values);
 }
 
+void send_lang_value_html()
+{
+  _server.send(200, "text/plain", String(_config.language));
+}
+
 void send_general_led()
 {
   if (_server.args() > 0)
