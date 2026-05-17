@@ -73,6 +73,9 @@ void send_general_configuration_values_html()
   values += "colorrandom|" + (String)_config.colorRandom + "|input\n";
   values += "ledconfig|" + (String)_config.ledConfig + "|input\n";
   values += "brightnesssensibility|" + (String)_config.luxSensitivity + "|input\n";
+  values += "animspeed|" + (String)_config.animSpeed + "|input\n";
+  values += "animbrightmin|" + (String)_config.animBrightnessMin + "|input\n";
+  values += "animbrightmax|" + (String)_config.animBrightnessMax + "|input\n";
 
 	_server.send(200, "text/plain", values);
 	//Serial.println(__FUNCTION__); 
@@ -120,6 +123,11 @@ void send_general_animations_values_html()
     values += "animation|" + (*pl)[i]->getName() + "|select\n";
 
   _server.send(200, "text/plain", values);
+}
+
+void send_lang_value_html()
+{
+  _server.send(200, "text/plain", String(_config.language));
 }
 
 void send_general_led()
@@ -180,9 +188,16 @@ void send_general_led()
         QTLed.setColorRandom((RandomColorMode)_server.arg(i).toInt());
       }
       if (_server.argName(i) == "brightnesssensibility")
-      {
         _config.luxSensitivity = _server.arg(i).toInt();
-      }
+
+      if (_server.argName(i) == "animspeed")
+        QTLed.setAnimSpeed(constrain(_server.arg(i).toInt(), 1, 20));
+
+      if (_server.argName(i) == "animbrightmin")
+        _config.animBrightnessMin = constrain(_server.arg(i).toInt(), 0, 100);
+
+      if (_server.argName(i) == "animbrightmax")
+        _config.animBrightnessMax = constrain(_server.arg(i).toInt(), 0, 100);
     }
   }
   _server.send(200, "text/plain", "OK");

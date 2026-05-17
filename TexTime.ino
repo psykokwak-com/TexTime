@@ -129,7 +129,7 @@ void setup() {
   //printConfig();
 
   // Configure WiFi
-  WiFiMgr.setAPssid("TexTime-" + String(ESP.getChipId(), HEX));
+  WiFiMgr.setAPssid("TexTime-" + String(ESP.getChipId(), HEX), _config.APPassword);
 
   if (!_config.dhcp)
   {
@@ -217,6 +217,7 @@ void setup() {
   _server.on("/admin/generalanimationsvalues", send_general_animations_values_html);
   _server.on("/admin/generalledconfigvalues", send_general_ledconfig_values_html);
 
+  _server.on("/admin/langvalue", send_lang_value_html);
   _server.on("/admin/led", send_general_led);
   
   // Async save endpoints
