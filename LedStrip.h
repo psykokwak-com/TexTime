@@ -3030,6 +3030,7 @@ protected:
   int  _savedAnimIndex;
   int  _savedModeIndex;
   bool _savedModeForced;
+  uint32_t _gameLastSeen;
 
   // A game is drawn by the animation layer, which handle() skips entirely for
   // the modes that return allowAnimation() == false (the test patterns). Without
@@ -3093,6 +3094,7 @@ public:
     , _savedAnimIndex(0)
     , _savedModeIndex(0)
     , _savedModeForced(false)
+    , _gameLastSeen(0)
   {
     _animationList.push_back(new LedStripAnimationNormal(&_pixels, &_animatedPixels));
     _animationList.push_back(new LedStripAnimationBlink(&_pixels, &_animatedPixels));
@@ -3121,6 +3123,7 @@ public:
     snakeStop();
 
     _savedAnimIndex = _animationIndex;
+    _gameLastSeen   = millis();
     gameEnterDisplayMode();
     _tetrisActive   = true;
     _tetrisAnim->begin();
@@ -3145,6 +3148,7 @@ public:
     tetrisStop();
 
     _savedAnimIndex = _animationIndex;
+    _gameLastSeen   = millis();
     gameEnterDisplayMode();
     _snakeActive    = true;
     _snakeAnim->begin();
@@ -3163,6 +3167,25 @@ public:
   }
 
   bool isSnakeActive() { return _snakeActive; }
+
+  bool isGameActive() { return _tetrisActive || _snakeActive; }
+
+  // Called by every game endpoint. Any request from an open controller page --
+  // an action or one of its 400 ms state polls -- counts as the player still
+  // being there.
+  void gameKeepAlive() { _gameLastSeen = millis(); }
+
+  // Backstop for the controller page going away without saying so: a closed
+  // tab, a locked phone, a dropped connection. The pages also fire an exit on
+  // pagehide, which covers the clean case immediately; this covers the rest.
+  void handleGameTimeout()
+  {
+    if (!isGameActive()) return;
+    if (millis() - _gameLastSeen < GAME_IDLE_MS) return;
+
+    tetrisStop();
+    snakeStop();
+  }
 
   bool setAnimation(int mode)
   {

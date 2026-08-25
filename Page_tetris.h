@@ -182,6 +182,17 @@ document.getElementById('quit').onclick=function(){
   releaseAll();send('exit');setTimeout(function(){window.location='/';},200);
 };
 
+/* Give the clock back when this page goes away for good. sendBeacon is the
+   only request that survives page teardown. A page merely parked in the back
+   /forward cache (persisted) may still come back, so leave it running and let
+   the firmware's idle timeout decide. */
+window.addEventListener('pagehide',function(e){
+  if(e.persisted)return;
+  releaseAll();
+  if(navigator.sendBeacon)navigator.sendBeacon(URL_ACT+'exit');
+});
+window.addEventListener('pageshow',function(e){if(e.persisted)getState();});
+
 /* Arrow keys move, Up/Z/X rotate, Space hard-drops (the firmware has always
    supported the drop, no interface ever offered it). */
 var KEYS={ArrowLeft:'left',ArrowRight:'right',ArrowDown:'down',
@@ -290,6 +301,8 @@ void send_tetris_html()
 
 void send_tetris_action()
 {
+  QTLed.gameKeepAlive();   // the page is still there
+
   String a = _server.arg("action");
 
   if (a == "exit") {
@@ -323,6 +336,8 @@ void send_tetris_action()
 
 void send_tetris_state()
 {
+  QTLed.gameKeepAlive();   // the page is still there
+
   String s = "";
   if (LedStripAnimationTetris::instance) {
     LedStripAnimationTetris *t = LedStripAnimationTetris::instance;

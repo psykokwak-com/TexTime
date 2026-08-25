@@ -567,6 +567,9 @@ void loop() {
   _mqtt.loop();
   mqttPollingPublisher();
 
+  // Hand the display back if a controller page went away without saying so
+  QTLed.handleGameTimeout();
+
   // Handle led display
   handleScheduler();
   QTLed.handle();

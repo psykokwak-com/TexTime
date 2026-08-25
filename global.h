@@ -2,6 +2,13 @@
 #define GLOBAL_H
 
 #define AP_DEFAULT_PASSWORD "TexTime-Setup"
+
+// A game owns the whole display, and the only deliberate way out is the "Back
+// to clock" button. Close the tab, lock the phone or lose the WiFi and the
+// clock would stay stuck on a frozen board until someone reopened the page.
+// The game pages poll their state endpoint continuously, so that poll doubles
+// as a heartbeat: no contact for this long and the clock takes itself back.
+#define GAME_IDLE_MS 30000UL
 #define EEPROM_SIZE 4096
 #define SCHEDULER_EEPROM_BASE 1024
 #define SCHEDULER_SLOT_SIZE 8
