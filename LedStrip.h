@@ -948,13 +948,38 @@ protected:
       int l = getAvgLux();
       if (l < lmin) l = lmin;
       if (l > lmax) l = lmax;
-      _pStrip->SetLuminance(map(l, lmin, lmax, s, sm)); // limit
+      applyLuminance(map(l, lmin, lmax, s, sm)); // limit
 
       if (_pStrip->CanShow())
         _pStrip->Show();
     }
 
     p = v;
+  }
+
+  // Mark the pixel buffers as needing to be pushed to the strip again.
+  // MyLedStripAnimator adds its own buffer on top of this one.
+  virtual void invalidate()
+  {
+    _pixels.hasChanged = true;
+  }
+
+  // NeoPixelBusLg applies the luminance while a pixel is being written, not at
+  // Show() time, and SetLuminance() deliberately leaves the existing buffer
+  // alone. A bare SetLuminance()+Show() therefore transmits nothing: the new
+  // level only appears when something else happens to redraw the content --
+  // the next minute in Time mode, the next day in Day mode. Force that redraw.
+  //
+  // The equality guard is not optional: this runs every 50 ms from the
+  // automatic brightness loop, and an unconditional redraw would rewrite the
+  // whole strip twenty times a second for nothing.
+  void applyLuminance(uint8_t b)
+  {
+    if (_pStrip->GetLuminance() == b)
+      return;
+
+    _pStrip->SetLuminance(b);
+    invalidate();
   }
 
   bool handleMode()
@@ -1055,12 +1080,10 @@ public:
     if (_automaticBrightness)
       return;
 
-    _pStrip->SetLuminance(b);
+    applyLuminance(b);
 
     if (_pStrip->CanShow())
       _pStrip->Show();
-
-    //refresh();
   }
 
   uint8_t getBrightness()
@@ -3056,6 +3079,14 @@ protected:
 
     _savedModeForced = false;
     setMode(_savedModeIndex);
+  }
+
+  // The animated buffer is the one actually refreshed whenever the current
+  // mode allows animations, so a luminance change has to invalidate it too.
+  virtual void invalidate()
+  {
+    MyLedStrip::invalidate();
+    _animatedPixels.hasChanged = true;
   }
 
   bool handleAnimation()
