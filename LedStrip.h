@@ -2767,25 +2767,29 @@ private:
     spawnPiece(random(7));
   }
 
+  // Colours are written at full intensity on purpose. A game is something you
+  // stand in front of and play, not ambient decoration, so it does not obey
+  // animBrightnessMax. Overall dimming is the strip's job: the automatic
+  // brightness loop (or the manual brightness slider) still applies on top.
+  //
+  // Settled blocks are drawn at half intensity so the falling piece stands out
+  // on a matrix that has no grid lines. A fixed ratio keeps that contrast
+  // readable whatever the strip brightness ends up being.
   void renderBoard()
   {
     clearPixelsColor();
-    uint8_t bMax = (uint8_t)((uint16_t)_animParams.brightnessMax * 255 / 100);
 
     for (int r = 0; r < NROW; r++) {
       for (int c = 0; c < NCOL; c++) {
         if (_board[r][c]) {
           RgbColor col = TET_COLORS[_board[r][c] - 1];
           Pixel p;
-          p.color = RgbColor(
-            (uint8_t)((uint16_t)col.R * bMax / 512),
-            (uint8_t)((uint16_t)col.G * bMax / 512),
-            (uint8_t)((uint16_t)col.B * bMax / 512));
+          p.color = RgbColor(col.R / 2, col.G / 2, col.B / 2);
           p.display = true;
           _pPixelContainerOutput->pixelsArray.setPixel(p, r, c);
         } else if (_state == STATE_GAME_OVER && (millis() / 300) % 2 == 0) {
           Pixel p; p.display = true;
-          p.color = RgbColor((uint8_t)((uint16_t)200 * bMax / 255), 0, 0);
+          p.color = RgbColor(200, 0, 0);
           _pPixelContainerOutput->pixelsArray.setPixel(p, r, c);
         }
       }
@@ -2799,10 +2803,7 @@ private:
         if (r >= 0 && r < NROW && c >= 0 && c < NCOL) {
           RgbColor col = TET_COLORS[_pieceType];
           Pixel p;
-          p.color = RgbColor(
-            (uint8_t)((uint16_t)col.R * bMax / 255),
-            (uint8_t)((uint16_t)col.G * bMax / 255),
-            (uint8_t)((uint16_t)col.B * bMax / 255));
+          p.color = col;
           p.display = true;
           _pPixelContainerOutput->pixelsArray.setPixel(p, r, c);
         }
@@ -2945,10 +2946,13 @@ private:
     }
   }
 
+  // Colours are written at full intensity on purpose. A game is something you
+  // stand in front of and play, not ambient decoration, so it does not obey
+  // animBrightnessMax. Overall dimming is the strip's job: the automatic
+  // brightness loop (or the manual brightness slider) still applies on top.
   void renderBoard()
   {
     clearPixelsColor();
-    uint8_t bMax = (uint8_t)((uint16_t)_animParams.brightnessMax * 255 / 100);
 
     bool blink = (millis() / 300) % 2 == 0;
 
@@ -2956,13 +2960,13 @@ private:
       bool occ[NROW][NCOL] = {};
       for (int i = 0; i < _length; i++) occ[_body[i].y][_body[i].x] = true;
       Pixel p; p.display = true;
-      p.color = RgbColor((uint8_t)((uint16_t)200 * bMax / 255), 0, 0);
+      p.color = RgbColor(200, 0, 0);
       for (int r = 0; r < NROW; r++)
         for (int c = 0; c < NCOL; c++)
           if (!occ[r][c]) _pPixelContainerOutput->pixelsArray.setPixel(p, r, c);
     } else if (_state == STATE_PLAYING && blink) {
       Pixel p; p.display = true;
-      p.color = RgbColor((uint8_t)((uint16_t)255 * bMax / 255), (uint8_t)((uint16_t)80 * bMax / 255), 0);
+      p.color = RgbColor(255, 80, 0);
       _pPixelContainerOutput->pixelsArray.setPixel(p, _food.y, _food.x);
     }
 
@@ -2970,7 +2974,7 @@ private:
       uint8_t g = (i == 0) ? 255 : (uint8_t)max(60, 220 - i * 8);
       uint8_t b = (i == 0) ? 80  : 0;
       Pixel p; p.display = true;
-      p.color = RgbColor(0, (uint8_t)((uint16_t)g * bMax / 255), (uint8_t)((uint16_t)b * bMax / 255));
+      p.color = RgbColor(0, g, b);
       _pPixelContainerOutput->pixelsArray.setPixel(p, _body[i].y, _body[i].x);
     }
     _pPixelContainerOutput->hasChanged = true;

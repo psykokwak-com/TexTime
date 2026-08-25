@@ -115,6 +115,14 @@ void apply_scheduler_now() {
 void handleScheduler() {
   if (EEPROM.read(SCHEDULER_EEPROM_BASE) != 1) return;
 
+  // A game owns the display while it runs: applying a slot would change the
+  // mode under the player's hands. Keep the slot marked as not yet applied so
+  // it takes effect as soon as the game stops.
+  if (QTLed.isTetrisActive() || QTLed.isSnakeActive()) {
+    _schedLastSlot = 255;
+    return;
+  }
+
   byte currentSlot = _dateTime.hour * 2 + (_dateTime.minute >= 30 ? 1 : 0);
   // _dateTime.wday: 1=Sunday..7=Saturday → convert to 0=Mon..6=Sun
   byte currentDay = (_dateTime.wday <= 1) ? 6 : (_dateTime.wday - 2);
