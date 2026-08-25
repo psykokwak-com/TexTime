@@ -115,7 +115,6 @@ void setup() {
     _config.MQTTPort = 1883;
     _config.MQTTPubInterval = 120; // in sec
 
-    _config.APPassword = AP_DEFAULT_PASSWORD;
     WriteConfig();
 
     // ReadConfig() does this on the normal path; the defaults path needs it too,
@@ -138,7 +137,7 @@ void setup() {
   //printConfig();
 
   // Configure WiFi
-  WiFiMgr.setAPssid("TexTime-" + String(ESP.getChipId(), HEX), _config.APPassword);
+  WiFiMgr.setAPssid("TexTime-" + String(ESP.getChipId(), HEX));
 
   if (!_config.dhcp)
   {
@@ -295,21 +294,6 @@ void setup() {
   
   _server.on("/admin/save/network", HTTP_POST, []() {
     if (_server.args() > 0) {
-      // Validate before touching _config: a rejected request must leave the
-      // running configuration exactly as it was, otherwise RAM and EEPROM end
-      // up disagreeing until the next reboot.
-      for (uint8_t i = 0; i < _server.args(); i++) {
-        if (_server.argName(i) == "appassword") {
-          String p = _server.arg(i);
-          // Empty means "keep the current one"; anything shorter than the WPA2
-          // minimum is refused out loud instead of being silently dropped.
-          if (p.length() > 0 && p.length() < 8) {
-            _server.send(400, "text/plain", "AP_PASSWORD_TOO_SHORT");
-            return;
-          }
-        }
-      }
-
       bool openWifi = false;
 
       _config.dhcp = false;
@@ -317,7 +301,6 @@ void setup() {
         if (_server.argName(i) == "ssid") _config.ssid = _server.arg(i);
         if (_server.argName(i) == "password") { String p = _server.arg(i); if (p.length() > 0) _config.password = p; }
         if (_server.argName(i) == "openwifi") openWifi = true;
-        if (_server.argName(i) == "appassword") { String p = _server.arg(i); if (p.length() >= 8) _config.APPassword = p; }
         if (_server.argName(i) == "ipaddress") {
           // Parse IP address string like "192.168.1.100"
           String ip = _server.arg(i);
@@ -434,7 +417,7 @@ void setup() {
         if (_server.argName(i) == "host") _config.MQTTServer = _server.arg(i);
         if (_server.argName(i) == "port") _config.MQTTPort = _server.arg(i).toInt();
         if (_server.argName(i) == "login") _config.MQTTLogin = _server.arg(i);
-        if (_server.argName(i) == "password") _config.MQTTPassword = _server.arg(i);
+        if (_server.argName(i) == "mqttpassword") _config.MQTTPassword = _server.arg(i);
         if (_server.argName(i) == "interval") _config.MQTTPubInterval = _server.arg(i).toInt();
       }
       

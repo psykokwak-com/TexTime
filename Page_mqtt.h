@@ -18,7 +18,7 @@ void send_mqtt_configuration_html()
       if (_server.argName(i) == "host") _config.MQTTServer = (_server.arg(i));
       if (_server.argName(i) == "port") _config.MQTTPort = _server.arg(i).toInt();
       if (_server.argName(i) == "login") _config.MQTTLogin = _server.arg(i);
-      if (_server.argName(i) == "password") _config.MQTTPassword = _server.arg(i);
+      if (_server.argName(i) == "mqttpassword") _config.MQTTPassword = _server.arg(i);
       if (_server.argName(i) == "interval") _config.MQTTPubInterval = _server.arg(i).toInt();
     }
     _server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -59,7 +59,7 @@ void send_mqtt_configuration_values_html()
   values += "host|" + (String)_config.MQTTServer + "|input\n";
   values += "port|" + String(_config.MQTTPort) + "|input\n";
   values += "login|" + (String)_config.MQTTLogin + "|input\n";
-  values += "password|" + (String)_config.MQTTPassword + "|input\n";
+  values += "mqttpassword|" + (String)_config.MQTTPassword + "|input\n";
   values += "interval|" + String(_config.MQTTPubInterval) + "|input\n";
 
   String sublist;

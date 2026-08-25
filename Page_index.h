@@ -314,11 +314,6 @@ const char PAGE_index[] PROGMEM = R"=====(
             </div>
 
             <div class="form-group">
-              <label for="appassword" class="form-label" data-i18n="lbl.ap_password">Access point password (8 characters minimum)</label>
-              <input type="password" id="appassword" name="appassword" class="form-control" placeholder="Leave empty to keep current">
-            </div>
-
-            <div class="form-group">
               <label for="devicename" class="form-label" data-i18n="lbl.device_name">Device name</label>
               <input type="text" id="devicename" name="devicename" class="form-control" placeholder="TexTime">
             </div>
@@ -468,7 +463,7 @@ const char PAGE_index[] PROGMEM = R"=====(
 
             <div class="form-group">
               <label for="mqttpassword" class="form-label" data-i18n="lbl.mqtt_password">Password (optional)</label>
-              <input type="password" id="mqttpassword" name="password" class="form-control" placeholder="Password">
+              <input type="password" id="mqttpassword" name="mqttpassword" class="form-control" placeholder="Password">
             </div>
 
             <div class="form-group">
@@ -676,7 +671,6 @@ const char PAGE_index[] PROGMEM = R"=====(
         'lbl.ssid': 'Nom du réseau (SSID)',
         'lbl.password': 'Mot de passe',
         'lbl.open_network': 'Réseau ouvert (sans mot de passe)',
-        'lbl.ap_password': "Mot de passe du point d'accès (8 caractères minimum)",
         'lbl.device_name': 'Nom du dispositif',
         'lbl.dhcp': 'Utiliser DHCP (configuration IP automatique)',
         'lbl.subnet_mask': 'Masque de sous-réseau',
@@ -709,7 +703,6 @@ const char PAGE_index[] PROGMEM = R"=====(
         'msg.loading': 'Chargement...',
         'msg.no_networks': 'Aucun réseau trouvé',
         'msg.network_restart': "Paramètres réseau enregistrés ! L'appareil redémarre...",
-        'msg.ap_password_short': "Le mot de passe du point d'accès doit contenir au moins 8 caractères.",
         'status.connected': 'Connecté',
         'status.connect': 'Connecter',
         'status.scanning': 'Recherche...',
@@ -792,7 +785,6 @@ const char PAGE_index[] PROGMEM = R"=====(
         'lbl.ssid': 'Network name (SSID)',
         'lbl.password': 'Password',
         'lbl.open_network': 'Open network (no password)',
-        'lbl.ap_password': 'Access point password (8 characters minimum)',
         'lbl.device_name': 'Device name',
         'lbl.dhcp': 'Use DHCP (automatic IP configuration)',
         'lbl.subnet_mask': 'Subnet Mask',
@@ -825,7 +817,6 @@ const char PAGE_index[] PROGMEM = R"=====(
         'msg.loading': 'Loading...',
         'msg.no_networks': 'No networks found',
         'msg.network_restart': 'Network settings saved! Device is restarting...',
-        'msg.ap_password_short': 'The access point password must be at least 8 characters long.',
         'status.connected': 'Connected',
         'status.connect': 'Connect',
         'status.scanning': 'Scanning...',
@@ -912,6 +903,7 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function _cpSetFromHex(hex) {
       if(!isValidHexColor(hex)) return;
+      hex=normHex(hex);
       var hsv=_cpHexToHsv(hex);
       _cpH=hsv.h; _cpS=hsv.s; _cpV=hsv.v;
       _cpApply(false);
@@ -964,7 +956,7 @@ const char PAGE_index[] PROGMEM = R"=====(
       ct.addEventListener('input', function() {
         var v=this.value.trim();
         if(!v.startsWith('#')) v='#'+v;
-        if(isValidHexColor(v)){_cpSetFromHex(v); updatecolor(v);}
+        if(isValidHexColor(v)){v=normHex(v);_cpSetFromHex(v); updatecolor(v);}
       });
     }
 
@@ -1214,6 +1206,7 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function _scpSetFromHex(hex) {
       if(!isValidHexColor(hex)) return;
+      hex=normHex(hex);
       var hsv=_cpHexToHsv(hex);
       _scpH=hsv.h; _scpS=hsv.s; _scpV=hsv.v;
       _scpApply(false);
@@ -1271,6 +1264,16 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function isValidHexColor(hex) {
       return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(hex);
+    }
+
+    /* #abc is valid CSS shorthand and isValidHexColor accepts it, but every
+       consumer slices fixed two-character pairs and the firmware parses the
+       string with strtol, so a short form silently produces the wrong colour
+       (or NaN). Expand to six digits at the boundary. */
+    function normHex(hex) {
+      if(hex.charAt(0)!=='#') hex='#'+hex;
+      if(hex.length===4) hex='#'+hex[1]+hex[1]+hex[2]+hex[2]+hex[3]+hex[3];
+      return hex;
     }
 
     function updatecolorrandom() {
@@ -1525,10 +1528,6 @@ const char PAGE_index[] PROGMEM = R"=====(
           return;
         }
         setSaveButtonState(button, 'error');
-        return response.text().then(function(body) {
-          if (body.indexOf('AP_PASSWORD_TOO_SHORT') !== -1)
-            alert(T('msg.ap_password_short'));
-        });
       })
       .catch(function() {
         setSaveButtonState(button, 'error');
