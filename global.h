@@ -1,7 +1,6 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#define AP_DEFAULT_PASSWORD "TexTime-Setup"
 
 // A game owns the whole display, and the only deliberate way out is the "Back
 // to clock" button. Close the tab, lock the phone or lose the WiFi and the
@@ -54,7 +53,6 @@ struct strConfig {
   long MQTTPort;                        // 4 Byte - EEPROM 704
   long MQTTPubInterval;                 // 4 Byte - EEPROM 708
 
-  String APPassword;                    // up to 64 Byte - EEPROM 712
 
   byte animSpeed;          // 1 Byte - EEPROM 776  (1-20, 10=normal)
   byte animBrightnessMin;  // 1 Byte - EEPROM 777  (0-100 percent)
@@ -240,7 +238,6 @@ void WriteConfig(){
   EEPROMWritelong(704, _config.MQTTPort);
   EEPROMWritelong(708, _config.MQTTPubInterval);
 
-  WriteStringToEEPROM(712, _config.APPassword);
 
   EEPROM.write(776, _config.animSpeed);
   EEPROM.write(777, _config.animBrightnessMin);
@@ -305,8 +302,6 @@ boolean ReadConfig(){
     _config.MQTTPort = EEPROMReadlong(704);
     _config.MQTTPubInterval = EEPROMReadlong(708);
 
-    _config.APPassword = ReadStringFromEEPROM(712);
-    if (_config.APPassword.length() < 8) _config.APPassword = AP_DEFAULT_PASSWORD;
 
     _config.animSpeed = EEPROM.read(776);
     if (_config.animSpeed < 1 || _config.animSpeed > 20) _config.animSpeed = 10;

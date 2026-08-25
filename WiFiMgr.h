@@ -19,7 +19,7 @@ public:
   void setSTAIPdhcp(bool dhcp);
   void setSTAIPip(IPAddress ip, IPAddress gw, IPAddress mask, IPAddress dns);
 
-  void setAPssid(String ssid, String key);
+  void setAPssid(String ssid, String key = "");
 
   void tryToConnect(const String& ssid, const String& key, const String& devicename);
   bool handle();

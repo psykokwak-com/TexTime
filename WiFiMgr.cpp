@@ -93,7 +93,7 @@ void WiFiMgrClass::setAPMode()
 
   Serial.println("Setting AP mode");
 
-  if (_APkey.length() < 8)
+  if (_APkey.length() == 0)
     WiFi.softAP(_APssid);
   else
     WiFi.softAP(_APssid, _APkey);
