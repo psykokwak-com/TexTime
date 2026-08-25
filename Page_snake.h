@@ -1,94 +1,221 @@
-const char PAGE_snake[] PROGMEM = R"=====(
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+// Same idea as the Tetris page: the screen is the clock on the wall, so this
+// page is a gamepad, not a game view. See Page_tetris.h for the reasoning.
+//
+// Snake only needs a direction, never a repeat, so a press fires once. The
+// accent green and the food orange are the literal RGB values the firmware
+// writes to the strip in LedStripAnimationSnake::renderBoard().
+const char PAGE_snake[] PROGMEM = R"=====(<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Snake</title>
 <style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{margin:0;padding:0;width:100%;height:100%;background:#111;color:#eee;font-family:sans-serif;overflow:hidden;}
-#wrap{display:flex;flex-direction:column;height:100%;padding:6px;gap:6px;}
-#topbar{display:flex;align-items:center;gap:6px;flex-shrink:0;}
-#score{flex:1;font-size:13px;text-align:right;color:#aaa;}
-#status{font-size:12px;color:#fa0;text-align:center;flex-shrink:0;}
-#gamearea{display:flex;flex:1;align-items:center;justify-content:center;min-height:0;}
-.btn{background:#222;color:#fff;border:2px solid #444;border-radius:10px;
-  cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;
-  display:flex;align-items:center;justify-content:center;}
-.btn:active{background:#444;}
-.tbtn{height:40px;padding:0 10px;font-size:13px;}
-.start{border-color:#2a5;background:#163;}
-.exit{border-color:#844;background:#422;}
-.btn svg{display:block;margin:auto;}
-.dpad{display:grid;grid-template-columns:repeat(3,90px);grid-template-rows:repeat(3,90px);gap:8px;}
-.dpad-btn{border-color:#555;}
+:root{
+  --bg:#0f172a; --panel:#1e293b; --raise:#243449; --edge:#334155;
+  --ink:#f1f5f9; --muted:#94a3b8; --dim:#64748b;
+  --green:#00ff50; --food:#ff5000; --danger:#ef4444;
+  --r:14px;
+  --gap:clamp(6px,1.6vmin,14px);
+  --legend:clamp(9px,1.5vmin,11px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.legend{
+  font-size:var(--legend);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim);font-weight:600;
+}
+
+/* ---- HUD ------------------------------------------------------------- */
+.hud{
+  flex:0 0 auto;display:flex;align-items:center;gap:var(--gap);flex-wrap:wrap;
+  padding:calc(var(--gap)*.9) var(--gap);border-bottom:1px solid var(--edge);
+}
+.title{font-size:var(--legend);letter-spacing:.3em;text-transform:uppercase;color:var(--green);font-weight:700}
+.state{display:flex;align-items:center;gap:.45em;font-size:var(--legend);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.dot{width:.5em;height:.5em;border-radius:50%;background:var(--dim);box-shadow:0 0 8px currentColor;color:var(--dim)}
+.hud[data-s="PLAYING"] .dot{background:var(--green);color:var(--green)}
+.hud[data-s="GAME OVER"] .dot{background:var(--danger);color:var(--danger)}
+.hud[data-s="NO LINK"] .dot{background:var(--danger);color:var(--danger);opacity:.5}
+.readout{margin-left:auto;text-align:right}
+.readout dt{font-size:var(--legend);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:600}
+.readout dd{
+  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  font-variant-numeric:tabular-nums;font-size:clamp(15px,3.2vmin,24px);line-height:1.1;
+}
+.link{
+  background:var(--panel);color:var(--muted);border:1px solid var(--edge);
+  border-radius:9px;padding:.5em .85em;font:inherit;font-size:var(--legend);
+  letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;
+}
+.link:hover{background:var(--raise);color:var(--ink)}
+.link:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+
+/* ---- Deck ------------------------------------------------------------ */
+.deck{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:var(--gap)}
+.pad{
+  display:grid;gap:var(--gap);
+  grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+  aspect-ratio:1;width:min(100%,440px,74vh);
+}
+/* Portrait: sink the cross into the thumb zone instead of floating it. */
+@media (max-aspect-ratio:1/1){
+  .deck{align-items:flex-end}
+}
+
+/* ---- Keys ------------------------------------------------------------ */
+.key{
+  border:1px solid var(--edge);border-radius:var(--r);color:var(--muted);
+  background:radial-gradient(130% 130% at 50% 0%,var(--raise) 0%,var(--panel) 62%);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;
+  font:inherit;padding:0;min-height:0;min-width:0;
+  transition:color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .07s ease;
+}
+.key svg{width:clamp(24px,9vmin,60px);height:auto;display:block;fill:currentColor}
+/* Pressed state, whatever the input device. The bloom imitates a diffused
+   pixel lighting up behind the clock's faceplate. */
+.key.on{
+  color:var(--ink);border-color:var(--green);transform:scale(.96);
+  box-shadow:0 0 0 1px var(--green) inset,0 0 20px -4px var(--green),0 0 48px -10px var(--green);
+}
+.k-up{grid-area:1/2}.k-left{grid-area:2/1}.k-right{grid-area:2/3}.k-down{grid-area:3/2}
+@media (prefers-reduced-motion:reduce){.key{transition:none}.key.on{transform:none}}
+
+/* Centre of the cross: one pixel, lit the way the head is lit on the wall. */
+.core{
+  grid-area:2/2;display:flex;align-items:center;justify-content:center;
+}
+.core i{
+  width:38%;aspect-ratio:1;border-radius:50%;background:var(--dim);
+  box-shadow:0 0 14px -2px var(--dim);transition:background .25s ease,box-shadow .25s ease;
+}
+.hud[data-s="PLAYING"]~.deck .core i{background:var(--green);box-shadow:0 0 22px -2px var(--green)}
+.hud[data-s="GAME OVER"]~.deck .core i{background:var(--danger);box-shadow:0 0 22px -2px var(--danger)}
 </style>
-<div id="wrap">
-  <div id="topbar">
-    <div class="btn tbtn start" ontouchstart="doStart(event)" onmousedown="doStart(event)">Start</div>
-    <div class="btn tbtn exit"  ontouchstart="doExit(event)"  onmousedown="doExit(event)">Exit</div>
-    <div id="status">READY</div>
-    <div id="score">Score: <b id="sc">0</b></div>
-  </div>
-  <div id="gamearea">
-    <div class="dpad">
-      <div></div>
-      <div class="btn dpad-btn" ontouchstart="aT('up',event)"    onmousedown="aMD('up')"   ><svg width="50" height="50" viewBox="0 0 24 24"><polygon points="2,22 22,22 12,2"  fill="white"/></svg></div>
-      <div></div>
-      <div class="btn dpad-btn" ontouchstart="aT('left',event)"  onmousedown="aMD('left')" ><svg width="50" height="50" viewBox="0 0 24 24"><polygon points="22,2 22,22 2,12"  fill="white"/></svg></div>
-      <div></div>
-      <div class="btn dpad-btn" ontouchstart="aT('right',event)" onmousedown="aMD('right')"><svg width="50" height="50" viewBox="0 0 24 24"><polygon points="2,2 2,22 22,12"   fill="white"/></svg></div>
-      <div></div>
-      <div class="btn dpad-btn" ontouchstart="aT('down',event)"  onmousedown="aMD('down')" ><svg width="50" height="50" viewBox="0 0 24 24"><polygon points="2,2 22,2 12,22"   fill="white"/></svg></div>
-      <div></div>
-    </div>
-  </div>
-</div>
+</head>
+<body>
+
+<header class="hud" id="hud" data-s="READY">
+  <span class="title">Snake</span>
+  <span class="state"><i class="dot"></i><span id="status">Ready</span></span>
+  <dl class="readout"><dt>Score</dt><dd id="sc">0</dd></dl>
+  <button class="link" id="restart">Restart</button>
+  <button class="link" id="quit">Back to clock</button>
+</header>
+
+<main class="deck">
+  <section class="pad">
+    <button type="button" tabindex="-1" class="key k-up"    data-a="up"    aria-label="Go up"><svg viewBox="0 0 24 24"><polygon points="3,18 21,18 12,5"/></svg></button>
+    <button type="button" tabindex="-1" class="key k-left"  data-a="left"  aria-label="Go left"><svg viewBox="0 0 24 24"><polygon points="18,3 18,21 5,12"/></svg></button>
+    <div class="core"><i></i></div>
+    <button type="button" tabindex="-1" class="key k-right" data-a="right" aria-label="Go right"><svg viewBox="0 0 24 24"><polygon points="6,3 6,21 19,12"/></svg></button>
+    <button type="button" tabindex="-1" class="key k-down"  data-a="down"  aria-label="Go down"><svg viewBox="0 0 24 24"><polygon points="3,6 21,6 12,19"/></svg></button>
+  </section>
+</main>
+
 <script>
-function req(u){var x=new XMLHttpRequest();x.open('GET',u,true);x.send();return x;}
-function aT(a,e){e.preventDefault();req('/admin/snake?action='+a);}
-function aMD(a){req('/admin/snake?action='+a);}
-function doStart(e){e.preventDefault();req('/admin/snake?action=start');}
-function doExit(e){e.preventDefault();req('/admin/snake?action=exit');setTimeout(function(){window.location='/';},200);}
+var URL_ACT='/admin/snake?action=',URL_ST='/admin/snakestate';
+var DIRS=['up','down','left','right'];
+var held={},fails=0;
+
+function send(a){var x=new XMLHttpRequest();x.open('GET',URL_ACT+a,true);x.send();}
+function keyEl(a){return document.querySelector('.key[data-a="'+a+'"]');}
+
+/* One entry point for every input device. A direction is a state, not a
+   repeated action, so a press fires exactly once however long it is held. */
+function press(a){
+  if(held[a])return;
+  held[a]=1;
+  var e=keyEl(a);if(e)e.classList.add('on');
+  if(navigator.vibrate){try{navigator.vibrate(8);}catch(_){}}
+  send(a);
+}
+function release(a){
+  if(!held[a])return;
+  held[a]=0;
+  var e=keyEl(a);if(e)e.classList.remove('on');
+}
+function releaseAll(){for(var a in held)release(a);}
+
+/* Pointer events cover mouse, touch and pen in one path. */
+Array.prototype.forEach.call(document.querySelectorAll('.key'),function(el){
+  var a=el.dataset.a;
+  el.addEventListener('pointerdown',function(ev){ev.preventDefault();el.setPointerCapture&&el.setPointerCapture(ev.pointerId);press(a);});
+  el.addEventListener('pointerup',function(ev){ev.preventDefault();release(a);});
+  el.addEventListener('pointercancel',function(){release(a);});
+  el.addEventListener('contextmenu',function(ev){ev.preventDefault();});
+});
+
+document.getElementById('restart').onclick=function(){send('start');};
+document.getElementById('quit').onclick=function(){
+  releaseAll();send('exit');setTimeout(function(){window.location='/';},200);
+};
+
+var KEYS={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',
+          w:'up',W:'up',s:'down',S:'down',a:'left',A:'left',d:'right',D:'right'};
+document.addEventListener('keydown',function(e){
+  var a=KEYS[e.key];if(!a)return;
+  e.preventDefault();press(a);
+});
+document.addEventListener('keyup',function(e){
+  var a=KEYS[e.key];if(a)release(a);
+});
+window.addEventListener('blur',releaseAll);
+
+/* Gamepad: d-pad and left stick steer. */
+var gpOn={},gpLoop=0;
+function pollGP(){
+  var gs=navigator.getGamepads?navigator.getGamepads():[],now={};
+  for(var i=0;i<gs.length;i++){
+    var g=gs[i];if(!g)continue;
+    var bp=function(n){return g.buttons[n]&&g.buttons[n].pressed;};
+    if(bp(12))now.up=1; if(bp(13))now.down=1; if(bp(14))now.left=1; if(bp(15))now.right=1;
+    var ax=g.axes[0]||0,ay=g.axes[1]||0;
+    if(ax<-.5)now.left=1; if(ax>.5)now.right=1;
+    if(ay<-.5)now.up=1;   if(ay>.5)now.down=1;
+  }
+  DIRS.forEach(function(a){
+    if(now[a]&&!gpOn[a])press(a);
+    else if(!now[a]&&gpOn[a])release(a);
+  });
+  gpOn=now;
+  requestAnimationFrame(pollGP);
+}
+window.addEventListener('gamepadconnected',function(){if(!gpLoop){gpLoop=1;pollGP();}});
+
+var LABEL={'READY':'Ready','PLAYING':'Playing','GAME OVER':'Game over'};
+function setStatus(s){
+  document.getElementById('hud').dataset.s=s;
+  document.getElementById('status').textContent=LABEL[s]||s;
+}
 function getState(){
   var x=new XMLHttpRequest();
   x.onreadystatechange=function(){
-    if(x.readyState!=4||x.status!=200)return;
+    if(x.readyState!=4)return;
+    if(x.status!=200){if(++fails>2)setStatus('NO LINK');return;}
+    fails=0;
     x.responseText.split('\n').forEach(function(l){
       var p=l.split('|');if(p.length<2)return;
-      if(p[0]=='sc'){var e=document.getElementById('sc');if(e)e.innerHTML=p[1];}
-      else if(p[0]=='status'){document.getElementById('status').innerHTML=p[1];}
+      if(p[0]=='sc'){var e=document.getElementById('sc');if(e)e.textContent=p[1];}
+      else if(p[0]=='status')setStatus(p[1]);
     });
   };
-  x.open('GET','/admin/snakestate',true);x.send();
+  x.open('GET',URL_ST,true);x.send();
 }
-window.onload=function(){
-  load('style.css','css',function(){
-    req('/admin/snake?action=start');
-    setInterval(getState,400);
-  });
-};
-function load(e,t,n){if('css'==t){var a=document.createElement('link');a.href=e;a.rel='stylesheet';a.type='text/css';a.async=!1;a.onload=function(){n()};document.getElementsByTagName('head')[0].appendChild(a)}}
-document.addEventListener('keydown',function(e){
-  var m={'ArrowUp':'up','ArrowDown':'down','ArrowLeft':'left','ArrowRight':'right'};
-  if(m[e.key]){e.preventDefault();req('/admin/snake?action='+m[e.key]);}
-});
-var _gp={};
-function pollGP(){
-  var gs=navigator.getGamepads?navigator.getGamepads():[];
-  for(var i=0;i<gs.length;i++){
-    var g=gs[i];if(!g)continue;
-    [{b:12,a:'up'},{b:13,a:'down'},{b:14,a:'left'},{b:15,a:'right'}].forEach(function(m){
-      var p=g.buttons[m.b]&&g.buttons[m.b].pressed,k=i+'b'+m.b;
-      if(p&&!_gp[k])req('/admin/snake?action='+m.a);_gp[k]=p;
-    });
-    var ax=g.axes[0]||0,ay=g.axes[1]||0;
-    var h=ax<-0.5?'left':ax>0.5?'right':'',v=ay<-0.5?'up':ay>0.5?'down':'';
-    if(h&&_gp['h'+i]!==h)req('/admin/snake?action='+h);
-    if(v&&_gp['v'+i]!==v)req('/admin/snake?action='+v);
-    _gp['h'+i]=h;_gp['v'+i]=v;
-  }
-  requestAnimationFrame(pollGP);
-}
-window.addEventListener('gamepadconnected',function(){pollGP();});
+
+send('start');
+getState();
+setInterval(getState,400);
 </script>
+</body>
+</html>
 )=====";
 
 void send_snake_html()
