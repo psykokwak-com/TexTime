@@ -16,8 +16,18 @@
 #define pBLUE  Pixel(RgbColor(0  , 0  , 255))
 #define pWHITE Pixel(RgbColor(255, 255, 255))
 
-//typedef NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266AsyncUart1Ws2813Method> MyNeoPixelBrightnessBus;
-typedef NeoPixelBrightnessBus<NeoGrbFeature, NeoEsp8266Uart1Ws2813Method> MyNeoPixelBrightnessBus;
+// NeoPixelBrightnessBus is deprecated in favour of NeoPixelBusLg. The third
+// template argument is NeoGammaNullMethod because NeoPixelBusLg applies gamma
+// correction by default, which would change every colour on the strip; the null
+// method keeps the exact output this project has always had.
+//
+// The one behavioural difference is an improvement: NeoPixelBrightnessBus
+// rescaled the whole pixel buffer in place on every SetBrightness() call, so
+// repeated brightness changes between two redraws slowly degraded the colours.
+// NeoPixelBusLg keeps the pixels at full precision and applies the luminance
+// when writing to the strip.
+//typedef NeoPixelBusLg<NeoGrbFeature, NeoEsp8266AsyncUart1Ws2813Method, NeoGammaNullMethod> MyNeoPixelBrightnessBus;
+typedef NeoPixelBusLg<NeoGrbFeature, NeoEsp8266Uart1Ws2813Method, NeoGammaNullMethod> MyNeoPixelBrightnessBus;
 
 
 class Pixel
@@ -938,7 +948,7 @@ protected:
       int l = getAvgLux();
       if (l < lmin) l = lmin;
       if (l > lmax) l = lmax;
-      _pStrip->SetBrightness(map(l, lmin, lmax, s, sm)); // limit
+      _pStrip->SetLuminance(map(l, lmin, lmax, s, sm)); // limit
 
       if (_pStrip->CanShow())
         _pStrip->Show();
@@ -1045,7 +1055,7 @@ public:
     if (_automaticBrightness)
       return;
 
-    _pStrip->SetBrightness(b);
+    _pStrip->SetLuminance(b);
 
     if (_pStrip->CanShow())
       _pStrip->Show();
@@ -1055,7 +1065,7 @@ public:
 
   uint8_t getBrightness()
   {
-    return _pStrip->GetBrightness();
+    return _pStrip->GetLuminance();
   }
 
   void setColor(byte r, byte g, byte b)

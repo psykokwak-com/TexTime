@@ -14,7 +14,7 @@
 #include <EEPROM.h>
 #include <DNSServer.h>
 #include <NeoPixelBus.h>
-#include <NeoPixelBrightnessBus.h>
+#include <NeoPixelBusLg.h>
 #include <NeoPixelAnimator.h>
 #include <Wire.h>
 #include <RtcDS3231.h>
