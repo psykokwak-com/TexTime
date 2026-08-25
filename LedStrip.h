@@ -2970,8 +2970,8 @@ public:
   LedStripAnimationSnake(PixelsContainer *in, PixelsContainer *out)
     : LedStripAnimation("Snake", in, out)
     , _length(0), _dirX(1), _dirY(0), _nextDirX(1), _nextDirY(0)
-    , _score(0), _tickInterval(350), _lastTick(0)
-    , _state(STATE_IDLE), _pendingAction(ACT_NONE)
+    , _score(0), _state(STATE_IDLE), _lastTick(0), _tickInterval(350)
+    , _pendingAction(ACT_NONE)
   { instance = this; }
 
   void begin() { _frame.init(30.0); startGame(); }
