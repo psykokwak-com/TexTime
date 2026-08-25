@@ -1483,7 +1483,7 @@ public:
     for (int c = 0; c < NCOL; c++) {
       for (int r = 0; r < NROW; r++) {
 
-        double hsl = (double)((r * NCOL) + c) / (double)(NROW * NCOL);
+        double hsl = ((double)((r * NCOL) + c) / (double)(NROW * NCOL)) * (60.0 / 360.0);
         hsl += _rainbowIndex;
         if (hsl > 1.0) hsl -= 1.0;
 
