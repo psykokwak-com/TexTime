@@ -90,6 +90,10 @@ const char PAGE_index[] PROGMEM = R"=====(
                   <div class="status-label" data-i18n="lbl.firmware_build">Firmware Build</div>
                   <div class="status-value" id="x_version">Loading...</div>
                 </div>
+                <div class="status-item">
+                  <div class="status-label" data-i18n="lbl.free_heap">Free memory</div>
+                  <div class="status-value" id="x_heap">Loading...</div>
+                </div>
               </div>
             </div>
 
@@ -181,6 +185,14 @@ const char PAGE_index[] PROGMEM = R"=====(
               <div class="range-group">
                 <input type="range" id="brightnessnight" name="brightnessnight" class="range-input" max="255" min="0" step="1" oninput="updatebrightnessnight()">
                 <div class="range-value" id="brightnessnightt">--</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="brightnessmax" class="form-label" data-i18n="lbl.max_brightness">Maximum automatic brightness</label>
+              <div class="range-group">
+                <input type="range" id="brightnessmax" name="brightnessmax" class="range-input" max="255" min="1" step="1" oninput="updatebrightnessmax()">
+                <div class="range-value" id="brightnessmaxt">--</div>
               </div>
             </div>
           </div>
@@ -292,6 +304,18 @@ const char PAGE_index[] PROGMEM = R"=====(
             <div class="form-group">
               <label for="password" class="form-label" data-i18n="lbl.password">Password</label>
               <input type="password" id="password" name="password" class="form-control" placeholder="Enter network password">
+            </div>
+
+            <div class="form-group">
+              <div class="checkbox-group">
+                <input type="checkbox" id="openwifi" name="openwifi" class="checkbox">
+                <label for="openwifi" class="form-label" data-i18n="lbl.open_network">Open network (no password)</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="appassword" class="form-label" data-i18n="lbl.ap_password">Access point password (8 characters minimum)</label>
+              <input type="password" id="appassword" name="appassword" class="form-control" placeholder="Leave empty to keep current">
             </div>
 
             <div class="form-group">
@@ -603,6 +627,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'lbl.current_date': 'Date actuelle',
         'lbl.uptime': 'Temps de fonctionnement',
         'lbl.firmware_build': 'Version firmware',
+        'lbl.free_heap': 'Mémoire libre',
         'card.network_info': 'Informations réseau',
         'lbl.wifi_network': 'Réseau WiFi',
         'lbl.signal_strength': 'Force du signal',
@@ -623,6 +648,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'lbl.manual_brightness': 'Luminosité manuelle',
         'lbl.day_brightness': 'Luminosité jour minimum',
         'lbl.night_brightness': 'Luminosité nuit minimum',
+        'lbl.max_brightness': 'Luminosité automatique maximum',
         'card.display_config': 'Configuration affichage',
         'lbl.clock_type': "Type d'horloge",
         'lbl.color': 'Couleur',
@@ -649,6 +675,8 @@ const char PAGE_index[] PROGMEM = R"=====(
         'card.wifi_settings': 'Paramètres WiFi',
         'lbl.ssid': 'Nom du réseau (SSID)',
         'lbl.password': 'Mot de passe',
+        'lbl.open_network': 'Réseau ouvert (sans mot de passe)',
+        'lbl.ap_password': "Mot de passe du point d'accès (8 caractères minimum)",
         'lbl.device_name': 'Nom du dispositif',
         'lbl.dhcp': 'Utiliser DHCP (configuration IP automatique)',
         'lbl.subnet_mask': 'Masque de sous-réseau',
@@ -681,6 +709,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'msg.loading': 'Chargement...',
         'msg.no_networks': 'Aucun réseau trouvé',
         'msg.network_restart': "Paramètres réseau enregistrés ! L'appareil redémarre...",
+        'msg.ap_password_short': "Le mot de passe du point d'accès doit contenir au moins 8 caractères.",
         'status.connected': 'Connecté',
         'status.connect': 'Connecter',
         'status.scanning': 'Recherche...',
@@ -714,6 +743,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'lbl.current_date': 'Current Date',
         'lbl.uptime': 'Uptime',
         'lbl.firmware_build': 'Firmware Build',
+        'lbl.free_heap': 'Free memory',
         'card.network_info': 'Network Information',
         'lbl.wifi_network': 'WiFi Network',
         'lbl.signal_strength': 'Signal Strength',
@@ -734,6 +764,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'lbl.manual_brightness': 'Manual brightness',
         'lbl.day_brightness': 'Minimum day brightness',
         'lbl.night_brightness': 'Minimum night brightness',
+        'lbl.max_brightness': 'Maximum automatic brightness',
         'card.display_config': 'Display Configuration',
         'lbl.clock_type': 'Clock type',
         'lbl.color': 'Color',
@@ -760,6 +791,8 @@ const char PAGE_index[] PROGMEM = R"=====(
         'card.wifi_settings': 'WiFi Settings',
         'lbl.ssid': 'Network name (SSID)',
         'lbl.password': 'Password',
+        'lbl.open_network': 'Open network (no password)',
+        'lbl.ap_password': 'Access point password (8 characters minimum)',
         'lbl.device_name': 'Device name',
         'lbl.dhcp': 'Use DHCP (automatic IP configuration)',
         'lbl.subnet_mask': 'Subnet Mask',
@@ -792,6 +825,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'msg.loading': 'Loading...',
         'msg.no_networks': 'No networks found',
         'msg.network_restart': 'Network settings saved! Device is restarting...',
+        'msg.ap_password_short': 'The access point password must be at least 8 characters long.',
         'status.connected': 'Connected',
         'status.connect': 'Connect',
         'status.scanning': 'Scanning...',
@@ -1139,6 +1173,12 @@ const char PAGE_index[] PROGMEM = R"=====(
       debouncedUpdate("brightnessnight", value);
     }
 
+    function updatebrightnessmax() {
+      var value = document.getElementById("brightnessmax").value;
+      document.getElementById("brightnessmaxt").textContent = value;
+      debouncedUpdate("brightnessmax", value);
+    }
+
     function updatecolor(colorValue) {
       var cleanColor = colorValue.replace('#', '');
       debouncedUpdate("color", cleanColor);
@@ -1445,9 +1485,11 @@ const char PAGE_index[] PROGMEM = R"=====(
           removeDuplicateOptions(document.getElementById('mode'));
           removeDuplicateOptions(document.getElementById('animation'));
           // Sync slider display values (setValues doesn't fire oninput)
-          document.getElementById('animspeedt').textContent = document.getElementById('animspeed').value;
-          document.getElementById('animbrightmint').textContent = document.getElementById('animbrightmin').value;
-          document.getElementById('animbrightmaxt').textContent = document.getElementById('animbrightmax').value;
+          ['brightness','brightnessday','brightnessnight','brightnessmax',
+           'animspeed','animbrightmin','animbrightmax'].forEach(function(id) {
+            var el = document.getElementById(id), out = document.getElementById(id + 't');
+            if (el && out) out.textContent = el.value;
+          });
           initializeColorPicker();
           // Sync language from loaded value and re-apply translations
           var langEl = document.getElementById('lang');
@@ -1480,9 +1522,13 @@ const char PAGE_index[] PROGMEM = R"=====(
           setTimeout(function() {
             alert(T('msg.network_restart'));
           }, 1000);
-        } else {
-          setSaveButtonState(button, 'error');
+          return;
         }
+        setSaveButtonState(button, 'error');
+        return response.text().then(function(body) {
+          if (body.indexOf('AP_PASSWORD_TOO_SHORT') !== -1)
+            alert(T('msg.ap_password_short'));
+        });
       })
       .catch(function() {
         setSaveButtonState(button, 'error');
@@ -1905,20 +1951,27 @@ const char PAGE_index[] PROGMEM = R"=====(
     function saveAllScheduler() {
       var btn=document.getElementById('schedSaveBtn');
       setSaveButtonState(btn,'saving');
-      var hex='';
+      // Send each distinct rule once plus a compact index map rather than 336
+      // full slot records: the ESP8266 has to buffer this whole body in RAM.
+      var rules='', map='', seen={};
       for(var i=0;i<336;i++){
         var ri=schedCells[i];
-        if(ri===null||ri===undefined){
-          hex+='FFFFFFFFFFFFFFFF';
-        } else {
-          var rule=schedRules[ri];
-          var packed=(rule.colorRandom&0x03)|((rule.animSpeed-1)<<2);
-          hex+=toHex2(rule.mode)+toHex2(rule.anim)+toHex2(packed)
-              +toHex2(rule.animBrightMin)+toHex2(rule.animBrightMax)
-              +toHex2(rule.r)+toHex2(rule.g)+toHex2(rule.b);
+        var rule=(ri===null||ri===undefined)?null:schedRules[ri];
+        if(!rule){ map+='FF'; continue; }
+
+        var packed=(rule.colorRandom&0x03)|((rule.animSpeed-1)<<2);
+        var hex=toHex2(rule.mode)+toHex2(rule.anim)+toHex2(packed)
+               +toHex2(rule.animBrightMin)+toHex2(rule.animBrightMax)
+               +toHex2(rule.r)+toHex2(rule.g)+toHex2(rule.b);
+
+        if(seen[hex]===undefined){
+          if(rules.length/16>=255){ map+='FF'; continue; }
+          seen[hex]=rules.length/16;
+          rules+=hex;
         }
+        map+=toHex2(seen[hex]);
       }
-      fetch('/admin/save/schedulerbulk',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+hex})
+      fetch('/admin/save/schedulerbulk',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'rules='+rules+'&map='+map})
         .then(function(){return fetch('/admin/scheduler/apply',{method:'POST'});})
         .then(function(){setSaveButtonState(btn,'success');})
         .catch(function(){setSaveButtonState(btn,'error');});

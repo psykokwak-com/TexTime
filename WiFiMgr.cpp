@@ -84,7 +84,7 @@ void WiFiMgrClass::tryToReconnect()
 
 void WiFiMgrClass::setAPMode()
 {
-  IPAddress apIP(192, 168, 4, 1);
+  IPAddress apIP(192, 168, 1, 1);
   IPAddress apNetMsk(255, 255, 255, 0);
 
   WiFi.setAutoReconnect(false);

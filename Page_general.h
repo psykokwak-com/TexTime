@@ -15,6 +15,7 @@ void send_general_html()
       if (_server.argName(i) == "brightness") _config.brightness = _server.arg(i).toInt();
       if (_server.argName(i) == "brightnessday") _config.brightnessAutoMinDay = _server.arg(i).toInt();
       if (_server.argName(i) == "brightnessnight") _config.brightnessAutoMinNight = _server.arg(i).toInt();
+      if (_server.argName(i) == "brightnessmax") _config.brightnessMax = constrain(_server.arg(i).toInt(), 1, 255);
       if (_server.argName(i) == "color")
       {
         String colorStr = _server.arg(i);
@@ -65,6 +66,7 @@ void send_general_configuration_values_html()
   values += "brightness|" + (String)_config.brightness + "|input\n";
   values += "brightnessday|" + (String)_config.brightnessAutoMinDay + "|input\n";
   values += "brightnessnight|" + (String)_config.brightnessAutoMinNight + "|input\n";
+  values += "brightnessmax|" + (String)_config.brightnessMax + "|input\n";
   values += "color|#" + dec2hex2(_config.color[0]) + dec2hex2(_config.color[1]) + dec2hex2(_config.color[2]) + "|input\n";
   values += "colorText|#" + dec2hex2(_config.color[0]) + dec2hex2(_config.color[1]) + dec2hex2(_config.color[2]) + "|input\n";
   values += "lang|" + (String)_config.language + "|input\n";
@@ -153,6 +155,9 @@ void send_general_led()
       if (_server.argName(i) == "brightnessnight")
         _config.brightnessAutoMinNight = _server.arg(i).toInt();
 
+      if (_server.argName(i) == "brightnessmax")
+        _config.brightnessMax = constrain(_server.arg(i).toInt(), 1, 255);
+
       if (_server.argName(i) == "lang")
       {
         QTLed.setLanguage(_server.arg(i).toInt());
@@ -190,15 +195,22 @@ void send_general_led()
       if (_server.argName(i) == "brightnesssensibility")
         _config.luxSensitivity = _server.arg(i).toInt();
 
+      // Live preview only: these write the rendering parameters, not _config.
+      // Persisting is the job of /admin/save/general, so moving a slider around
+      // never silently rewrites the stored configuration.
       if (_server.argName(i) == "animspeed")
         QTLed.setAnimSpeed(constrain(_server.arg(i).toInt(), 1, 20));
 
       if (_server.argName(i) == "animbrightmin")
-        _config.animBrightnessMin = constrain(_server.arg(i).toInt(), 0, 100);
+        _animParams.brightnessMin = constrain(_server.arg(i).toInt(), 0, 100);
 
       if (_server.argName(i) == "animbrightmax")
-        _config.animBrightnessMax = constrain(_server.arg(i).toInt(), 0, 100);
+        _animParams.brightnessMax = constrain(_server.arg(i).toInt(), 0, 100);
     }
+
+    if (_animParams.brightnessMax < 1) _animParams.brightnessMax = 1;
+    if (_animParams.brightnessMin >= _animParams.brightnessMax)
+      _animParams.brightnessMin = _animParams.brightnessMax - 1;
   }
   _server.send(200, "text/plain", "OK");
 }

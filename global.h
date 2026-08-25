@@ -56,6 +56,44 @@ struct strConfig {
 } _config;
 
 
+// Animation parameters actually used for rendering.
+//
+// These are deliberately NOT part of _config: the scheduler overrides them for
+// the duration of a time slot, and such a temporary override must never end up
+// written to EEPROM by an unrelated WriteConfig() call. _config keeps what the
+// user chose, _animParams keeps what is currently being displayed.
+struct strAnimParams {
+  byte speed;             // 1-20, 10 = normal
+  byte brightnessMin;     // 0-100 percent
+  byte brightnessMax;     // 0-100 percent
+} _animParams;
+
+// Copy the user settings into the live rendering parameters. Called at boot and
+// whenever the user changes a setting through the web interface or MQTT.
+void syncAnimParamsFromConfig()
+{
+  _animParams.speed = _config.animSpeed;
+  _animParams.brightnessMin = _config.animBrightnessMin;
+  _animParams.brightnessMax = _config.animBrightnessMax;
+}
+
+// Keep the animation brightness range valid: min must stay strictly below max,
+// otherwise the pulsing animations end up with a zero amplitude and freeze.
+// The user-supplied max wins and min is pulled underneath it, so moving a
+// single slider never silently resets the other one to a default.
+void validateAnimBrightness()
+{
+  if (_config.animBrightnessMin > 100) _config.animBrightnessMin = 10;
+  if (_config.animBrightnessMax > 100) _config.animBrightnessMax = 100;
+
+  if (_config.animBrightnessMax <= _config.animBrightnessMin)
+  {
+    if (_config.animBrightnessMax < 1) _config.animBrightnessMax = 1;
+    _config.animBrightnessMin = _config.animBrightnessMax - 1;
+  }
+}
+
+
 //  Auxiliary function to handle EEPROM
 
 void EEPROMWritelong(int address, long value){
@@ -90,7 +128,9 @@ boolean checkRange(String Value){
 
 void WriteStringToEEPROM(int beginaddress, String string, int maxLen = 63){
   if ((int)string.length() > maxLen) string = string.substring(0, maxLen);
-  char  charBuf[64];
+  // The whole 64 byte slot is written, so zero it first: toCharArray only fills
+  // up to the terminator and would otherwise leave stack garbage in EEPROM.
+  char  charBuf[64] = {0};
   string.toCharArray(charBuf, sizeof(charBuf));
   for (unsigned int t = 0; t < sizeof(charBuf); t++)
   {
@@ -242,11 +282,12 @@ boolean ReadConfig(){
     _config.color[3] = EEPROM.read(389); // W
     _config.mode = EEPROM.read(390);
     _config.animation = EEPROM.read(391);
-    if (_config.animation > 12) _config.animation = 0;
+    if (_config.animation > 14) _config.animation = 0;
     _config.colorRandom = EEPROM.read(392);
     _config.brightnessAutoMinDay = EEPROM.read(393);
     _config.brightnessAutoMinNight = EEPROM.read(394);
     _config.brightnessMax = EEPROM.read(398);
+    if (_config.brightnessMax < 1) _config.brightnessMax = 255;
     _config.ledConfig = EEPROM.read(395);
     _config.luxSensitivity = EEPROM.read(396);
     _config.language = EEPROM.read(397);
@@ -265,7 +306,10 @@ boolean ReadConfig(){
     _config.animBrightnessMin = EEPROM.read(777);
     if (_config.animBrightnessMin > 100) _config.animBrightnessMin = 10;
     _config.animBrightnessMax = EEPROM.read(778);
-    if (_config.animBrightnessMax > 100 || _config.animBrightnessMax <= _config.animBrightnessMin) _config.animBrightnessMax = 100;
+    if (_config.animBrightnessMax > 100) _config.animBrightnessMax = 100;
+    validateAnimBrightness();
+
+    syncAnimParamsFromConfig();
 
     return true;
 
@@ -435,6 +479,10 @@ public:
 
   void init(double fps)
   {
+    // A null or negative rate would make next() divide by zero and freeze the
+    // animation for good, so never let the frame rate fall out of range.
+    if (fps < 0.1) fps = 0.1;
+
     _fps = fps;
     _framePrevious = 0;
   }

@@ -70,7 +70,7 @@ void setup() {
   Serial.println("Booting");
 
   // Config load 
-  EEPROM.begin(4096); // 1024 for config + 2688 for scheduler (336 slots × 8 bytes)
+  EEPROM.begin(EEPROM_SIZE); // 1024 for config + 2689 for scheduler (1 enable byte + 336 slots x 8 bytes)
   CFG_saved = ReadConfig();
   if (!CFG_saved)
   {
@@ -117,6 +117,10 @@ void setup() {
 
     _config.APPassword = AP_DEFAULT_PASSWORD;
     WriteConfig();
+
+    // ReadConfig() does this on the normal path; the defaults path needs it too,
+    // otherwise the animation parameters stay at zero and every animation stalls.
+    syncAnimParamsFromConfig();
   }
 
   // Start led strip
@@ -243,6 +247,7 @@ void setup() {
         if (_server.argName(i) == "brightness") _config.brightness = _server.arg(i).toInt();
         if (_server.argName(i) == "brightnessday") _config.brightnessAutoMinDay = _server.arg(i).toInt();
         if (_server.argName(i) == "brightnessnight") _config.brightnessAutoMinNight = _server.arg(i).toInt();
+        if (_server.argName(i) == "brightnessmax") _config.brightnessMax = constrain(_server.arg(i).toInt(), 1, 255);
         if (_server.argName(i) == "color") {
           String colorStr = _server.arg(i);
           // Remove # if present
@@ -265,7 +270,14 @@ void setup() {
         if (_server.argName(i) == "animbrightmax") _config.animBrightnessMax = constrain(_server.arg(i).toInt(), 0, 100);
       }
 
+      // Same range rule as on the EEPROM read path, so what is stored can never
+      // differ from what a reboot would accept.
+      validateAnimBrightness();
+
       WriteConfig();
+
+      // The user settings now win over any scheduler slot override still active.
+      syncAnimParamsFromConfig();
       QTLed.begin();
       QTLed.setAutomaticBrightness(_config.brightnessAuto);
       if (!_config.brightnessAuto) QTLed.setBrightness(_config.brightness);
@@ -283,10 +295,28 @@ void setup() {
   
   _server.on("/admin/save/network", HTTP_POST, []() {
     if (_server.args() > 0) {
+      // Validate before touching _config: a rejected request must leave the
+      // running configuration exactly as it was, otherwise RAM and EEPROM end
+      // up disagreeing until the next reboot.
+      for (uint8_t i = 0; i < _server.args(); i++) {
+        if (_server.argName(i) == "appassword") {
+          String p = _server.arg(i);
+          // Empty means "keep the current one"; anything shorter than the WPA2
+          // minimum is refused out loud instead of being silently dropped.
+          if (p.length() > 0 && p.length() < 8) {
+            _server.send(400, "text/plain", "AP_PASSWORD_TOO_SHORT");
+            return;
+          }
+        }
+      }
+
+      bool openWifi = false;
+
       _config.dhcp = false;
       for (uint8_t i = 0; i < _server.args(); i++) {
         if (_server.argName(i) == "ssid") _config.ssid = _server.arg(i);
         if (_server.argName(i) == "password") { String p = _server.arg(i); if (p.length() > 0) _config.password = p; }
+        if (_server.argName(i) == "openwifi") openWifi = true;
         if (_server.argName(i) == "appassword") { String p = _server.arg(i); if (p.length() >= 8) _config.APPassword = p; }
         if (_server.argName(i) == "ipaddress") {
           // Parse IP address string like "192.168.1.100"
@@ -363,7 +393,11 @@ void setup() {
         if (_server.argName(i) == "dhcp") _config.dhcp = true;
         if (_server.argName(i) == "devicename") _config.DeviceName = _server.arg(i);
       }
-      
+
+      // An empty password field means "unchanged", so joining an open network
+      // needs an explicit opt-in. It wins over whatever the field contains.
+      if (openWifi) _config.password = "";
+
       WriteConfig();
       _server.send(200, "text/plain", "OK");
       ESP.restart();

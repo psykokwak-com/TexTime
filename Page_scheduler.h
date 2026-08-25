@@ -35,89 +35,67 @@ void send_scheduler_data() {
   _server.sendContent("");
 }
 
-void save_scheduler_slot() {
-  int day = -1, hour = -1, minute = 0;
-  byte mode = 0xFF, animation = 0, colorRandom = 0, animSpeed = 10;
-  byte animBrightnessMin = 10, animBrightnessMax = 100;
-  byte r = 255, g = 255, b = 255;
-  bool slotEnabled = false;
-
-  for (uint8_t i = 0; i < _server.args(); i++) {
-    String n = _server.argName(i);
-    String v = _server.arg(i);
-    if (n == "day")            day = v.toInt();
-    else if (n == "hour")      hour = v.toInt();
-    else if (n == "minute")    minute = v.toInt();
-    else if (n == "enabled")   slotEnabled = (v == "1");
-    else if (n == "mode")      mode = constrain(v.toInt(), 0, 7);
-    else if (n == "animation") animation = constrain(v.toInt(), 0, 12);
-    else if (n == "colorrandom")   colorRandom = constrain(v.toInt(), 0, 3);
-    else if (n == "animspeed")     animSpeed = constrain(v.toInt(), 1, 20);
-    else if (n == "animbrightmin") animBrightnessMin = constrain(v.toInt(), 0, 100);
-    else if (n == "animbrightmax") animBrightnessMax = constrain(v.toInt(), 0, 100);
-    else if (n == "color") {
-      String cs = v;
-      if (cs.startsWith("#")) cs = cs.substring(1);
-      int32_t l = strtol(cs.c_str(), 0, 16);
-      r = (l >> 16) & 0xFF;
-      g = (l >> 8) & 0xFF;
-      b = l & 0xFF;
-    }
-  }
-
-  if (day < 0 || day > 6 || hour < 0 || hour > 23) {
-    _server.send(400, "text/plain", "ERROR");
-    return;
-  }
-
-  int slot = hour * 2 + (minute >= 30 ? 1 : 0);
-  int addr = schedAddr(day, slot);
-  if (!slotEnabled) {
-    EEPROM.write(addr, 0xFF);
-  } else {
-    EEPROM.write(addr,     mode);
-    EEPROM.write(addr + 1, animation);
-    EEPROM.write(addr + 2, (colorRandom & 0x03) | ((animSpeed - 1) << 2));
-    EEPROM.write(addr + 3, animBrightnessMin);
-    EEPROM.write(addr + 4, animBrightnessMax);
-    EEPROM.write(addr + 5, r);
-    EEPROM.write(addr + 6, g);
-    EEPROM.write(addr + 7, b);
-  }
-  EEPROM.commit();
-  _server.send(200, "text/plain", "OK");
-}
-
 void save_scheduler_enabled() {
   for (uint8_t i = 0; i < _server.args(); i++) {
     if (_server.argName(i) == "enabled") {
-      EEPROM.write(SCHEDULER_EEPROM_BASE, _server.arg(i) == "1" ? 1 : 0);
+      bool enabled = (_server.arg(i) == "1");
+      EEPROM.write(SCHEDULER_EEPROM_BASE, enabled ? 1 : 0);
       EEPROM.commit();
+
+      // Turning the scheduler off must hand the display back to the user
+      // settings straight away, instead of leaving the last slot override in
+      // place until the next reboot.
+      if (!enabled)
+      {
+        syncAnimParamsFromConfig();
+        QTLed.setMode(_config.mode);
+        QTLed.setAnimation(_config.animation);
+        QTLed.setColor(_config.color[0], _config.color[1], _config.color[2]);
+        QTLed.setColorRandom((RandomColorMode)_config.colorRandom);
+      }
     }
   }
   _server.send(200, "text/plain", "OK");
 }
 
-void save_scheduler_raz() {
-  for (int i = 0; i < 336; i++)
-    EEPROM.write(SCHEDULER_EEPROM_BASE + 1 + i * SCHEDULER_SLOT_SIZE, 0xFF);
-  EEPROM.commit();
-  _server.send(200, "text/plain", "OK");
-}
-
-// Bulk save: body arg "data" = 336*16 hex chars representing all slots
+// Bulk save. The payload is deduplicated to keep the POST body small:
+//   "rules" = each distinct slot definition once, 16 hex chars each (255 max)
+//   "map"   = one 2-hex-char rule index per half-hour slot, FF = empty slot
+// A flat dump of the 336 slots would be a 5.4 KB body, which is a lot of heap
+// to ask for on an ESP8266 that already holds a 4 KB EEPROM buffer. A typical
+// schedule uses a handful of distinct rules and fits in well under 1 KB.
 void save_scheduler_bulk() {
-  String data = _server.arg("data");
-  if (data.length() != 336 * 16) {
+  String rules = _server.arg("rules");
+  String map   = _server.arg("map");
+
+  if (map.length() != 336 * 2 || (rules.length() % 16) != 0) {
     _server.send(400, "text/plain", "ERROR");
     return;
   }
+
+  int ruleCount = rules.length() / 16;
+  if (ruleCount > 255) {
+    _server.send(400, "text/plain", "ERROR");
+    return;
+  }
+
   char buf[3]; buf[2] = 0;
   for (int i = 0; i < 336; i++) {
     int addr = SCHEDULER_EEPROM_BASE + 1 + i * SCHEDULER_SLOT_SIZE;
+
+    buf[0] = map[i * 2];
+    buf[1] = map[i * 2 + 1];
+    int ruleIndex = (int)strtol(buf, 0, 16);
+
+    // FF, or anything pointing past the rule table, means "no rule here".
+    if (ruleIndex < 0 || ruleIndex >= ruleCount) {
+      EEPROM.write(addr, 0xFF);
+      continue;
+    }
+
     for (int k = 0; k < SCHEDULER_SLOT_SIZE; k++) {
-      buf[0] = data[i * 16 + k * 2];
-      buf[1] = data[i * 16 + k * 2 + 1];
+      buf[0] = rules[ruleIndex * 16 + k * 2];
+      buf[1] = rules[ruleIndex * 16 + k * 2 + 1];
       EEPROM.write(addr + k, (byte)strtol(buf, 0, 16));
     }
   }
@@ -149,7 +127,7 @@ void handleScheduler() {
   byte mode = EEPROM.read(addr);
   if (mode == 0xFF || mode > 7) return;
 
-  byte animation      = constrain(EEPROM.read(addr + 1), 0, 12);
+  byte animation      = constrain(EEPROM.read(addr + 1), 0, 14);
   byte packed         = EEPROM.read(addr + 2);
   byte colorRandom    = packed & 0x03;
   byte animSpeed      = constrain(((packed >> 2) & 0x1F) + 1, 1, 20);
@@ -159,8 +137,14 @@ void handleScheduler() {
   byte cg = EEPROM.read(addr + 6);
   byte cb = EEPROM.read(addr + 7);
 
-  _config.animBrightnessMin = animBrightMin;
-  _config.animBrightnessMax = animBrightMax;
+  // Same rule as validateAnimBrightness(): min must stay below max, otherwise
+  // the pulsing animations end up with a zero amplitude. Applied on the live
+  // parameters only -- a slot override must never reach _config/EEPROM.
+  if (animBrightMax < 1) animBrightMax = 1;
+  if (animBrightMin >= animBrightMax) animBrightMin = animBrightMax - 1;
+
+  _animParams.brightnessMin = animBrightMin;
+  _animParams.brightnessMax = animBrightMax;
 
   QTLed.setMode(mode);
   QTLed.setAnimation(animation);
