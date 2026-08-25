@@ -324,8 +324,9 @@ void setup() {
           int parts[4];
           int partIndex = 0;
           int start = 0;
-          for (int j = 0; j <= ip.length() && partIndex < 4; j++) {
-            if (j == ip.length() || ip.charAt(j) == '.') {
+          int len_ip = ip.length();
+          for (int j = 0; j <= len_ip && partIndex < 4; j++) {
+            if (j == len_ip || ip.charAt(j) == '.') {
               String part = ip.substring(start, j);
               parts[partIndex] = part.toInt();
               if (checkRange(String(parts[partIndex]))) {
@@ -342,8 +343,9 @@ void setup() {
           int parts[4];
           int partIndex = 0;
           int start = 0;
-          for (int j = 0; j <= nm.length() && partIndex < 4; j++) {
-            if (j == nm.length() || nm.charAt(j) == '.') {
+          int len_nm = nm.length();
+          for (int j = 0; j <= len_nm && partIndex < 4; j++) {
+            if (j == len_nm || nm.charAt(j) == '.') {
               String part = nm.substring(start, j);
               parts[partIndex] = part.toInt();
               if (checkRange(String(parts[partIndex]))) {
@@ -360,8 +362,9 @@ void setup() {
           int parts[4];
           int partIndex = 0;
           int start = 0;
-          for (int j = 0; j <= gw.length() && partIndex < 4; j++) {
-            if (j == gw.length() || gw.charAt(j) == '.') {
+          int len_gw = gw.length();
+          for (int j = 0; j <= len_gw && partIndex < 4; j++) {
+            if (j == len_gw || gw.charAt(j) == '.') {
               String part = gw.substring(start, j);
               parts[partIndex] = part.toInt();
               if (checkRange(String(parts[partIndex]))) {
@@ -378,8 +381,9 @@ void setup() {
           int parts[4];
           int partIndex = 0;
           int start = 0;
-          for (int j = 0; j <= dns.length() && partIndex < 4; j++) {
-            if (j == dns.length() || dns.charAt(j) == '.') {
+          int len_dns = dns.length();
+          for (int j = 0; j <= len_dns && partIndex < 4; j++) {
+            if (j == len_dns || dns.charAt(j) == '.') {
               String part = dns.substring(start, j);
               parts[partIndex] = part.toInt();
               if (checkRange(String(parts[partIndex]))) {

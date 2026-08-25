@@ -87,7 +87,7 @@ void handleNTPRequest()
   {
     // Update RTC
     RtcDateTime dt;
-    dt.InitWithEpoch32Time(_timestamp);
+    dt.InitWithUnix32Time(_timestamp);
     RTC.SetDateTime(dt);
   }
 
@@ -232,7 +232,7 @@ void handleTimeFromRTC()
   {
     if (RTC.GetIsRunning())
     {
-      unsigned long t = (unsigned long)RTC.GetDateTime().Epoch32Time();
+      unsigned long t = (unsigned long)RTC.GetDateTime().Unix32Time();
       Serial.println("RTC Sync Dt : " + String((int)(t - _timestamp)) + "s");
       _timestamp = t;
     }
