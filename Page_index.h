@@ -576,6 +576,7 @@ const char PAGE_index[] PROGMEM = R"=====(
               </div>
               <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
                 <button class="btn btn-secondary" onclick="schedRaz()" style="flex:1" data-i18n="btn.raz">RAZ</button>
+                <button class="btn btn-secondary" onclick="loadSchedulerSettings(true)" style="flex:1" data-i18n="btn.reload">Reload</button>
                 <button class="btn btn-primary" id="schedSaveBtn" onclick="saveAllScheduler()" style="flex:2" data-i18n="btn.save">Save</button>
               </div>
             </div>
@@ -733,6 +734,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'lbl.sched_bright_min': 'Luminosité min (%)',
         'lbl.sched_bright_max': 'Luminosité max (%)',
         'btn.raz': 'RAZ',
+        'btn.reload': 'Recharger',
         'msg.sched_raz_confirm': 'Effacer tous les créneaux ?',
         'day.mon': 'Lun', 'day.tue': 'Mar', 'day.wed': 'Mer',
         'day.thu': 'Jeu', 'day.fri': 'Ven', 'day.sat': 'Sam', 'day.sun': 'Dim'
@@ -848,6 +850,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'lbl.sched_bright_min': 'Min brightness (%)',
         'lbl.sched_bright_max': 'Max brightness (%)',
         'btn.raz': 'RAZ',
+        'btn.reload': 'Reload',
         'msg.sched_raz_confirm': 'Clear all scheduled slots?',
         'day.mon': 'Mon', 'day.tue': 'Tue', 'day.wed': 'Wed',
         'day.thu': 'Thu', 'day.fri': 'Fri', 'day.sat': 'Sat', 'day.sun': 'Sun'
@@ -1917,7 +1920,15 @@ const char PAGE_index[] PROGMEM = R"=====(
       renderSchedulerGrid();
     }
 
-    function loadSchedulerSettings() {
+    /* Painting a week takes a while, and reloading wipes the grid before
+       refilling it from the clock. Since loadSectionData() also runs whenever
+       the tab regains focus, a glance at a notification used to throw the work
+       away silently. Load once, and let the Reload button ask for the rest. */
+    var schedLoaded = false;
+
+    function loadSchedulerSettings(force) {
+      if (schedLoaded && !force) return;
+      schedLoaded = true;
       initSchedColorPicker();
       setValues('/admin/schedulerconfig')
         .then(function(){
