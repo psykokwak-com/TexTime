@@ -909,7 +909,6 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function _cpSetFromHex(hex) {
       if(!isValidHexColor(hex)) return;
-      hex=normHex(hex);
       var hsv=_cpHexToHsv(hex);
       _cpH=hsv.h; _cpS=hsv.s; _cpV=hsv.v;
       _cpApply(false);
@@ -962,7 +961,7 @@ const char PAGE_index[] PROGMEM = R"=====(
       ct.addEventListener('input', function() {
         var v=this.value.trim();
         if(!v.startsWith('#')) v='#'+v;
-        if(isValidHexColor(v)){v=normHex(v);_cpSetFromHex(v); updatecolor(v);}
+        if(isValidHexColor(v)){_cpSetFromHex(v); updatecolor(v);}
       });
     }
 
@@ -1212,7 +1211,6 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function _scpSetFromHex(hex) {
       if(!isValidHexColor(hex)) return;
-      hex=normHex(hex);
       var hsv=_cpHexToHsv(hex);
       _scpH=hsv.h; _scpS=hsv.s; _scpV=hsv.v;
       _scpApply(false);
@@ -1268,18 +1266,13 @@ const char PAGE_index[] PROGMEM = R"=====(
       } : null;
     }
 
+    /* Six digits only. The three-digit CSS shorthand used to be accepted, but
+       every consumer slices fixed two-character pairs, and accepting it meant
+       the field reacted mid-typing: "#123" is valid three characters into
+       "123456", and the picker wrote its expansion back over what was still
+       being typed. */
     function isValidHexColor(hex) {
-      return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(hex);
-    }
-
-    /* #abc is valid CSS shorthand and isValidHexColor accepts it, but every
-       consumer slices fixed two-character pairs and the firmware parses the
-       string with strtol, so a short form silently produces the wrong colour
-       (or NaN). Expand to six digits at the boundary. */
-    function normHex(hex) {
-      if(hex.charAt(0)!=='#') hex='#'+hex;
-      if(hex.length===4) hex='#'+hex[1]+hex[1]+hex[2]+hex[2]+hex[3]+hex[3];
-      return hex;
+      return /^#[A-Fa-f0-9]{6}$/.test(hex);
     }
 
     function updatecolorrandom() {
