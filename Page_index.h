@@ -145,6 +145,10 @@ const char PAGE_index[] PROGMEM = R"=====(
             <div class="card">
               <div class="card-title" data-i18n="card.brightness">Brightness Control</div>
               <form id="general-form" onsubmit="return saveGeneralSettings(event)">
+              <!-- Tells the firmware this form really was filled in. Without it
+                   a save issued before the values finished loading looks exactly
+                   like a user unticking every checkbox. -->
+              <input type="hidden" name="formready" value="1">
 
             <div class="form-group">
               <div class="checkbox-group">
@@ -275,7 +279,7 @@ const char PAGE_index[] PROGMEM = R"=====(
                   </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-block" data-i18n="btn.save">Save Configuration</button>
+                <button type="submit" id="general-save" class="btn btn-primary btn-block" data-i18n="btn.save">Save Configuration</button>
               </form>
             </div>
           </div>
@@ -703,6 +707,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'msg.loading': 'Chargement...',
         'msg.no_networks': 'Aucun réseau trouvé',
         'msg.network_restart': "Paramètres réseau enregistrés ! L'appareil redémarre...",
+        'msg.settings_not_loaded': "Réglages non chargés. Rechargez la page avant d'enregistrer.",
         'status.connected': 'Connecté',
         'status.connect': 'Connecter',
         'status.scanning': 'Recherche...',
@@ -817,6 +822,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'msg.loading': 'Loading...',
         'msg.no_networks': 'No networks found',
         'msg.network_restart': 'Network settings saved! Device is restarting...',
+        'msg.settings_not_loaded': 'Settings could not be loaded. Reload the page before saving.',
         'status.connected': 'Connected',
         'status.connect': 'Connect',
         'status.scanning': 'Scanning...',
@@ -1373,8 +1379,12 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function saveGeneralSettings(event) {
       event.preventDefault();
+      /* Enter in a text field submits a form even when its button is disabled. */
+      if (!generalLoaded) return false;
       var form = event.target;
-      var button = form.querySelector('button[type="submit"]') || form.querySelector('button') || event.submitter;
+      /* The submit button sits outside the form in the DOM, so look it up by id
+         rather than by descendant query. */
+      var button = document.getElementById('general-save') || event.submitter;
       var formData = new FormData(form);
 
       setSaveButtonState(button, 'saving');
@@ -1475,7 +1485,21 @@ const char PAGE_index[] PROGMEM = R"=====(
       }
     }
 
+    /* The stored values arrive on the last of five chained requests. Until
+       that lands the form holds defaults, and saving it would write them:
+       an unticked Automatic brightness box is simply absent from the POST,
+       and an empty colour field parses as black. Keep Save out of reach until
+       the chain finishes, and say so if it never does. */
+    var generalLoaded = false;
+
+    function setGeneralSaveEnabled(on) {
+      generalLoaded = on;
+      var btn = document.getElementById('general-save');
+      if (btn) btn.disabled = !on;
+    }
+
     function loadGeneralSettings() {
+      setGeneralSaveEnabled(false);
       setValues("/admin/generalledconfigvalues")
         .then(function() { return setValues("/admin/generallangsvalues"); })
         .then(function() { return setValues("/admin/generalmodesvalues"); })
@@ -1500,6 +1524,12 @@ const char PAGE_index[] PROGMEM = R"=====(
             currentLang = parseInt(langEl.value);
             applyI18n();
           }
+          setGeneralSaveEnabled(true);
+        })
+        .catch(function() {
+          var btn = document.getElementById('general-save');
+          if (btn) setSaveButtonState(btn, 'error');
+          alert(T('msg.settings_not_loaded'));
         });
     }
 

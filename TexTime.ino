@@ -240,7 +240,14 @@ void setup() {
   _server.on("/admin/save/general", HTTP_POST, []() {
     if (_server.args() > 0) {
       // Process general settings save
-      _config.brightnessAuto = false;
+      //
+      // "brightnessauto" is a checkbox, and an unticked checkbox is simply
+      // absent from the request -- indistinguishable from a form that was
+      // submitted before its values finished loading. Only trust the absence
+      // when the page states it really did send the form.
+      if (_server.hasArg("formready"))
+        _config.brightnessAuto = false;
+
       for (uint8_t i = 0; i < _server.args(); i++) {
         if (_server.argName(i) == "brightnessauto") _config.brightnessAuto = true;
         if (_server.argName(i) == "brightness") _config.brightness = _server.arg(i).toInt();
@@ -253,10 +260,14 @@ void setup() {
           if (colorStr.startsWith("#")) {
             colorStr = colorStr.substring(1);
           }
-          int32_t l = strtol(colorStr.c_str(), 0, 16);
-          _config.color[0] = (l >> 16) & 0xFF;
-          _config.color[1] = (l >> 8) & 0xFF;
-          _config.color[2] = (l >> 0) & 0xFF;
+          // An empty field parses as 0, which is black. That is never what the
+          // user meant; it means the form had nothing to send yet.
+          if (colorStr.length() > 0) {
+            int32_t l = strtol(colorStr.c_str(), 0, 16);
+            _config.color[0] = (l >> 16) & 0xFF;
+            _config.color[1] = (l >> 8) & 0xFF;
+            _config.color[2] = (l >> 0) & 0xFF;
+          }
         }
         if (_server.argName(i) == "lang") _config.language = _server.arg(i).toInt();
         if (_server.argName(i) == "mode") _config.mode = _server.arg(i).toInt();
