@@ -9,6 +9,46 @@ const char PAGE_networkReload[] PROGMEM = R"=====(
 Please Wait....Configuring and Restarting.
 )=====";
 
+// The names of neighbouring networks are arbitrary text chosen by other people,
+// and the scan list is injected into the dashboard with innerHTML. Anything
+// taken from a beacon has to arrive there as text, not as markup.
+String htmlEscape(const String &s)
+{
+  String o;
+  o.reserve(s.length() + 8);
+  for (unsigned int i = 0; i < s.length(); i++)
+  {
+    char c = s[i];
+    switch (c)
+    {
+      case '&':  o += F("&amp;");  break;
+      case '<':  o += F("&lt;");   break;
+      case '>':  o += F("&gt;");   break;
+      case '"':  o += F("&quot;"); break;
+      case '\'': o += F("&#39;");  break;
+      default:   o += c;
+    }
+  }
+  return o;
+}
+
+// For a name that lands inside a JavaScript string literal which is itself
+// inside an HTML attribute. The browser undoes the HTML escaping first and the
+// JavaScript escaping second, so they have to be applied the other way round.
+String jsAttrEscape(const String &s)
+{
+  String o;
+  o.reserve(s.length() + 8);
+  for (unsigned int i = 0; i < s.length(); i++)
+  {
+    char c = s[i];
+    if (c == '\\' || c == '\'') { o += '\\'; o += c; }
+    else if (c == '\r' || c == '\n') { /* a newline would end the statement */ }
+    else o += c;
+  }
+  return htmlEscape(o);
+}
+
 //
 //  SEND HTML PAGE OR IF A FORM SUMBITTED VALUES, PROCESS THESE VALUES
 //
@@ -156,10 +196,10 @@ void send_network_connection_values_html()
 
         networks += "<div class='network-item";
         if (isConnected) networks += " connected";
-        networks += "' onclick=\"selssid('" + currentSSID + "')\">";
+        networks += "' onclick=\"selssid('" + jsAttrEscape(currentSSID) + "')\">";
 
         networks += "<div class='network-info'>";
-        networks += "<div class='network-name'>" + currentSSID + "</div>";
+        networks += "<div class='network-name'>" + htmlEscape(currentSSID) + "</div>";
         networks += "<div class='network-details'>";
         networks += "<div class='network-signal'>";
         networks += signalBars;
@@ -177,7 +217,7 @@ void send_network_connection_values_html()
           networks += "<span class='connected-badge'>Connected</span>";
         }
         else {
-          networks += "<button class='connect-btn' onclick=\"event.stopPropagation(); selssid('" + currentSSID + "')\">Connect</button>";
+          networks += "<button class='connect-btn' onclick=\"event.stopPropagation(); selssid('" + jsAttrEscape(currentSSID) + "')\">Connect</button>";
         }
         networks += "</div>";
 
