@@ -1296,11 +1296,9 @@ const char PAGE_index[] PROGMEM = R"=====(
       } : null;
     }
 
-    /* Six digits only. The three-digit CSS shorthand used to be accepted, but
-       every consumer slices fixed two-character pairs, and accepting it meant
-       the field reacted mid-typing: "#123" is valid three characters into
-       "123456", and the picker wrote its expansion back over what was still
-       being typed. */
+    /* Six digits only. Every consumer slices fixed two-character pairs, and
+       accepting the three-digit shorthand also makes the field react in the
+       middle of typing "123456", where "#123" is already valid. */
     function isValidHexColor(hex) {
       return /^#[A-Fa-f0-9]{6}$/.test(hex);
     }

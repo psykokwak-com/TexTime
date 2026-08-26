@@ -72,11 +72,8 @@ void handleNTPRequest()
     Serial.print("NTP:NTP packet received, length=");
     Serial.println(cb);
 
-    // Anything shorter than a full reply cannot carry a timestamp at bytes
-    // 40..43. Reading it anyway left those bytes at the zero this buffer was
-    // memset to before sending, and 0 - 2208988800 wraps to February 2036 --
-    // which the "unixTime > 0" test below happily accepts and then writes into
-    // the RTC, where it survives a reboot.
+    // A short reply carries no timestamp at bytes 40..43, and this buffer is
+    // still the zeroed one we sent -- which would decode as February 2036.
     if (cb < NTP_PACKET_SIZE)
     {
       Serial.println("NTP: reply too short, ignored");
@@ -90,13 +87,10 @@ void handleNTPRequest()
     unsigned long secsSince1900 = highWord << 16 | lowWord;
     const unsigned long seventyYears = 2208988800UL;
 
-    // NTP counts seconds since 1900 in 32 unsigned bits, which wraps on
-    // 7 February 2036. RFC 5905 calls the periods before and after that eras,
-    // and deliberately does not put the era number in the packet: the client is
-    // expected to work it out from its own rough idea of the date. The usual
-    // convention is the top bit of the seconds field -- set for era 0, which
-    // runs from 1968 to the 2036 wrap, clear for era 1 after it. That covers
-    // 1968 to 2104, which outlasts this firmware's own 32-bit second counter.
+    // NTP seconds-since-1900 wrap on 7 February 2036. RFC 5905 calls the two
+    // periods eras and deliberately leaves the era number out of the packet,
+    // so the client infers it. The convention is the top bit of the field:
+    // set for era 0, clear for era 1. Covers 1968 to 2104.
     if (secsSince1900 & 0x80000000UL)
     {
       unixTime = secsSince1900 - seventyYears;                       // era 0
@@ -214,9 +208,7 @@ boolean summerTime(unsigned long timeStamp) {
   if ((_tempDateTime.month < 3) || (_tempDateTime.month > 10)) return false; // keine Sommerzeit in Jan, Feb, Nov, Dez
   if ((_tempDateTime.month > 3) && (_tempDateTime.month < 10)) return true; // Sommerzeit in Apr, Mai, Jun, Jul, Aug, Sep
   // The EU switches at 01:00 UTC, simultaneously across the union, hence the 1.
-  // This used to read 3, and was handed local time instead of UTC, so both
-  // errors pushed the same way: in CET the change happened at 03:00 local
-  // instead of 02:00 -- an hour late, twice a year.
+  // The caller must pass UTC for that to hold.
   if (((_tempDateTime.month == 3) && ((_tempDateTime.hour + 24 * _tempDateTime.day) >= (1 +  24 * (31 - (5 * _tempDateTime.year / 4 + 4) % 7)))) || ((_tempDateTime.month == 10) && ((_tempDateTime.hour + 24 * _tempDateTime.day) < (1 +  24 * (31 - (5 * _tempDateTime.year / 4 + 1) % 7)))))
     return true;
   else
@@ -224,9 +216,8 @@ boolean summerTime(unsigned long timeStamp) {
 }
 
 unsigned long adjustTimeZone(unsigned long timeStamp, int timeZone, bool isDayLightSavingSaving) {
-  // Decide on UTC, as summerTime() documents and the EU rule requires, before
-  // the offset is applied. Evaluating it on local time made the switch land at
-  // the wrong moment by exactly the size of the offset.
+  // Decided on UTC, before the offset: summerTime() needs UTC, and the EU
+  // switches at one instant everywhere rather than at 02:00 in each zone.
   bool summer = isDayLightSavingSaving && summerTime(timeStamp);
 
   timeStamp += (long)timeZone * 360; // adjust timezone (unit = 1/10th hour, e.g. GMT+1 = value 10)

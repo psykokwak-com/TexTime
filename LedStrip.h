@@ -970,15 +970,12 @@ protected:
   // No games exist at this level; MyLedStripAnimator overrides.
   virtual void stopAnyGame() {}
 
-  // NeoPixelBusLg applies the luminance while a pixel is being written, not at
-  // Show() time, and SetLuminance() deliberately leaves the existing buffer
-  // alone. A bare SetLuminance()+Show() therefore transmits nothing: the new
-  // level only appears when something else happens to redraw the content --
-  // the next minute in Time mode, the next day in Day mode. Force that redraw.
+  // NeoPixelBusLg applies the luminance as a pixel is written, not at Show()
+  // time, and SetLuminance() leaves the buffer alone -- so a change only
+  // reaches the strip on a redraw, which is why one is forced here.
   //
-  // The equality guard is not optional: this runs every 50 ms from the
-  // automatic brightness loop, and an unconditional redraw would rewrite the
-  // whole strip twenty times a second for nothing.
+  // The equality guard is not optional: the automatic brightness loop calls
+  // this every 50 ms.
   void applyLuminance(uint8_t b)
   {
     if (_pStrip->GetLuminance() == b)
@@ -1229,17 +1226,14 @@ protected:
     setPixelsColor(pVOID);
   }
 
-  // The animation speed slider scales every animation's own base frame rate,
-  // with 10 meaning "as designed". Every animation used to spell this out in
-  // its begin(), which is exactly how the divisor drifted: eight of them ended
-  // up dividing by 5 instead of 10 and ran at double speed.
+  // Scales an animation's own base frame rate by the speed slider, 10 meaning
+  // "as designed". One place, so the divisor cannot drift between animations.
   double scaledFps(double baseFps)
   {
     return baseFps * _live.animSpeed / 10.0;
   }
 
-  // The two animation brightness limits are stored as percentages and used as
-  // 0-255 scale factors. Spelled out at fourteen call sites before this.
+  // The brightness limits are stored as percentages and used as 0-255 factors.
   uint8_t animMax255()
   {
     return (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
@@ -2796,10 +2790,8 @@ private:
       _score += pts[min((int)cleared - 1, 3)] * (_level + 1);
       _lines += cleared;
       _level  = _lines / 10;
-      // Subtract only what there is to subtract. Every operand here is
-      // unsigned, so from level 12 the plain 800 - level*70 wrapped to a huge
-      // value that max() then happily preferred over 100, and the pieces
-      // stopped falling until millis() wrapped some 49 days later.
+      // Subtract only what there is to subtract: these are unsigned, so from
+      // level 12 a plain 800 - level*70 wraps instead of going negative.
       uint32_t drop = (uint32_t)_level * 70UL;
       _tickInterval = (drop >= 700UL) ? 100UL : (800UL - drop);
     }
@@ -2915,9 +2907,7 @@ public:
     TetAction act = _pendingAction;
     _pendingAction = ACT_NONE;
 
-    // Restart means restart, whatever the state. It used to be honoured only
-    // after a game over, so pressing it mid-game did nothing at all while the
-    // endpoint still answered "ok".
+    // Restart means restart, whatever the state.
     if (act == ACT_START) {
       startGame();
     } else if (_state == STATE_PLAYING) {
@@ -3073,9 +3063,7 @@ public:
     SnaAction act = _pendingAction;
     _pendingAction = ACT_NONE;
 
-    // Restart means restart, whatever the state. It used to be honoured only
-    // after a game over, so pressing it mid-game did nothing at all while the
-    // endpoint still answered "ok".
+    // Restart means restart, whatever the state.
     if (act == ACT_START) {
       startGame();
     } else if (_state == STATE_PLAYING) {
@@ -3257,10 +3245,9 @@ public:
 
   bool isGameActive() { return _tetrisActive || _snakeActive; }
 
-  // Called only by the action endpoints, and only once the game they name is
-  // confirmed running. The state polls deliberately do NOT call it: a page left
-  // open on a forgotten tab polls every 400 ms and would have kept the display
-  // hostage indefinitely. What keeps a game alive is somebody playing it.
+  // What keeps a game alive is somebody playing it. Call only from the action
+  // endpoints, and only once the game they name is confirmed running -- the
+  // state polls must not, or a forgotten tab holds the display for ever.
   void gameKeepAlive() { _gameLastSeen = millis(); }
 
   // Hands the display back once nobody has played for GAME_IDLE_MS. That covers
@@ -3289,13 +3276,8 @@ public:
   }
 
   // Put the display under the settings the user has saved: after a save, at
-  // boot, and when the scheduler hands control back.
-  //
-  // It exists because those three had drifted into three different subsets of
-  // the same list. The scheduler's copy left out the language and both
-  // brightness settings, which worked only for as long as no slot overrode
-  // them -- the day one did, the failure would have looked like a scheduler
-  // bug rather than a missing line in a copied block.
+  // boot, and when the scheduler hands control back. One list for all three,
+  // so a setting cannot be restored on one path and forgotten on another.
   void applyUserSettings()
   {
     syncLiveFromConfig();

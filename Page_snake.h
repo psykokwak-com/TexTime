@@ -297,9 +297,8 @@ void send_snake_state()
     s += "sc|"     + String(t->getScore()) + "\n";
 
     // The game object keeps its last state after being stopped, so report
-    // whether it still owns the display. Without this a page whose game was
-    // ended elsewhere -- by the other game, a mode change or the idle timeout
-    // -- kept showing a live score above buttons that no longer did anything.
+    // whether it still owns the display: it may have been ended by the other
+    // game, by a mode change or by the idle timeout.
     if (!QTLed.isSnakeActive())
       s += "status|ENDED\n";
     else switch (t->getState()) {

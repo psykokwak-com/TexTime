@@ -105,9 +105,8 @@ void syncLiveFromConfig()
 // The user-supplied max wins and min is pulled underneath it, so moving a
 // single slider never silently resets the other one to a default.
 //
-// Takes a pair rather than reading _config, because the same rule has to hold
-// for the live values the sliders drive and for the locals a scheduler slot
-// arrives in -- it used to be spelled out separately at all three.
+// Takes a pair rather than reading _config: the same rule has to hold for the
+// live values the sliders drive and for the locals a scheduler slot arrives in.
 void clampAnimBrightness(byte &lo, byte &hi)
 {
   if (lo > 100) lo = 10;
@@ -158,10 +157,9 @@ boolean checkRange(String Value){
   return (v >= 0 && v <= 255);
 }
 
-// Four decimal parts, each 0-255, and nothing else. The address parsers split
-// on dots and call toInt() on each piece, and toInt() answers 0 for an empty
-// piece -- so an empty or truncated field used to set the first octet to 0 and
-// leave the rest alone, then reboot onto an address that cannot connect.
+// Four decimal parts, each 0-255, and nothing else. The parsers below split on
+// dots and call toInt(), which answers 0 for an empty piece -- so without this
+// gate a truncated field silently writes a zero octet.
 boolean isValidIPv4(const String &s)
 {
   int parts = 0, value = 0, digits = 0;

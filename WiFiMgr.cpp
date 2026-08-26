@@ -110,11 +110,8 @@ bool WiFiMgrClass::handle()
 {
   // STA mode and connected. Do Nothing
   if (WiFi.getMode() == WIFI_STA && WiFi.status() == WL_CONNECTED) {
-    // Keep the deadline moving while the link is up. Without this it expired
-    // once, a few seconds after boot, and stayed expired: the very first
-    // iteration finding the link down then dropped straight to AP mode, with
-    // no tolerance at all and no chance for the SDK's own auto-reconnect --
-    // enabled just below -- to do anything.
+    // Keep the deadline moving while the link is up, so the grace period below
+    // measures the outage rather than the uptime.
     _STAlastTry = millis();
 
     if (_STAconnected)

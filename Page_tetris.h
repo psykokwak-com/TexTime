@@ -1,16 +1,8 @@
 // The screen for this game is the clock on the wall, not the browser: this page
-// is a gamepad. Everything below follows from that.
-//
-//  - The player is looking at the wall, so the controls never move between
-//    layouts (d-pad always bottom-left, actions always bottom-right) and every
-//    input method -- touch, mouse, keyboard, gamepad -- lights the same on-screen
-//    key, so a glance down is enough to confirm what was pressed.
-//  - Accent colours are the literal RGB values the firmware writes to the strip
-//    (TET_COLORS below), so the controller is colour-matched to the wall.
-//  - Surfaces reuse the dashboard's dark palette so this reads as the same
-//    device rather than a separate app.
-//  - Self-contained: no external stylesheet fetch, which also removes a round
-//    trip from a web server that has a game loop to run.
+// is a gamepad, and the player is not looking at it. Hence controls that keep
+// their side across layouts, every input method lighting the same on-screen key,
+// and accent colours taken from TET_COLORS so the two match. Self-contained on
+// purpose: no stylesheet fetch from a server that has a game loop to run.
 const char PAGE_tetris[] PROGMEM = R"=====(<!doctype html>
 <html lang="en">
 <head>
@@ -363,9 +355,8 @@ void send_tetris_state()
     s += "next|"   + String(t->getNext())  + "\n";
 
     // The game object keeps its last state after being stopped, so report
-    // whether it still owns the display. Without this a page whose game was
-    // ended elsewhere -- by the other game, a mode change or the idle timeout
-    // -- kept showing a live score above buttons that no longer did anything.
+    // whether it still owns the display: it may have been ended by the other
+    // game, by a mode change or by the idle timeout.
     if (!QTLed.isTetrisActive())
       s += "status|ENDED\n";
     else switch (t->getState()) {

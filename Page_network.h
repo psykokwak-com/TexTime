@@ -86,11 +86,10 @@ void send_network_connection_values_html()
   _server.sendHeader("Pragma", "no-cache");
   _server.sendHeader("Expires", "-1");
 
-  // The list is written straight to the client rather than assembled first.
-  // Each row is roughly 600 bytes, so fifteen networks used to need one
-  // contiguous 8 KB allocation -- half the free heap -- reached through
-  // hundreds of reallocations. String::concat fails silently when it cannot
-  // grow, so running short showed up as a truncated list rather than an error.
+  // Written straight to the client rather than assembled first: a row is some
+  // 600 bytes, and holding fifteen of them needs one contiguous 8 KB block on
+  // a part with 16 KB free. String::concat fails silently when it cannot grow,
+  // so running short shows up as a truncated list rather than an error.
   _server.setContentLength(CONTENT_LENGTH_UNKNOWN);
   _server.send(200, "text/plain", "");
   _server.sendContent("connectionstate|" + state + "|div\n");
