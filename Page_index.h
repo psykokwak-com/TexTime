@@ -94,6 +94,10 @@ const char PAGE_index[] PROGMEM = R"=====(
                   <div class="status-label" data-i18n="lbl.free_heap">Free memory</div>
                   <div class="status-value" id="x_heap">Loading...</div>
                 </div>
+                <div class="status-item">
+                  <div class="status-label" data-i18n="lbl.rtc_status">Backup clock</div>
+                  <div class="status-value" id="x_rtc">Loading...</div>
+                </div>
               </div>
             </div>
 
@@ -635,6 +639,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'lbl.uptime': 'Temps de fonctionnement',
         'lbl.firmware_build': 'Version firmware',
         'lbl.free_heap': 'Mémoire libre',
+        'lbl.rtc_status': 'Horloge de sauvegarde',
         'card.network_info': 'Informations réseau',
         'lbl.wifi_network': 'Réseau WiFi',
         'lbl.signal_strength': 'Force du signal',
@@ -752,6 +757,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'lbl.uptime': 'Uptime',
         'lbl.firmware_build': 'Firmware Build',
         'lbl.free_heap': 'Free memory',
+        'lbl.rtc_status': 'Backup clock',
         'card.network_info': 'Network Information',
         'lbl.wifi_network': 'WiFi Network',
         'lbl.signal_strength': 'Signal Strength',

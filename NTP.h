@@ -21,6 +21,10 @@ struct strDateTime
 
 unsigned long _timestamp = 0;  	          // GLOBALTIME, will be refreshed every Second
 strDateTime _dateTime;                    // Global DateTime structure, will be refreshed every Second
+
+// Health of the battery-backed clock, shown on the information page so a flat
+// cell surfaces as a message rather than as odd behaviour.
+const char *_rtcStatus = "OK";
 unsigned long _previousUpdate = 0;        // Used to save last automatic ntp update time
 
 
@@ -259,14 +263,35 @@ void handleTimeFromRTC()
 
   if (v != p)
   {
-    if (RTC.GetIsRunning())
-    {
-      unsigned long t = (unsigned long)RTC.GetDateTime().Unix32Time();
-      Serial.println("RTC Sync Dt : " + String((int)(t - _timestamp)) + "s");
-      _timestamp = t;
-    }
+    // The library answers 1 January 2000 when it cannot read the chip, and
+    // records why. Taking that at face value made the clock confidently wrong
+    // -- most often after the backup battery went flat, which sets the
+    // oscillator-stop flag that IsDateTimeValid() reports. Better to keep the
+    // time we already have and wait for a network sync.
+    bool ok = false;
+
+    if (!RTC.GetIsRunning())
+      _rtcStatus = "Not running";
+    else if (!RTC.IsDateTimeValid())
+      _rtcStatus = "Invalid, replace the battery";
     else
-      Serial.println("RTC not working :(");
+    {
+      RtcDateTime now = RTC.GetDateTime();
+
+      if (RTC.LastError() != Rtc_Wire_Error_None)
+        _rtcStatus = "Read error";
+      else
+      {
+        ok = true;
+        _rtcStatus = "OK";
+        unsigned long t = (unsigned long)now.Unix32Time();
+        Serial.println("RTC Sync Dt : " + String((int)(t - _timestamp)) + "s");
+        _timestamp = t;
+      }
+    }
+
+    if (!ok)
+      Serial.println("RTC: " + String(_rtcStatus));
 
     p = v;
   }
