@@ -2769,7 +2769,12 @@ private:
       _score += pts[min((int)cleared - 1, 3)] * (_level + 1);
       _lines += cleared;
       _level  = _lines / 10;
-      _tickInterval = max(100UL, 800UL - (uint32_t)_level * 70UL);
+      // Subtract only what there is to subtract. Every operand here is
+      // unsigned, so from level 12 the plain 800 - level*70 wrapped to a huge
+      // value that max() then happily preferred over 100, and the pieces
+      // stopped falling until millis() wrapped some 49 days later.
+      uint32_t drop = (uint32_t)_level * 70UL;
+      _tickInterval = (drop >= 700UL) ? 100UL : (800UL - drop);
     }
   }
 
