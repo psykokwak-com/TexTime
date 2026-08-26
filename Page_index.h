@@ -1548,9 +1548,12 @@ const char PAGE_index[] PROGMEM = R"=====(
           setGeneralSaveEnabled(true);
         })
         .catch(function() {
-          var btn = document.getElementById('general-save');
-          if (btn) setSaveButtonState(btn, 'error');
           alert(T('msg.settings_not_loaded'));
+          /* Last, and not setSaveButtonState('error'): that state re-enables
+             the button after three seconds, leaving it clickable while the
+             guard still refuses -- a button that looks fine and does nothing.
+             Leave it plainly unavailable until a load succeeds. */
+          setGeneralSaveEnabled(false);
         });
     }
 
