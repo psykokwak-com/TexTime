@@ -68,11 +68,31 @@ void handleNTPRequest()
     Serial.print("NTP:NTP packet received, length=");
     Serial.println(cb);
 
+    // Anything shorter than a full reply cannot carry a timestamp at bytes
+    // 40..43. Reading it anyway left those bytes at the zero this buffer was
+    // memset to before sending, and 0 - 2208988800 wraps to February 2036 --
+    // which the "unixTime > 0" test below happily accepts and then writes into
+    // the RTC, where it survives a reboot.
+    if (cb < NTP_PACKET_SIZE)
+    {
+      Serial.println("NTP: reply too short, ignored");
+      _UDPNTPClient.flush();
+      return;
+    }
+
     _UDPNTPClient.read(_packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
     unsigned long highWord = word(_packetBuffer[40], _packetBuffer[41]);
     unsigned long lowWord = word(_packetBuffer[42], _packetBuffer[43]);
     unsigned long secsSince1900 = highWord << 16 | lowWord;
     const unsigned long seventyYears = 2208988800UL;
+
+    // A reply with no transmit timestamp is not a time source. Rejecting it
+    // here also keeps the subtraction below from wrapping.
+    if (secsSince1900 <= seventyYears)
+    {
+      Serial.println("NTP: empty timestamp, ignored");
+      return;
+    }
 
     unixTime = secsSince1900 - seventyYears;
   }
