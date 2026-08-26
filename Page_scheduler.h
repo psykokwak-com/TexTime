@@ -35,6 +35,17 @@ void send_scheduler_data() {
   _server.sendContent("");
 }
 
+// Put the display back under the user's own settings, undoing whatever slot
+// override was last applied. Used both when the scheduler is switched off and
+// when a slot boundary lands on an unpainted half-hour.
+void restoreUserSettings() {
+  syncAnimParamsFromConfig();
+  QTLed.setMode(_config.mode);
+  QTLed.setAnimation(_config.animation);
+  QTLed.setColor(_config.color[0], _config.color[1], _config.color[2]);
+  QTLed.setColorRandom((RandomColorMode)_config.colorRandom);
+}
+
 void save_scheduler_enabled() {
   for (uint8_t i = 0; i < _server.args(); i++) {
     if (_server.argName(i) == "enabled") {
@@ -46,13 +57,7 @@ void save_scheduler_enabled() {
       // settings straight away, instead of leaving the last slot override in
       // place until the next reboot.
       if (!enabled)
-      {
-        syncAnimParamsFromConfig();
-        QTLed.setMode(_config.mode);
-        QTLed.setAnimation(_config.animation);
-        QTLed.setColor(_config.color[0], _config.color[1], _config.color[2]);
-        QTLed.setColorRandom((RandomColorMode)_config.colorRandom);
-      }
+        restoreUserSettings();
     }
   }
   _server.send(200, "text/plain", "OK");
@@ -133,7 +138,15 @@ void handleScheduler() {
 
   int addr = schedAddr(currentDay, currentSlot);
   byte mode = EEPROM.read(addr);
-  if (mode == 0xFF || mode > 7) return;
+
+  // An unpainted half-hour means "nothing programmed here, go back to my
+  // normal settings" -- not "keep whatever the last programmed slot left
+  // behind". Without this, painting a single hour on Monday held its override
+  // for the rest of the week.
+  if (mode == 0xFF || mode > 7) {
+    restoreUserSettings();
+    return;
+  }
 
   byte animation      = constrain(EEPROM.read(addr + 1), 0, 14);
   byte packed         = EEPROM.read(addr + 2);
