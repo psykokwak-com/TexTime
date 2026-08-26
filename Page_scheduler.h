@@ -1,4 +1,16 @@
+  // An empty rule table is a legitimate payload -- it is what RAZ then Save
+  // sends -- but it is also what a page that never managed to load its grid
+  // sends. Only the first says so, so require the marker before wiping.
+  if (!_server.hasArg("ready")) {
+    _server.send(400, "text/plain", "NOT_READY");
+    return;
+  }
 
+  int ruleCount = rules.length() / 16;
+  if (ruleCount > 255) {
+    _server.send(400, "text/plain", "ERROR");
+    return;
+  }
 // Slot layout in EEPROM (8 bytes per slot):
 //   [0] mode (0xFF = slot disabled)
 //   [1] animation
@@ -67,6 +79,15 @@ void save_scheduler_bulk() {
 
   if (map.length() != 336 * 2 || (rules.length() % 16) != 0) {
     _server.send(400, "text/plain", "ERROR");
+    return;
+  }
+
+  // An empty rule table is a legitimate payload -- RAZ then Save sends exactly
+  // that -- but it is also what a page which never managed to load its grid
+  // sends. Only the first knows it means it, so require the marker before
+  // letting a save clear all 336 slots.
+  if (!_server.hasArg("ready")) {
+    _server.send(400, "text/plain", "NOT_READY");
     return;
   }
 

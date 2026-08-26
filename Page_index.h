@@ -1948,9 +1948,22 @@ const char PAGE_index[] PROGMEM = R"=====(
        away silently. Load once, and let the Reload button ask for the rest. */
     var schedLoaded = false;
 
+    /* Two separate things: schedLoading stops a second load starting while one
+       is in flight, schedLoaded says the grid holds real data and Save may
+       write it. Conflating them meant a failed load looked like a finished one
+       for ever, and saving the empty grid wiped all 336 slots. */
+    var schedLoading = false;
+
+    function setSchedSaveEnabled(on) {
+      schedLoaded = on;
+      var btn = document.getElementById('schedSaveBtn');
+      if (btn) btn.disabled = !on;
+    }
+
     function loadSchedulerSettings(force) {
-      if (schedLoaded && !force) return;
-      schedLoaded = true;
+      if ((schedLoaded || schedLoading) && !force) return;
+      schedLoading = true;
+      setSchedSaveEnabled(false);
       initSchedColorPicker();
       setValues('/admin/schedulerconfig')
         .then(function(){
@@ -2001,7 +2014,14 @@ const char PAGE_index[] PROGMEM = R"=====(
             schedLoadEditor(schedRules[0]);
             schedRenderRulesList();
             renderSchedulerGrid();
+            schedLoading = false;
+            setSchedSaveEnabled(true);
           });
+        })
+        .catch(function() {
+          schedLoading = false;
+          setSchedSaveEnabled(false);
+          alert(T('msg.settings_not_loaded'));
         });
     }
 
@@ -2015,6 +2035,8 @@ const char PAGE_index[] PROGMEM = R"=====(
     }
 
     function saveAllScheduler() {
+      /* Enter in a field submits past a disabled button. */
+      if(!schedLoaded) return;
       var btn=document.getElementById('schedSaveBtn');
       setSaveButtonState(btn,'saving');
       // Send each distinct rule once plus a compact index map rather than 336
@@ -2037,7 +2059,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         }
         map+=toHex2(seen[hex]);
       }
-      fetch('/admin/save/schedulerbulk',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'rules='+rules+'&map='+map})
+      fetch('/admin/save/schedulerbulk',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'ready=1&rules='+rules+'&map='+map})
         /* The clock rejects a malformed payload; without this check the button
            went green regardless and the schedule was silently not stored. */
         .then(function(r){if(!r.ok)throw new Error('rejected');})
