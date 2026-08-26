@@ -424,7 +424,7 @@ void setup() {
       _config.isDayLightSaving = false;
       for (uint8_t i = 0; i < _server.args(); i++) {
         if (_server.argName(i) == "ntpserver") _config.ntpServerName = urldecode(_server.arg(i));
-        if (_server.argName(i) == "update") _config.Update_Time_Via_NTP_Every = _server.arg(i).toInt();
+        if (_server.argName(i) == "update") _config.Update_Time_Via_NTP_Every = constrain(_server.arg(i).toInt(), NTP_INTERVAL_MIN, NTP_INTERVAL_MAX);
         if (_server.argName(i) == "tz") _config.timeZone = _server.arg(i).toInt();
         if (_server.argName(i) == "dst") _config.isDayLightSaving = true;
       }
