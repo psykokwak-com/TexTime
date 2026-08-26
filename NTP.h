@@ -90,15 +90,28 @@ void handleNTPRequest()
     unsigned long secsSince1900 = highWord << 16 | lowWord;
     const unsigned long seventyYears = 2208988800UL;
 
-    // A reply with no transmit timestamp is not a time source. Rejecting it
-    // here also keeps the subtraction below from wrapping.
-    if (secsSince1900 <= seventyYears)
+    // NTP counts seconds since 1900 in 32 unsigned bits, which wraps on
+    // 7 February 2036. RFC 5905 calls the periods before and after that eras,
+    // and deliberately does not put the era number in the packet: the client is
+    // expected to work it out from its own rough idea of the date. The usual
+    // convention is the top bit of the seconds field -- set for era 0, which
+    // runs from 1968 to the 2036 wrap, clear for era 1 after it. That covers
+    // 1968 to 2104, which outlasts this firmware's own 32-bit second counter.
+    if (secsSince1900 & 0x80000000UL)
     {
+      unixTime = secsSince1900 - seventyYears;                       // era 0
+    }
+    else if (secsSince1900 > 0)
+    {
+      const unsigned long era1Offset = 2085978496UL;  // 2^32 - seventyYears
+      unixTime = secsSince1900 + era1Offset;                         // era 1
+    }
+    else
+    {
+      // All zeroes is not a time source, it is an empty or truncated reply.
       Serial.println("NTP: empty timestamp, ignored");
       return;
     }
-
-    unixTime = secsSince1900 - seventyYears;
   }
 
   if (unixTime > 0)
