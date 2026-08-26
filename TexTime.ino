@@ -305,6 +305,21 @@ void setup() {
   
   _server.on("/admin/save/network", HTTP_POST, []() {
     if (_server.args() > 0) {
+      // Validate the static addresses before touching anything. This handler
+      // reboots the device on its way out, so writing a half-parsed address
+      // means coming back on one that cannot connect, with the setup access
+      // point as the only way in.
+      if (!_server.hasArg("dhcp")) {
+        static const char *addrFields[] = { "ipaddress", "netmask", "gateway", "dnsserver" };
+        for (uint8_t f = 0; f < 4; f++) {
+          if (!_server.hasArg(addrFields[f])) continue;
+          if (!isValidIPv4(_server.arg(addrFields[f]))) {
+            _server.send(400, "text/plain", "BAD_ADDRESS");
+            return;
+          }
+        }
+      }
+
       bool openWifi = false;
 
       _config.dhcp = false;

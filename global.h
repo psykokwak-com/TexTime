@@ -142,6 +142,38 @@ boolean checkRange(String Value){
   return (v >= 0 && v <= 255);
 }
 
+// Four decimal parts, each 0-255, and nothing else. The address parsers split
+// on dots and call toInt() on each piece, and toInt() answers 0 for an empty
+// piece -- so an empty or truncated field used to set the first octet to 0 and
+// leave the rest alone, then reboot onto an address that cannot connect.
+boolean isValidIPv4(const String &s)
+{
+  int parts = 0, value = 0, digits = 0;
+
+  for (unsigned int i = 0; i <= s.length(); i++)
+  {
+    // The end of the string closes the last part, exactly like a dot.
+    char c = (i < s.length()) ? s[i] : '.';
+
+    if (c >= '0' && c <= '9')
+    {
+      if (++digits > 3) return false;
+      value = value * 10 + (c - '0');
+      if (value > 255) return false;
+    }
+    else if (c == '.')
+    {
+      if (digits == 0) return false;   // empty part: "", "1..2", ".1.2.3"
+      if (++parts > 4) return false;
+      value = 0;
+      digits = 0;
+    }
+    else return false;                 // letters, spaces, anything else
+  }
+
+  return (parts == 4);
+}
+
 void WriteStringToEEPROM(int beginaddress, String string, int maxLen = 63){
   if ((int)string.length() > maxLen) string = string.substring(0, maxLen);
   // The whole 64 byte slot is written, so zero it first: toCharArray only fills

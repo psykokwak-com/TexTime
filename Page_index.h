@@ -716,6 +716,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'msg.no_networks': 'Aucun réseau trouvé',
         'msg.network_restart': "Paramètres réseau enregistrés ! L'appareil redémarre...",
         'msg.settings_not_loaded': "Réglages non chargés. Rechargez la page avant d'enregistrer.",
+        'msg.bad_address': "Chaque adresse doit comporter quatre nombres de 0 à 255. Rien n'a été enregistré.",
         'status.connected': 'Connecté',
         'status.connect': 'Connecter',
         'status.scanning': 'Recherche...',
@@ -832,6 +833,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'msg.no_networks': 'No networks found',
         'msg.network_restart': 'Network settings saved! Device is restarting...',
         'msg.settings_not_loaded': 'Settings could not be loaded. Reload the page before saving.',
+        'msg.bad_address': 'Every address must have four numbers from 0 to 255. Nothing was saved.',
         'status.connected': 'Connected',
         'status.connect': 'Connect',
         'status.scanning': 'Scanning...',
@@ -1561,6 +1563,10 @@ const char PAGE_index[] PROGMEM = R"=====(
           return;
         }
         setSaveButtonState(button, 'error');
+        return response.text().then(function(body) {
+          if (body.indexOf('BAD_ADDRESS') !== -1)
+            alert(T('msg.bad_address'));
+        });
       })
       .catch(function() {
         setSaveButtonState(button, 'error');
