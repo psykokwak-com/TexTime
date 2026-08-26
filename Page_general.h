@@ -38,6 +38,9 @@ void send_general_html()
 
 		WriteConfig();
 
+    // The saved settings are now the live ones.
+    syncLiveFromConfig();
+
     QTLed.begin();
 
     QTLed.setAutomaticBrightness(_config.brightnessAuto);
@@ -132,6 +135,10 @@ void send_lang_value_html()
   _server.send(200, "text/plain", String(_config.language));
 }
 
+// Live preview. Everything here writes _live, never _config: dragging a slider
+// is not a decision, and writing _config meant the next unrelated save quietly
+// persisted whatever the slider happened to be on. /admin/save/general is what
+// commits a choice.
 void send_general_led()
 {
   if (_server.args() > 0)
@@ -150,13 +157,13 @@ void send_general_led()
       }
 
       if (_server.argName(i) == "brightnessday")
-        _config.brightnessAutoMinDay = _server.arg(i).toInt();
+        _live.brightnessAutoMinDay = _server.arg(i).toInt();
 
       if (_server.argName(i) == "brightnessnight")
-        _config.brightnessAutoMinNight = _server.arg(i).toInt();
+        _live.brightnessAutoMinNight = _server.arg(i).toInt();
 
       if (_server.argName(i) == "brightnessmax")
-        _config.brightnessMax = constrain(_server.arg(i).toInt(), 1, 255);
+        _live.brightnessMax = constrain(_server.arg(i).toInt(), 1, 255);
 
       if (_server.argName(i) == "lang")
       {
@@ -193,24 +200,21 @@ void send_general_led()
         QTLed.setColorRandom((RandomColorMode)_server.arg(i).toInt());
       }
       if (_server.argName(i) == "brightnesssensibility")
-        _config.luxSensitivity = _server.arg(i).toInt();
+        _live.luxSensitivity = _server.arg(i).toInt();
 
-      // Live preview only: these write the rendering parameters, not _config.
-      // Persisting is the job of /admin/save/general, so moving a slider around
-      // never silently rewrites the stored configuration.
       if (_server.argName(i) == "animspeed")
         QTLed.setAnimSpeed(constrain(_server.arg(i).toInt(), 1, 20));
 
       if (_server.argName(i) == "animbrightmin")
-        _animParams.brightnessMin = constrain(_server.arg(i).toInt(), 0, 100);
+        _live.animBrightnessMin = constrain(_server.arg(i).toInt(), 0, 100);
 
       if (_server.argName(i) == "animbrightmax")
-        _animParams.brightnessMax = constrain(_server.arg(i).toInt(), 0, 100);
+        _live.animBrightnessMax = constrain(_server.arg(i).toInt(), 0, 100);
     }
 
-    if (_animParams.brightnessMax < 1) _animParams.brightnessMax = 1;
-    if (_animParams.brightnessMin >= _animParams.brightnessMax)
-      _animParams.brightnessMin = _animParams.brightnessMax - 1;
+    if (_live.animBrightnessMax < 1) _live.animBrightnessMax = 1;
+    if (_live.animBrightnessMin >= _live.animBrightnessMax)
+      _live.animBrightnessMin = _live.animBrightnessMax - 1;
   }
   _server.send(200, "text/plain", "OK");
 }

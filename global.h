@@ -61,25 +61,36 @@ struct strConfig {
 } _config;
 
 
-// Animation parameters actually used for rendering.
+// What is on the strip right now, as opposed to what the user has chosen.
 //
-// These are deliberately NOT part of _config: the scheduler overrides them for
-// the duration of a time slot, and such a temporary override must never end up
-// written to EEPROM by an unrelated WriteConfig() call. _config keeps what the
-// user chose, _animParams keeps what is currently being displayed.
-struct strAnimParams {
-  byte speed;             // 1-20, 10 = normal
-  byte brightnessMin;     // 0-100 percent
-  byte brightnessMax;     // 0-100 percent
-} _animParams;
+// Deliberately NOT part of _config. The scheduler overrides these for the
+// duration of a time slot and the dashboard sliders override them while you
+// drag, and neither is a decision: writing them into _config meant the next
+// unrelated WriteConfig() quietly persisted a preview as if it had been picked.
+// _config keeps the choice, _live keeps the current appearance.
+struct strLiveParams {
+  byte animSpeed;             // 1-20, 10 = normal
+  byte animBrightnessMin;     // 0-100 percent
+  byte animBrightnessMax;     // 0-100 percent
 
-// Copy the user settings into the live rendering parameters. Called at boot and
-// whenever the user changes a setting through the web interface or MQTT.
-void syncAnimParamsFromConfig()
+  byte brightnessAutoMinDay;  // 0-255
+  byte brightnessAutoMinNight;// 0-255
+  byte brightnessMax;         // 0-255, ceiling of the automatic range
+  byte luxSensitivity;        // light level that maps to full brightness
+} _live;
+
+// Copy the user settings into the live ones. Called at boot and whenever the
+// user actually commits a change through the web interface or MQTT.
+void syncLiveFromConfig()
 {
-  _animParams.speed = _config.animSpeed;
-  _animParams.brightnessMin = _config.animBrightnessMin;
-  _animParams.brightnessMax = _config.animBrightnessMax;
+  _live.animSpeed = _config.animSpeed;
+  _live.animBrightnessMin = _config.animBrightnessMin;
+  _live.animBrightnessMax = _config.animBrightnessMax;
+
+  _live.brightnessAutoMinDay = _config.brightnessAutoMinDay;
+  _live.brightnessAutoMinNight = _config.brightnessAutoMinNight;
+  _live.brightnessMax = _config.brightnessMax;
+  _live.luxSensitivity = _config.luxSensitivity;
 }
 
 // Keep the animation brightness range valid: min must stay strictly below max,
@@ -311,7 +322,7 @@ boolean ReadConfig(){
     if (_config.animBrightnessMax > 100) _config.animBrightnessMax = 100;
     validateAnimBrightness();
 
-    syncAnimParamsFromConfig();
+    syncLiveFromConfig();
 
     return true;
 

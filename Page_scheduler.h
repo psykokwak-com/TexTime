@@ -39,7 +39,7 @@ void send_scheduler_data() {
 // override was last applied. Used both when the scheduler is switched off and
 // when a slot boundary lands on an unpainted half-hour.
 void restoreUserSettings() {
-  syncAnimParamsFromConfig();
+  syncLiveFromConfig();
   QTLed.setMode(_config.mode);
   QTLed.setAnimation(_config.animation);
   QTLed.setColor(_config.color[0], _config.color[1], _config.color[2]);
@@ -164,8 +164,8 @@ void handleScheduler() {
   if (animBrightMax < 1) animBrightMax = 1;
   if (animBrightMin >= animBrightMax) animBrightMin = animBrightMax - 1;
 
-  _animParams.brightnessMin = animBrightMin;
-  _animParams.brightnessMax = animBrightMax;
+  _live.animBrightnessMin = animBrightMin;
+  _live.animBrightnessMax = animBrightMax;
 
   QTLed.setMode(mode);
   QTLed.setAnimation(animation);

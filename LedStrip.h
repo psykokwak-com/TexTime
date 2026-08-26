@@ -933,12 +933,13 @@ protected:
 
     if (v != p)
     {
-      int sd = _config.brightnessAutoMinDay;      // minimum brightness during the day
-      int sn = _config.brightnessAutoMinNight;    // minimum brightness during the night
-      //int sm = 255;                               // maximum brightness
-      int sm = _config.brightnessMax;         // maximum brightness auto
+      // Read the live values, not _config: the dashboard sliders drive these
+      // for preview and only the Save button commits them.
+      int sd = _live.brightnessAutoMinDay;        // minimum brightness during the day
+      int sn = _live.brightnessAutoMinNight;      // minimum brightness during the night
+      int sm = _live.brightnessMax;               // maximum brightness auto
       int lmin = 0;                               // minimum lux sensitivity allowed
-      int lmax = _config.luxSensitivity * 10;     // maximum lux sensitivity allowed
+      int lmax = _live.luxSensitivity * 10;       // maximum lux sensitivity allowed
 
       int s = sn; // night
 
@@ -1311,7 +1312,7 @@ public:
 
   void begin()
   {
-    _frame.init(50.0 * _animParams.speed / 10.0);
+    _frame.init(50.0 * _live.animSpeed / 10.0);
 
     initPixelsList();
     clearPixelsColor();
@@ -1349,7 +1350,7 @@ private:
 
   RgbColor generateFireColor()
   {
-    uint8_t bMax = (uint8_t)((uint16_t)_animParams.brightnessMax * 255 / 100);
+    uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
     return RgbColor(
       (uint8_t)((uint16_t)(200 + random(55)) * bMax / 255),
       (uint8_t)((uint16_t)(30 + random(120)) * bMax / 255),
@@ -1364,7 +1365,7 @@ public:
 
   void begin()
   {
-    _frame.init(8.0 * _animParams.speed / 10.0);
+    _frame.init(8.0 * _live.animSpeed / 10.0);
   }
 
   void handle()
@@ -1413,7 +1414,7 @@ public:
 
   void begin()
   {
-    _frame.init(8.0 * _animParams.speed / 10.0);
+    _frame.init(8.0 * _live.animSpeed / 10.0);
 
     for (int i = 0; i < NCOL; i++) {
       _matrixColumn[i] = -1;
@@ -1440,7 +1441,7 @@ public:
       }
     }
 
-    uint8_t bMax = (uint8_t)((uint16_t)_animParams.brightnessMax * 255 / 100);
+    uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
 
     // Update display columns
     for (int c = 0; c < NCOL; c++) {
@@ -1504,7 +1505,7 @@ public:
 
   void begin()
   {
-    _frame.init(10.0 * _animParams.speed / 10.0);
+    _frame.init(10.0 * _live.animSpeed / 10.0);
   }
 
   void handle()
@@ -1568,7 +1569,7 @@ public:
 
   void begin()
   {
-    _frame.init(4.0 * _animParams.speed / 10.0);
+    _frame.init(4.0 * _live.animSpeed / 10.0);
 
     for (int i = 0; i < NCOL; i++)
       _matrixColumn[i] = -1;
@@ -1597,7 +1598,7 @@ public:
       if (_matrixColumn[c] == -1)
         continue;
 
-      uint8_t bMax = (uint8_t)((uint16_t)_animParams.brightnessMax * 255 / 100);
+      uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
       Pixel green = Pixel(RgbColor(bMax, bMax, bMax));
       for (int r = _matrixColumn[c]; r > _matrixColumn[c] - _matrixColumnSize; r--) {
         _pPixelContainerOutput->pixelsArray.setPixel(green, r, c);
@@ -1643,7 +1644,7 @@ public:
 
   void begin()
   {
-    _frame.init(5.0 * _animParams.speed / 10.0);
+    _frame.init(5.0 * _live.animSpeed / 10.0);
   }
 
   Pixel generateFire()
@@ -1665,7 +1666,7 @@ public:
 
     if (_dateTime.second / 10 % 2)
     {
-      uint8_t bMax = (uint8_t)((uint16_t)_animParams.brightnessMax * 255 / 100);
+      uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
       Pixel white = Pixel(RgbColor(bMax, bMax, bMax));
       Pixel red = Pixel(RgbColor(bMax, 0, 0));
       Pixel brown = Pixel(RgbColor(
@@ -1768,7 +1769,7 @@ public:
 
   void begin()
   {
-    _frame.init(5.0 * _animParams.speed / 10.0);
+    _frame.init(5.0 * _live.animSpeed / 10.0);
   }
 
   void handle()
@@ -1781,7 +1782,7 @@ public:
     if (_dateTime.second / 10 % 2)
     {
       //Pixel white = Pixel(RgbColor(255, 255, 255));
-      uint8_t bMax = (uint8_t)((uint16_t)_animParams.brightnessMax * 255 / 100);
+      uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
       Pixel red = Pixel(RgbColor(bMax, 0, 0));
       Pixel pink = Pixel(RgbColor(
         (uint8_t)((uint16_t)0x69 * bMax / 255),
@@ -1909,7 +1910,7 @@ public:
 
   void begin()
   {
-    _frame.init(8.0 * _animParams.speed / 10.0);
+    _frame.init(8.0 * _live.animSpeed / 10.0);
     for (int i = 0; i < MAX_RIPPLES; i++)
       _ripples[i].active = false;
 
@@ -2115,7 +2116,7 @@ public:
 
   void begin()
   {
-    _frame.init(15.0 * _animParams.speed / 10.0); // Slow animation (fps)
+    _frame.init(15.0 * _live.animSpeed / 10.0); // Slow animation (fps)
     _lastMinute = _dateTime.minute;
     _animationInProgress = false;
 
@@ -2259,7 +2260,7 @@ public:
 
   void begin()
   {
-    _frame.init(20.0 * _animParams.speed / 10.0);
+    _frame.init(20.0 * _live.animSpeed / 10.0);
     _phase = 0;
   }
 
@@ -2270,8 +2271,8 @@ public:
 
     _phase = (_phase + 3) & 511;
     uint8_t v = (_phase < 256) ? (uint8_t)_phase : (uint8_t)(511 - _phase);
-    uint8_t bMin = (uint8_t)((uint16_t)_animParams.brightnessMin * 255 / 100);
-    uint8_t bMax = (uint8_t)((uint16_t)_animParams.brightnessMax * 255 / 100);
+    uint8_t bMin = (uint8_t)((uint16_t)_live.animBrightnessMin * 255 / 100);
+    uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
     uint8_t b = (bMax > bMin) ? (bMin + (uint8_t)((uint16_t)v * (bMax - bMin) / 255)) : bMin;
 
     clearPixelsColor();
@@ -2317,7 +2318,7 @@ public:
 
   void begin()
   {
-    _frame.init(15.0 * _animParams.speed / 10.0);
+    _frame.init(15.0 * _live.animSpeed / 10.0);
     memset(_sparks, 0, sizeof(_sparks));
   }
 
@@ -2345,9 +2346,9 @@ public:
           if (_sparks[r][c] > 0) {
             Pixel p;
             p.color = RgbColor(
-              (uint8_t)((uint16_t)_sparks[r][c] * _animParams.brightnessMax / 100),
-              (uint8_t)((uint16_t)_sparks[r][c] * _animParams.brightnessMax / 100),
-              (uint8_t)((uint16_t)_sparks[r][c] * _animParams.brightnessMax / 100));
+              (uint8_t)((uint16_t)_sparks[r][c] * _live.animBrightnessMax / 100),
+              (uint8_t)((uint16_t)_sparks[r][c] * _live.animBrightnessMax / 100),
+              (uint8_t)((uint16_t)_sparks[r][c] * _live.animBrightnessMax / 100));
             p.display = true;
             _pPixelContainerOutput->pixelsArray.setPixel(p, r, c);
           }
@@ -2378,7 +2379,7 @@ public:
 
   void begin()
   {
-    _frame.init(15.0 * _animParams.speed / 10.0);
+    _frame.init(15.0 * _live.animSpeed / 10.0);
     _phase = 0;
   }
 
@@ -2389,8 +2390,8 @@ public:
 
     _phase += 2;
 
-    uint8_t bMin = (uint8_t)((uint16_t)_animParams.brightnessMin * 255 / 100);
-    uint8_t bMax = (uint8_t)((uint16_t)_animParams.brightnessMax * 255 / 100);
+    uint8_t bMin = (uint8_t)((uint16_t)_live.animBrightnessMin * 255 / 100);
+    uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
     uint8_t bRange = (bMax > bMin) ? (bMax - bMin) : 0;
 
     clearPixelsColor();
@@ -2501,7 +2502,7 @@ public:
 
   void begin()
   {
-    _frame.init(30.0 * _animParams.speed / 10.0);
+    _frame.init(30.0 * _live.animSpeed / 10.0);
     _phase = PAUSE;
     setPauseTimer();
   }
@@ -2512,7 +2513,7 @@ public:
       return;
 
     clearPixelsColor();
-    uint8_t bMax = (uint8_t)((uint16_t)_animParams.brightnessMax * 255 / 100);
+    uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
 
     switch (_phase)
     {
@@ -2617,7 +2618,7 @@ public:
       return;
 
     clearPixelsColor();
-    uint8_t bMax = (uint8_t)((uint16_t)_animParams.brightnessMax * 255 / 100);
+    uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
 
     switch (_phase)
     {
@@ -3258,7 +3259,7 @@ public:
 
   void setAnimSpeed(byte speed)
   {
-    _animParams.speed = max((byte)1, min((byte)20, speed));
+    _live.animSpeed = max((byte)1, min((byte)20, speed));
     if (_animationIndex >= 0 && _animationIndex < _animationList.size())
       _animationList[_animationIndex]->begin();
   }

@@ -119,7 +119,7 @@ void setup() {
 
     // ReadConfig() does this on the normal path; the defaults path needs it too,
     // otherwise the animation parameters stay at zero and every animation stalls.
-    syncAnimParamsFromConfig();
+    syncLiveFromConfig();
   }
 
   // Start led strip
@@ -287,7 +287,7 @@ void setup() {
       WriteConfig();
 
       // The user settings now win over any scheduler slot override still active.
-      syncAnimParamsFromConfig();
+      syncLiveFromConfig();
       QTLed.begin();
       QTLed.setAutomaticBrightness(_config.brightnessAuto);
       if (!_config.brightnessAuto) QTLed.setBrightness(_config.brightness);
