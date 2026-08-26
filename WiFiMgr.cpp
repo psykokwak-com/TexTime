@@ -10,6 +10,7 @@ WiFiMgrClass::WiFiMgrClass()
   , _devicename("")
   , _STAlastTry(0)
   , _STAtryTimeout(15 * 1000)
+  , _STAretryTimeout(90 * 1000)
   , _APssid("")
   , _APkey("")
   , _APlastTry(0)
@@ -109,6 +110,13 @@ bool WiFiMgrClass::handle()
 {
   // STA mode and connected. Do Nothing
   if (WiFi.getMode() == WIFI_STA && WiFi.status() == WL_CONNECTED) {
+    // Keep the deadline moving while the link is up. Without this it expired
+    // once, a few seconds after boot, and stayed expired: the very first
+    // iteration finding the link down then dropped straight to AP mode, with
+    // no tolerance at all and no chance for the SDK's own auto-reconnect --
+    // enabled just below -- to do anything.
+    _STAlastTry = millis();
+
     if (_STAconnected)
       return false;
 
@@ -123,8 +131,12 @@ bool WiFiMgrClass::handle()
     return true;
   }
 
-  // STA mode and not connected after timeout. Switch on AP mode
-  if (WiFi.getMode() == WIFI_STA && millis() - _STAlastTry > _STAtryTimeout) {
+  // STA mode and not connected after timeout. Switch on AP mode.
+  // A clock that has already been on the network gets the longer grace period:
+  // it knows where it belongs, and a router reboot is worth waiting out rather
+  // than answering with ten minutes in AP mode.
+  if (WiFi.getMode() == WIFI_STA &&
+      millis() - _STAlastTry > (_STAconnected ? _STAretryTimeout : _STAtryTimeout)) {
     setAPMode();
   }
 

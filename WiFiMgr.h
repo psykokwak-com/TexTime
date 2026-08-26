@@ -30,7 +30,12 @@ private:
   String _STAkey;
   String _devicename;
   unsigned long _STAlastTry;
+  // Two grace periods. The short one applies before the clock has ever been on
+  // the network, where the point is to offer the setup access point quickly.
+  // The long one applies afterwards: a router reboot takes about a minute, and
+  // dropping to AP mode for it costs ten minutes off the network.
   unsigned long _STAtryTimeout;
+  unsigned long _STAretryTimeout;
   String _APssid;
   String _APkey;
   unsigned long _APlastTry;
