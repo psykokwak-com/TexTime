@@ -8,12 +8,18 @@
 // The game pages poll their state endpoint continuously, so that poll doubles
 // as a heartbeat: no contact for this long and the clock takes itself back.
 #define GAME_IDLE_MS 30000UL
-// How often the clock may ask a time server. Never stored unbounded: at zero
-// or below, the "time to resync?" test is true on every pass and the clock
-// hammers a public NTP pool thousands of times a second, starving loop() and
-// earning a ban. One week is well past any sane setting.
+// How often the clock may ask a time server. Zero is the form's documented way
+// to say "never", and getNTPtime() honours it; anything else is held between a
+// minute and a week, because a small positive value makes the resync test true
+// on nearly every pass and hammers a public pool.
 #define NTP_INTERVAL_MIN 60L
 #define NTP_INTERVAL_MAX 604800L
+
+// Zero passes through untouched: it means "never", not "as often as possible".
+inline long clampNtpInterval(long v)
+{
+  return (v <= 0) ? 0 : constrain(v, NTP_INTERVAL_MIN, NTP_INTERVAL_MAX);
+}
 
 #define EEPROM_SIZE 4096
 #define SCHEDULER_EEPROM_BASE 1024
@@ -311,7 +317,7 @@ boolean ReadConfig(){
     _config.dhcp = 	EEPROM.read(16);
     _config.isDayLightSaving = EEPROM.read(17);
     _config.Update_Time_Via_NTP_Every = EEPROMReadlong(18); // 4 Byte
-    _config.Update_Time_Via_NTP_Every = constrain(_config.Update_Time_Via_NTP_Every, NTP_INTERVAL_MIN, NTP_INTERVAL_MAX);
+    _config.Update_Time_Via_NTP_Every = clampNtpInterval(_config.Update_Time_Via_NTP_Every);
     _config.timeZone = EEPROMReadlong(22); // 4 Byte
     if (_config.timeZone < -120 || _config.timeZone > 130) _config.timeZone = 10; // sanity check (unit = 1/10th hour)
     _config.IP[0] = EEPROM.read(32);
