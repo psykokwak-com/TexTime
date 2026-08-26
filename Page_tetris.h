@@ -261,17 +261,19 @@ function drawNext(i){
   ctx.shadowBlur=0;
 }
 
-var LABEL={'READY':'Ready','PLAYING':'Playing','GAME OVER':'Game over','ENDED':'Ended','NO LINK':'No link'};
+var LABEL={'READY':'Ready','PLAYING':'Playing','GAME OVER':'Game over','ENDED':'Ended','BUSY':'In use elsewhere','NO LINK':'No link'};
 function setStatus(s){
   document.getElementById('hud').dataset.s=s;
   document.getElementById('status').textContent=LABEL[s]||s;
   /* The game can be ended from elsewhere -- the other game, a mode change,
      the idle timeout. Say so and point at the way back rather than leaving a
      live-looking score above buttons that no longer do anything. */
-  var dead=(s==='ENDED'||s==='NO LINK');
+  /* BUSY: another device holds this game. Show it and keep the controls inert
+     rather than let a second page take a session in progress. */
+  var dead=(s==='ENDED'||s==='BUSY'||s==='NO LINK');
   document.body.classList.toggle('dead',dead);
   var r=document.getElementById('restart');
-  if(r) r.classList.toggle('cta',s==='ENDED');
+  if(r){ r.classList.toggle('cta',s==='ENDED'); r.disabled=(s==='BUSY'); }
 }
 function getState(){
   var x=new XMLHttpRequest();
@@ -289,7 +291,7 @@ function getState(){
   x.open('GET',URL_ST,true);x.send();
 }
 
-send('start');
+send('attach');
 getState();
 setInterval(getState,400);
 </script>
@@ -308,6 +310,28 @@ void send_tetris_html()
 void send_tetris_action()
 {
   String a = _server.arg("action");
+  uint32_t who = gameClientId();
+
+  // Opening a page: take the session if it is free, otherwise say it is taken
+  // and let the page render read-only. This is deliberately not "start" --
+  // sharing one action between "open the page" and "restart the game" is what
+  // made a second controller wipe a game in progress.
+  if (a == "attach") {
+    if (!QTLed.gameClaim(who)) {
+      _server.send(200, "text/plain", "busy");
+      return;
+    }
+    if (!QTLed.isTetrisActive()) QTLed.tetrisStart();
+    QTLed.gameKeepAlive();
+    _server.send(200, "text/plain", "ok");
+    return;
+  }
+
+  // Everything below acts on the session, so it belongs to whoever holds it.
+  if (QTLed.isGameActive() && !QTLed.gameOwnedBy(who)) {
+    _server.send(200, "text/plain", "busy");
+    return;
+  }
 
   if (a == "exit") {
     QTLed.tetrisStop();
@@ -316,6 +340,10 @@ void send_tetris_action()
   }
 
   if (a == "start") {
+    if (!QTLed.gameClaim(who)) {
+      _server.send(200, "text/plain", "busy");
+      return;
+    }
     if (!QTLed.isTetrisActive()) QTLed.tetrisStart();
     else if (LedStripAnimationTetris::instance)
       LedStripAnimationTetris::instance->action(LedStripAnimationTetris::ACT_START);
@@ -358,7 +386,11 @@ void send_tetris_state()
     // whether it still owns the display: it may have been ended by the other
     // game, by a mode change or by the idle timeout.
     if (!QTLed.isTetrisActive())
-      s += "status|ENDED\n";
+      s += "status|ENDED
+";
+    else if (!QTLed.gameOwnedBy(gameClientId()))
+      s += "status|BUSY
+";|ENDED\n";
     else switch (t->getState()) {
       case LedStripAnimationTetris::STATE_PLAYING:   s += "status|PLAYING\n";   break;
       case LedStripAnimationTetris::STATE_GAME_OVER: s += "status|GAME OVER\n"; break;

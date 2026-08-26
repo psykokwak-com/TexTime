@@ -3098,6 +3098,12 @@ protected:
   bool _savedModeForced;
   uint32_t _gameLastSeen;
 
+  // The device that started the running game. Every other controller page gets
+  // a read-only view, so opening one somewhere else cannot wipe a game in
+  // progress. Identity is the caller's address: no token to carry around, and
+  // two tabs on the same device sharing a session is harmless.
+  uint32_t _gameOwner;
+
   // A game is drawn by the animation layer, which handle() skips entirely for
   // the modes that return allowAnimation() == false (the test patterns). Without
   // this, starting a game from such a mode runs the game logic with nothing ever
@@ -3170,6 +3176,7 @@ public:
     , _savedModeIndex(0)
     , _savedModeForced(false)
     , _gameLastSeen(0)
+    , _gameOwner(0)
   {
     _animationList.push_back(new LedStripAnimationNormal(&_pixels, &_animatedPixels));
     _animationList.push_back(new LedStripAnimationBlink(&_pixels, &_animatedPixels));
@@ -3244,6 +3251,18 @@ public:
   bool isSnakeActive() { return _snakeActive; }
 
   bool isGameActive() { return _tetrisActive || _snakeActive; }
+
+  // Take the session for a device. Granted when no game is running -- a stale
+  // owner from a finished game never blocks anyone -- and otherwise only to
+  // the device that already holds it.
+  bool gameClaim(uint32_t who)
+  {
+    if (isGameActive() && _gameOwner != who) return false;
+    _gameOwner = who;
+    return true;
+  }
+
+  bool gameOwnedBy(uint32_t who) { return isGameActive() && _gameOwner == who; }
 
   // What keeps a game alive is somebody playing it. Call only from the action
   // endpoints, and only once the game they name is confirmed running -- the
@@ -3328,3 +3347,10 @@ public:
 };
 
 MyLedStripAnimator QTLed;
+
+// Which device is asking. Used to decide who owns a running game; a controller
+// page carries no identity of its own and needs none.
+uint32_t gameClientId()
+{
+  return (uint32_t)_server.client().remoteIP();
+}

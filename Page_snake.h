@@ -208,17 +208,19 @@ function pollGP(){
 }
 window.addEventListener('gamepadconnected',function(){if(!gpLoop){gpLoop=1;pollGP();}});
 
-var LABEL={'READY':'Ready','PLAYING':'Playing','GAME OVER':'Game over','ENDED':'Ended','NO LINK':'No link'};
+var LABEL={'READY':'Ready','PLAYING':'Playing','GAME OVER':'Game over','ENDED':'Ended','BUSY':'In use elsewhere','NO LINK':'No link'};
 function setStatus(s){
   document.getElementById('hud').dataset.s=s;
   document.getElementById('status').textContent=LABEL[s]||s;
   /* The game can be ended from elsewhere -- the other game, a mode change,
      the idle timeout. Say so and point at the way back rather than leaving a
      live-looking score above buttons that no longer do anything. */
-  var dead=(s==='ENDED'||s==='NO LINK');
+  /* BUSY: another device holds this game. Show it and keep the controls inert
+     rather than let a second page take a session in progress. */
+  var dead=(s==='ENDED'||s==='BUSY'||s==='NO LINK');
   document.body.classList.toggle('dead',dead);
   var r=document.getElementById('restart');
-  if(r) r.classList.toggle('cta',s==='ENDED');
+  if(r){ r.classList.toggle('cta',s==='ENDED'); r.disabled=(s==='BUSY'); }
 }
 function getState(){
   var x=new XMLHttpRequest();
@@ -235,7 +237,7 @@ function getState(){
   x.open('GET',URL_ST,true);x.send();
 }
 
-send('start');
+send('attach');
 getState();
 setInterval(getState,400);
 </script>
@@ -254,6 +256,24 @@ void send_snake_html()
 void send_snake_action()
 {
   String a = _server.arg("action");
+  uint32_t who = gameClientId();
+
+  // See Page_tetris.h: opening a page attaches, it does not restart.
+  if (a == "attach") {
+    if (!QTLed.gameClaim(who)) {
+      _server.send(200, "text/plain", "busy");
+      return;
+    }
+    if (!QTLed.isSnakeActive()) QTLed.snakeStart();
+    QTLed.gameKeepAlive();
+    _server.send(200, "text/plain", "ok");
+    return;
+  }
+
+  if (QTLed.isGameActive() && !QTLed.gameOwnedBy(who)) {
+    _server.send(200, "text/plain", "busy");
+    return;
+  }
 
   if (a == "exit") {
     QTLed.snakeStop();
@@ -262,6 +282,10 @@ void send_snake_action()
   }
 
   if (a == "start") {
+    if (!QTLed.gameClaim(who)) {
+      _server.send(200, "text/plain", "busy");
+      return;
+    }
     if (!QTLed.isSnakeActive()) QTLed.snakeStart();
     else if (LedStripAnimationSnake::instance)
       LedStripAnimationSnake::instance->action(LedStripAnimationSnake::ACT_START);
@@ -300,7 +324,11 @@ void send_snake_state()
     // whether it still owns the display: it may have been ended by the other
     // game, by a mode change or by the idle timeout.
     if (!QTLed.isSnakeActive())
-      s += "status|ENDED\n";
+      s += "status|ENDED
+";
+    else if (!QTLed.gameOwnedBy(gameClientId()))
+      s += "status|BUSY
+";|ENDED\n";
     else switch (t->getState()) {
       case LedStripAnimationSnake::STATE_PLAYING:   s += "status|PLAYING\n";   break;
       case LedStripAnimationSnake::STATE_GAME_OVER: s += "status|GAME OVER\n"; break;
