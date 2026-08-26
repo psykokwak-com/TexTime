@@ -142,13 +142,17 @@ const char PAGE_index[] PROGMEM = R"=====(
         <!-- General Settings Section -->
         <section id="general-section" class="content-section">
           <div class="dashboard-grid">
+            <!-- These settings span two cards, so the form has to wrap both.
+                 display:contents keeps the cards as direct grid items, so the
+                 two-column layout is unaffected by the extra element. -->
+            <form id="general-form" style="display:contents" onsubmit="return saveGeneralSettings(event)">
+            <!-- Tells the firmware this form really was filled in. Without it
+                 a save issued before the values finished loading looks exactly
+                 like a user unticking every checkbox. -->
+            <input type="hidden" name="formready" value="1">
+
             <div class="card">
               <div class="card-title" data-i18n="card.brightness">Brightness Control</div>
-              <form id="general-form" onsubmit="return saveGeneralSettings(event)">
-              <!-- Tells the firmware this form really was filled in. Without it
-                   a save issued before the values finished loading looks exactly
-                   like a user unticking every checkbox. -->
-              <input type="hidden" name="formready" value="1">
 
             <div class="form-group">
               <div class="checkbox-group">
@@ -199,7 +203,7 @@ const char PAGE_index[] PROGMEM = R"=====(
                 <div class="range-value" id="brightnessmaxt">--</div>
               </div>
             </div>
-          </div>
+            </div>
 
             <div class="card">
               <div class="card-title" data-i18n="card.display_config">Display Configuration</div>
@@ -280,8 +284,8 @@ const char PAGE_index[] PROGMEM = R"=====(
                 </div>
 
                 <button type="submit" id="general-save" class="btn btn-primary btn-block" data-i18n="btn.save">Save Configuration</button>
-              </form>
             </div>
+            </form>
           </div>
         </section>
 
@@ -602,11 +606,14 @@ const char PAGE_index[] PROGMEM = R"=====(
         </section>
 
       </div>
-    </div>
+    </main>
+  </div>
 
-    <div class="footer">
-      <a href="https://github.com/psykokwak-com/TexTime">By Psykokwak</a>
-    </div>
+  <!-- Outside .app-layout on purpose: that is a flex row holding the sidebar
+       and the main column, and this is exactly where the browser already put
+       the footer when the main closing tag was missing. -->
+  <div class="footer">
+    <a href="https://github.com/psykokwak-com/TexTime">By Psykokwak</a>
   </div>
 
   <!-- Mobile overlay -->
