@@ -109,7 +109,10 @@ void send_network_connection_values_html()
 
   int n = WiFi.scanNetworks();
 
-  if (n == 0)
+  // A failed scan returns a negative value (WIFI_SCAN_FAILED is -2). Testing
+  // only for zero let that reach "String seenSSIDs[n]" below, where a negative
+  // length becomes an enormous unsigned one.
+  if (n <= 0)
   {
     networks = "<div class='loading'>No networks found</div>";
   }
@@ -183,14 +186,21 @@ void send_network_connection_values_html()
     }
   }
 
-  String values = "";
-  values += "connectionstate|" + state + "|div\n";
-  values += "networks|" + networks + "|div\n";
-
   _server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   _server.sendHeader("Pragma", "no-cache");
   _server.sendHeader("Expires", "-1");
 
-  _server.send(200, "text/plain", values);
+  // Streamed in pieces rather than concatenated into one more String. The
+  // network list is the largest thing this server builds, and copying it again
+  // meant holding it twice at the moment memory is tightest -- where
+  // String::concat fails silently, so the symptom was a truncated list rather
+  // than an error.
+  _server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+  _server.send(200, "text/plain", "");
+  _server.sendContent("connectionstate|" + state + "|div\n");
+  _server.sendContent("networks|");
+  _server.sendContent(networks);
+  _server.sendContent("|div\n");
+  _server.sendContent("");
   //Serial.println(__FUNCTION__);
 }
