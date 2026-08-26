@@ -4,11 +4,6 @@
 // HTML PAGES REMOVED - Now using dashboard in Page_index.h
 // These pages are obsolete and replaced by the dashboard interface
 
-const char PAGE_networkReload[] PROGMEM = R"=====(
-<meta http-equiv="refresh" content="10; URL=/">
-Please Wait....Configuring and Restarting.
-)=====";
-
 // The names of neighbouring networks are arbitrary text chosen by other people,
 // and the scan list is injected into the dashboard with innerHTML. Anything
 // taken from a beacon has to arrive there as text, not as markup.
@@ -47,63 +42,6 @@ String jsAttrEscape(const String &s)
     else o += c;
   }
   return htmlEscape(o);
-}
-
-//
-//  SEND HTML PAGE OR IF A FORM SUMBITTED VALUES, PROCESS THESE VALUES
-//
-
-void send_network_configuration_html()
-{
-  if (_server.args() > 0)  // Save Settings
-  {
-    //String temp = "";
-    _config.dhcp = false;
-    for (uint8_t i = 0; i < _server.args(); i++) {
-      //Serial.println(_server.argName(i) + " = " + _server.arg(i));
-
-      if (_server.argName(i) == "ssid") _config.ssid =   /*urldecode*/(_server.arg(i));
-      if (_server.argName(i) == "password") _config.password =    /*urldecode*/(_server.arg(i));
-      if (_server.argName(i) == "ip_0") if (checkRange(_server.arg(i))) 	_config.IP[0] = _server.arg(i).toInt();
-      if (_server.argName(i) == "ip_1") if (checkRange(_server.arg(i))) 	_config.IP[1] = _server.arg(i).toInt();
-      if (_server.argName(i) == "ip_2") if (checkRange(_server.arg(i))) 	_config.IP[2] = _server.arg(i).toInt();
-      if (_server.argName(i) == "ip_3") if (checkRange(_server.arg(i))) 	_config.IP[3] = _server.arg(i).toInt();
-      if (_server.argName(i) == "nm_0") if (checkRange(_server.arg(i))) 	_config.Netmask[0] = _server.arg(i).toInt();
-      if (_server.argName(i) == "nm_1") if (checkRange(_server.arg(i))) 	_config.Netmask[1] = _server.arg(i).toInt();
-      if (_server.argName(i) == "nm_2") if (checkRange(_server.arg(i))) 	_config.Netmask[2] = _server.arg(i).toInt();
-      if (_server.argName(i) == "nm_3") if (checkRange(_server.arg(i))) 	_config.Netmask[3] = _server.arg(i).toInt();
-      if (_server.argName(i) == "gw_0") if (checkRange(_server.arg(i))) 	_config.Gateway[0] = _server.arg(i).toInt();
-      if (_server.argName(i) == "gw_1") if (checkRange(_server.arg(i))) 	_config.Gateway[1] = _server.arg(i).toInt();
-      if (_server.argName(i) == "gw_2") if (checkRange(_server.arg(i))) 	_config.Gateway[2] = _server.arg(i).toInt();
-      if (_server.argName(i) == "gw_3") if (checkRange(_server.arg(i))) 	_config.Gateway[3] = _server.arg(i).toInt();
-      if (_server.argName(i) == "dn_0") if (checkRange(_server.arg(i))) 	_config.DNS[0] = _server.arg(i).toInt();
-      if (_server.argName(i) == "dn_1") if (checkRange(_server.arg(i))) 	_config.DNS[1] = _server.arg(i).toInt();
-      if (_server.argName(i) == "dn_2") if (checkRange(_server.arg(i))) 	_config.DNS[2] = _server.arg(i).toInt();
-      if (_server.argName(i) == "dn_3") if (checkRange(_server.arg(i))) 	_config.DNS[3] = _server.arg(i).toInt();
-      if (_server.argName(i) == "dhcp") _config.dhcp = true;
-      if (_server.argName(i) == "devicename") _config.DeviceName = /*urldecode*/(_server.arg(i));
-    }
-    _server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    _server.sendHeader("Pragma", "no-cache");
-    _server.sendHeader("Expires", "-1");
-
-    _server.send_P(200, "text/html", PAGE_networkReload);
-
-    //printConfig();
-
-    WriteConfig();
-    ESP.restart();
-  }
-  else
-  {
-    _server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    _server.sendHeader("Pragma", "no-cache");
-    _server.sendHeader("Expires", "-1");
-
-    _server.sendHeader("Location", "/");
-    _server.send(302);
-  }
-  //Serial.println(__FUNCTION__);
 }
 
 //

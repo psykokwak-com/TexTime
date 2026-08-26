@@ -151,32 +151,13 @@ void setup() {
   WiFiMgr.tryToConnect(_config.ssid, _config.password, _config.DeviceName);
 
   // Start HTTP Server for configuration
+  // The root used to write configuration straight from URL parameters, routing
+  // to the pre-dashboard handlers. Fetching an address is something a page can
+  // make a browser do without asking, and those handlers predate every check
+  // added since -- one of them cleared the automatic brightness flag before
+  // even looking at the request. Nothing used them: the dashboard posts to the
+  // /admin/save/* endpoints. The root serves the page and nothing else.
   _server.on("/", []() {
-    // Handle form submissions with parameters
-    if (_server.args() > 0) {
-      // Check if this is a general settings save
-      if (_server.hasArg("brightness") || _server.hasArg("brightnessauto") || _server.hasArg("color") || _server.hasArg("mode")) {
-        send_general_html();
-        return;
-      }
-      // Check if this is a network settings save
-      else if (_server.hasArg("ssid") || _server.hasArg("ip_0") || _server.hasArg("dhcp")) {
-        send_network_configuration_html();
-        return;
-      }
-      // Check if this is an NTP settings save
-      else if (_server.hasArg("ntpserver") || _server.hasArg("tz") || _server.hasArg("update")) {
-        send_NTP_configuration_html();
-        return;
-      }
-      // Check if this is an MQTT settings save
-      else if (_server.hasArg("host") || _server.hasArg("port") || _server.hasArg("login")) {
-        send_mqtt_configuration_html();
-        return;
-      }
-    }
-    
-    //Serial.println("index.html");
     _server.send_P(200, "text/html", PAGE_index);
   });
 
