@@ -3094,6 +3094,11 @@ protected:
   LedStripAnimationSnake *_snakeAnim;
   bool _snakeActive;
   int  _savedAnimIndex;
+
+  // Whether _savedAnimIndex is still worth restoring. Cleared as soon as the
+  // animation is set during a game: the saved value exists to undo what the
+  // game did, not to undo what somebody asked for while it was running.
+  bool _savedAnimValid;
   int  _savedModeIndex;
   bool _savedModeForced;
   uint32_t _gameLastSeen;
@@ -3173,6 +3178,7 @@ public:
     , _tetrisActive(false)
     , _snakeActive(false)
     , _savedAnimIndex(0)
+    , _savedAnimValid(false)
     , _savedModeIndex(0)
     , _savedModeForced(false)
     , _gameLastSeen(0)
@@ -3205,6 +3211,7 @@ public:
     snakeStop();
 
     _savedAnimIndex = _animationIndex;
+    _savedAnimValid = true;
     _gameLastSeen   = millis();
     gameEnterDisplayMode();
     _tetrisActive   = true;
@@ -3216,9 +3223,12 @@ public:
     if (!_tetrisActive) return;
 
     _tetrisActive  = false;
-    _animationIndex = _savedAnimIndex;
-    if (_animationIndex >= 0 && _animationIndex < _animationList.size())
+    if (_savedAnimValid && _savedAnimIndex >= 0 && _savedAnimIndex < _animationList.size())
+    {
+      _animationIndex = _savedAnimIndex;
       _animationList[_animationIndex]->begin();
+    }
+    _savedAnimValid = false;
     gameLeaveDisplayMode();
     _pixels.hasChanged = true;
   }
@@ -3230,6 +3240,7 @@ public:
     tetrisStop();
 
     _savedAnimIndex = _animationIndex;
+    _savedAnimValid = true;
     _gameLastSeen   = millis();
     gameEnterDisplayMode();
     _snakeActive    = true;
@@ -3241,9 +3252,12 @@ public:
     if (!_snakeActive) return;
 
     _snakeActive    = false;
-    _animationIndex = _savedAnimIndex;
-    if (_animationIndex >= 0 && _animationIndex < _animationList.size())
+    if (_savedAnimValid && _savedAnimIndex >= 0 && _savedAnimIndex < _animationList.size())
+    {
+      _animationIndex = _savedAnimIndex;
       _animationList[_animationIndex]->begin();
+    }
+    _savedAnimValid = false;
     gameLeaveDisplayMode();
     _pixels.hasChanged = true;
   }
@@ -3285,6 +3299,11 @@ public:
   {
     if (mode < 0) return false;
     if (mode > _animationList.size() - 1) return false;
+
+    // Asked for while a game runs -- from MQTT, or the dashboard -- so this is
+    // a deliberate choice, not something the game did. Stop the end of the
+    // game from putting the previous animation back over it.
+    if (isGameActive()) _savedAnimValid = false;
 
     _animationIndex = mode;
     _animationList[_animationIndex]->begin();
