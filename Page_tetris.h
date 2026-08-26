@@ -22,6 +22,7 @@ const char PAGE_tetris[] PROGMEM = R"=====(<!doctype html>
   --bg:#0f172a; --panel:#1e293b; --raise:#243449; --edge:#334155;
   --ink:#f1f5f9; --muted:#94a3b8; --dim:#64748b;
   --cyan:#00cccc; --violet:#a855f7; --amber:#e08a00; --danger:#ef4444;
+  --accent:#00cccc;
   --r:14px;
   --gap:clamp(6px,1.6vmin,14px);
   --legend:clamp(9px,1.5vmin,11px);
@@ -107,6 +108,12 @@ body{
 .k-drop{--glow:var(--amber)}
 .k-down{grid-column:1/-1}
 @media (prefers-reduced-motion:reduce){.key{transition:none}.key.on{transform:none}}
+
+/* Ended or disconnected: the controls no longer do anything, so stop them
+   looking as though they might, and point at the way back. */
+body.dead .deck{opacity:.35;pointer-events:none}
+body.dead .key{box-shadow:none}
+.link.cta{background:var(--panel);color:var(--ink);border-color:var(--accent);box-shadow:0 0 16px -6px var(--accent)}
 </style>
 </head>
 <body>
@@ -262,10 +269,17 @@ function drawNext(i){
   ctx.shadowBlur=0;
 }
 
-var LABEL={'READY':'Ready','PLAYING':'Playing','GAME OVER':'Game over'};
+var LABEL={'READY':'Ready','PLAYING':'Playing','GAME OVER':'Game over','ENDED':'Ended','NO LINK':'No link'};
 function setStatus(s){
   document.getElementById('hud').dataset.s=s;
   document.getElementById('status').textContent=LABEL[s]||s;
+  /* The game can be ended from elsewhere -- the other game, a mode change,
+     the idle timeout. Say so and point at the way back rather than leaving a
+     live-looking score above buttons that no longer do anything. */
+  var dead=(s==='ENDED'||s==='NO LINK');
+  document.body.classList.toggle('dead',dead);
+  var r=document.getElementById('restart');
+  if(r) r.classList.toggle('cta',s==='ENDED');
 }
 function getState(){
   var x=new XMLHttpRequest();
@@ -347,7 +361,14 @@ void send_tetris_state()
     s += "ln|"     + String(t->getLines()) + "\n";
     s += "lv|"     + String(t->getLevel()) + "\n";
     s += "next|"   + String(t->getNext())  + "\n";
-    switch (t->getState()) {
+
+    // The game object keeps its last state after being stopped, so report
+    // whether it still owns the display. Without this a page whose game was
+    // ended elsewhere -- by the other game, a mode change or the idle timeout
+    // -- kept showing a live score above buttons that no longer did anything.
+    if (!QTLed.isTetrisActive())
+      s += "status|ENDED\n";
+    else switch (t->getState()) {
       case LedStripAnimationTetris::STATE_PLAYING:   s += "status|PLAYING\n";   break;
       case LedStripAnimationTetris::STATE_GAME_OVER: s += "status|GAME OVER\n"; break;
       default:                                       s += "status|READY\n";     break;

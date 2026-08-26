@@ -15,6 +15,7 @@ const char PAGE_snake[] PROGMEM = R"=====(<!doctype html>
   --bg:#0f172a; --panel:#1e293b; --raise:#243449; --edge:#334155;
   --ink:#f1f5f9; --muted:#94a3b8; --dim:#64748b;
   --green:#00ff50; --food:#ff5000; --danger:#ef4444;
+  --accent:#00ff50;
   --r:14px;
   --gap:clamp(6px,1.6vmin,14px);
   --legend:clamp(9px,1.5vmin,11px);
@@ -87,6 +88,12 @@ body{
 }
 .k-up{grid-area:1/2}.k-left{grid-area:2/1}.k-right{grid-area:2/3}.k-down{grid-area:3/2}
 @media (prefers-reduced-motion:reduce){.key{transition:none}.key.on{transform:none}}
+
+/* Ended or disconnected: the controls no longer do anything, so stop them
+   looking as though they might, and point at the way back. */
+body.dead .deck{opacity:.35;pointer-events:none}
+body.dead .key{box-shadow:none}
+.link.cta{background:var(--panel);color:var(--ink);border-color:var(--accent);box-shadow:0 0 16px -6px var(--accent)}
 
 /* Centre of the cross: one pixel, lit the way the head is lit on the wall. */
 .core{
@@ -201,10 +208,17 @@ function pollGP(){
 }
 window.addEventListener('gamepadconnected',function(){if(!gpLoop){gpLoop=1;pollGP();}});
 
-var LABEL={'READY':'Ready','PLAYING':'Playing','GAME OVER':'Game over'};
+var LABEL={'READY':'Ready','PLAYING':'Playing','GAME OVER':'Game over','ENDED':'Ended','NO LINK':'No link'};
 function setStatus(s){
   document.getElementById('hud').dataset.s=s;
   document.getElementById('status').textContent=LABEL[s]||s;
+  /* The game can be ended from elsewhere -- the other game, a mode change,
+     the idle timeout. Say so and point at the way back rather than leaving a
+     live-looking score above buttons that no longer do anything. */
+  var dead=(s==='ENDED'||s==='NO LINK');
+  document.body.classList.toggle('dead',dead);
+  var r=document.getElementById('restart');
+  if(r) r.classList.toggle('cta',s==='ENDED');
 }
 function getState(){
   var x=new XMLHttpRequest();
@@ -281,7 +295,14 @@ void send_snake_state()
   if (LedStripAnimationSnake::instance) {
     LedStripAnimationSnake *t = LedStripAnimationSnake::instance;
     s += "sc|"     + String(t->getScore()) + "\n";
-    switch (t->getState()) {
+
+    // The game object keeps its last state after being stopped, so report
+    // whether it still owns the display. Without this a page whose game was
+    // ended elsewhere -- by the other game, a mode change or the idle timeout
+    // -- kept showing a live score above buttons that no longer did anything.
+    if (!QTLed.isSnakeActive())
+      s += "status|ENDED\n";
+    else switch (t->getState()) {
       case LedStripAnimationSnake::STATE_PLAYING:   s += "status|PLAYING\n";   break;
       case LedStripAnimationSnake::STATE_GAME_OVER: s += "status|GAME OVER\n"; break;
       default:                                      s += "status|READY\n";     break;
