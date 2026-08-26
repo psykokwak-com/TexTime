@@ -871,12 +871,15 @@ protected:
   int _ledConfigurationIndex;
   PixelsContainer _pixels;
   bool _automaticBrightness;
+  bool _luminanceDirty;
   cl_Lst<LedStripMode *> _modeList;
   int _modeIndex;
 
   bool refresh(PixelsContainer *pPixel)
   {
-    if (!pPixel->hasChanged)
+    // A luminance change also needs a pass: NeoPixelBusLg applies it while a
+    // pixel is written, so the strip only picks it up on a rewrite.
+    if (!pPixel->hasChanged && !_luminanceDirty)
       return false;
 
     if (!_pStrip->CanShow())
@@ -913,6 +916,7 @@ protected:
     _pStrip->Show();
 
     pPixel->hasChanged = false;
+    _luminanceDirty = false;
 
     return true;
   }
@@ -957,13 +961,6 @@ protected:
     p = v;
   }
 
-  // Mark the pixel buffers as needing to be pushed to the strip again.
-  // MyLedStripAnimator adds its own buffer on top of this one.
-  virtual void invalidate()
-  {
-    _pixels.hasChanged = true;
-  }
-
   // No games exist at this level; MyLedStripAnimator overrides.
   virtual void stopAnyGame() {}
 
@@ -982,7 +979,12 @@ protected:
       return;
 
     _pStrip->SetLuminance(b);
-    invalidate();
+
+    // A flag of its own, deliberately not the containers' hasChanged: that one
+    // means "the content changed", and Blink reads it as its cue to restart the
+    // reveal from black. Signalling a brightness step through it made Blink
+    // restart every time the light sensor moved.
+    _luminanceDirty = true;
   }
 
   bool handleMode()
@@ -999,6 +1001,7 @@ public:
     : _pStrip(NULL)
     , _ledConfigurationIndex(0)
     , _automaticBrightness(false)
+    , _luminanceDirty(false)
     , _modeIndex(0)
   {
 
@@ -3093,14 +3096,6 @@ protected:
 
     _savedModeForced = false;
     setMode(_savedModeIndex);
-  }
-
-  // The animated buffer is the one actually refreshed whenever the current
-  // mode allows animations, so a luminance change has to invalidate it too.
-  virtual void invalidate()
-  {
-    MyLedStrip::invalidate();
-    _animatedPixels.hasChanged = true;
   }
 
   // Both stops are guarded on their own flag, so this is safe to call blindly
