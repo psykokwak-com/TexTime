@@ -2889,8 +2889,13 @@ public:
     TetAction act = _pendingAction;
     _pendingAction = ACT_NONE;
 
-    if (_state == STATE_GAME_OVER) {
-      if (act == ACT_START) startGame();
+    // Restart means restart, whatever the state. It used to be honoured only
+    // after a game over, so pressing it mid-game did nothing at all while the
+    // endpoint still answered "ok".
+    if (act == ACT_START) {
+      startGame();
+    } else if (_state == STATE_GAME_OVER) {
+      /* nothing else to do while waiting for a restart */
     } else if (_state == STATE_PLAYING) {
       if      (act == ACT_LEFT   && canPlace(_pieceType, _pieceRot, _pieceRow, _pieceCol-1)) _pieceCol--;
       else if (act == ACT_RIGHT  && canPlace(_pieceType, _pieceRot, _pieceRow, _pieceCol+1)) _pieceCol++;
@@ -3044,8 +3049,13 @@ public:
     SnaAction act = _pendingAction;
     _pendingAction = ACT_NONE;
 
-    if (_state == STATE_GAME_OVER) {
-      if (act == ACT_START) startGame();
+    // Restart means restart, whatever the state. It used to be honoured only
+    // after a game over, so pressing it mid-game did nothing at all while the
+    // endpoint still answered "ok".
+    if (act == ACT_START) {
+      startGame();
+    } else if (_state == STATE_GAME_OVER) {
+      /* nothing else to do while waiting for a restart */
     } else if (_state == STATE_PLAYING) {
       switch (act) {
         case ACT_UP:    if (_dirY == 0) { _nextDirX=0;  _nextDirY=-1; } break;
