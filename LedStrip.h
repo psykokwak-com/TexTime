@@ -964,6 +964,9 @@ protected:
     _pixels.hasChanged = true;
   }
 
+  // No games exist at this level; MyLedStripAnimator overrides.
+  virtual void stopAnyGame() {}
+
   // NeoPixelBusLg applies the luminance while a pixel is being written, not at
   // Show() time, and SetLuminance() deliberately leaves the existing buffer
   // alone. A bare SetLuminance()+Show() therefore transmits nothing: the new
@@ -1130,6 +1133,17 @@ public:
   {
     if (mode < 0) return false;
     if (mode > _modeList.size() - 1) return false;
+
+    // A game owns the display while it runs, and the test modes skip the
+    // animation layer entirely -- switching to one would leave the board
+    // undrawn while the game carried on invisibly, with no way back. Asking
+    // for a different mode ends the game instead.
+    //
+    // Only for a genuine change: setColor() and setColorRandom() call this
+    // with the current index purely to force a redraw, and recolouring the
+    // clock has no business ending a game.
+    if (mode != _modeIndex)
+      stopAnyGame();
 
     _modeIndex = mode;
 
@@ -3087,6 +3101,15 @@ protected:
   {
     MyLedStrip::invalidate();
     _animatedPixels.hasChanged = true;
+  }
+
+  // Both stops are guarded on their own flag, so this is safe to call blindly
+  // and safe to re-enter: tetrisStop() may itself call setMode() to restore a
+  // forced mode, and by then the flag it checks is already clear.
+  virtual void stopAnyGame()
+  {
+    tetrisStop();
+    snakeStop();
   }
 
   bool handleAnimation()
