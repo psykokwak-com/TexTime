@@ -15,6 +15,15 @@ String htmlEscape(const String &s)
       case '>':  o += F("&gt;");   break;
       case '"':  o += F("&quot;"); break;
       case '\'': o += F("&#39;");  break;
+
+      // The dashboard's own wire format separates fields with a vertical bar
+      // and records with a newline, so these are structural too: a bar in an
+      // SSID breaks the field count and makes the page drop the whole scan
+      // list, and a newline injects a record of the sender's choosing.
+      case '|':  o += F("&#124;"); break;
+      case '\r':
+      case '\n': break;
+
       default:   o += c;
     }
   }
