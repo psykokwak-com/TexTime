@@ -196,15 +196,24 @@ boolean summerTime(unsigned long timeStamp) {
 
   if ((_tempDateTime.month < 3) || (_tempDateTime.month > 10)) return false; // keine Sommerzeit in Jan, Feb, Nov, Dez
   if ((_tempDateTime.month > 3) && (_tempDateTime.month < 10)) return true; // Sommerzeit in Apr, Mai, Jun, Jul, Aug, Sep
-  if (((_tempDateTime.month == 3) && ((_tempDateTime.hour + 24 * _tempDateTime.day) >= (3 +  24 * (31 - (5 * _tempDateTime.year / 4 + 4) % 7)))) || ((_tempDateTime.month == 10) && ((_tempDateTime.hour + 24 * _tempDateTime.day) < (3 +  24 * (31 - (5 * _tempDateTime.year / 4 + 1) % 7)))))
+  // The EU switches at 01:00 UTC, simultaneously across the union, hence the 1.
+  // This used to read 3, and was handed local time instead of UTC, so both
+  // errors pushed the same way: in CET the change happened at 03:00 local
+  // instead of 02:00 -- an hour late, twice a year.
+  if (((_tempDateTime.month == 3) && ((_tempDateTime.hour + 24 * _tempDateTime.day) >= (1 +  24 * (31 - (5 * _tempDateTime.year / 4 + 4) % 7)))) || ((_tempDateTime.month == 10) && ((_tempDateTime.hour + 24 * _tempDateTime.day) < (1 +  24 * (31 - (5 * _tempDateTime.year / 4 + 1) % 7)))))
     return true;
   else
     return false;
 }
 
 unsigned long adjustTimeZone(unsigned long timeStamp, int timeZone, bool isDayLightSavingSaving) {
+  // Decide on UTC, as summerTime() documents and the EU rule requires, before
+  // the offset is applied. Evaluating it on local time made the switch land at
+  // the wrong moment by exactly the size of the offset.
+  bool summer = isDayLightSavingSaving && summerTime(timeStamp);
+
   timeStamp += (long)timeZone * 360; // adjust timezone (unit = 1/10th hour, e.g. GMT+1 = value 10)
-  if (isDayLightSavingSaving && summerTime(timeStamp)) timeStamp += 3600; // Sommerzeit beachten
+  if (summer) timeStamp += 3600;     // Sommerzeit beachten
   return timeStamp;
 }
 
