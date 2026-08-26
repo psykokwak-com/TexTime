@@ -533,6 +533,7 @@ const char PAGE_index[] PROGMEM = R"=====(
                 <label class="form-label" data-i18n="lbl.color">Color</label>
                 <div style="display:flex;gap:0.75rem;align-items:center">
                   <div id="schedColorSwatch" class="cpicker-swatch" title="Pick color" style="width:3rem;height:2.5rem;background:#ffffff;border:2px solid #ccc;border-radius:4px;cursor:pointer;flex-shrink:0"></div>
+                  <input type="text" id="schedColorText" class="color-text-input" placeholder="#FFFFFF" maxlength="7">
                   <input type="hidden" id="schedColor" value="#ffffff">
                 </div>
                 <div id="schedCpickerPanel" class="cpicker-panel" style="display:none">
@@ -1215,11 +1216,13 @@ const char PAGE_index[] PROGMEM = R"=====(
     function _scpApply(send) {
       var hex=_cpHsvToHex(_scpH,_scpS,_scpV);
       var sw=document.getElementById('schedColorSwatch');
+      var ct=document.getElementById('schedColorText');
       var ci=document.getElementById('schedColor');
       var sq=document.getElementById('schedSvSquare');
       var th=document.getElementById('schedSvThumb');
       var hs=document.getElementById('schedHueSlider');
       if(sw) sw.style.backgroundColor=hex;
+      if(ct) ct.value=hex;
       if(ci) ci.value=hex;
       if(sq) sq.style.backgroundColor='hsl('+Math.round(_scpH)+',100%,50%)';
       if(th){th.style.left=(_scpS*100)+'%'; th.style.top=((1-_scpV)*100)+'%';}
@@ -1273,6 +1276,15 @@ const char PAGE_index[] PROGMEM = R"=====(
       document.addEventListener('touchend',   function(){svDrag=false;});
 
       hs.addEventListener('input', function(){_scpH=parseInt(this.value); _scpApply(true);});
+
+      /* Typing a hex value, same as the General tab. _scpSetFromHex applies it
+         without notifying, so tell the editor separately that the rule changed. */
+      var ct=document.getElementById('schedColorText');
+      if(ct) ct.addEventListener('input', function() {
+        var v=this.value.trim();
+        if(!v.startsWith('#')) v='#'+v;
+        if(isValidHexColor(v)){_scpSetFromHex(v); schedEditorChange();}
+      });
     }
 
     function hexToRgb(hex) {
