@@ -301,8 +301,6 @@ void send_tetris_html()
 
 void send_tetris_action()
 {
-  QTLed.gameKeepAlive();   // the page is still there
-
   String a = _server.arg("action");
 
   if (a == "exit") {
@@ -315,6 +313,7 @@ void send_tetris_action()
     if (!QTLed.isTetrisActive()) QTLed.tetrisStart();
     else if (LedStripAnimationTetris::instance)
       LedStripAnimationTetris::instance->action(LedStripAnimationTetris::ACT_START);
+    QTLed.gameKeepAlive();
     _server.send(200, "text/plain", "ok");
     return;
   }
@@ -323,6 +322,11 @@ void send_tetris_action()
     _server.send(200, "text/plain", "inactive");
     return;
   }
+
+  // Only a real move from a real player counts. Deliberately placed after the
+  // active check: a key pressed on a stale page belonging to the other game
+  // must not extend the session of the game that is actually running.
+  QTLed.gameKeepAlive();
 
   LedStripAnimationTetris::TetAction act = LedStripAnimationTetris::ACT_NONE;
   if      (a == "left")   act = LedStripAnimationTetris::ACT_LEFT;
@@ -336,8 +340,6 @@ void send_tetris_action()
 
 void send_tetris_state()
 {
-  QTLed.gameKeepAlive();   // the page is still there
-
   String s = "";
   if (LedStripAnimationTetris::instance) {
     LedStripAnimationTetris *t = LedStripAnimationTetris::instance;

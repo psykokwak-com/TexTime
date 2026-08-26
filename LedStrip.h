@@ -3201,14 +3201,16 @@ public:
 
   bool isGameActive() { return _tetrisActive || _snakeActive; }
 
-  // Called by every game endpoint. Any request from an open controller page --
-  // an action or one of its 400 ms state polls -- counts as the player still
-  // being there.
+  // Called only by the action endpoints, and only once the game they name is
+  // confirmed running. The state polls deliberately do NOT call it: a page left
+  // open on a forgotten tab polls every 400 ms and would have kept the display
+  // hostage indefinitely. What keeps a game alive is somebody playing it.
   void gameKeepAlive() { _gameLastSeen = millis(); }
 
-  // Backstop for the controller page going away without saying so: a closed
-  // tab, a locked phone, a dropped connection. The pages also fire an exit on
-  // pagehide, which covers the clean case immediately; this covers the rest.
+  // Hands the display back once nobody has played for GAME_IDLE_MS. That covers
+  // a closed tab, a locked phone or a dropped connection, and also a page left
+  // open and abandoned. The pages additionally fire an exit on pagehide, which
+  // makes a clean close immediate.
   void handleGameTimeout()
   {
     if (!isGameActive()) return;

@@ -239,8 +239,6 @@ void send_snake_html()
 
 void send_snake_action()
 {
-  QTLed.gameKeepAlive();   // the page is still there
-
   String a = _server.arg("action");
 
   if (a == "exit") {
@@ -253,6 +251,7 @@ void send_snake_action()
     if (!QTLed.isSnakeActive()) QTLed.snakeStart();
     else if (LedStripAnimationSnake::instance)
       LedStripAnimationSnake::instance->action(LedStripAnimationSnake::ACT_START);
+    QTLed.gameKeepAlive();
     _server.send(200, "text/plain", "ok");
     return;
   }
@@ -261,6 +260,11 @@ void send_snake_action()
     _server.send(200, "text/plain", "inactive");
     return;
   }
+
+  // Only a real move from a real player counts. Deliberately placed after the
+  // active check: a key pressed on a stale page belonging to the other game
+  // must not extend the session of the game that is actually running.
+  QTLed.gameKeepAlive();
 
   LedStripAnimationSnake::SnaAction act = LedStripAnimationSnake::ACT_NONE;
   if      (a == "up")    act = LedStripAnimationSnake::ACT_UP;
@@ -273,8 +277,6 @@ void send_snake_action()
 
 void send_snake_state()
 {
-  QTLed.gameKeepAlive();   // the page is still there
-
   String s = "";
   if (LedStripAnimationSnake::instance) {
     LedStripAnimationSnake *t = LedStripAnimationSnake::instance;
