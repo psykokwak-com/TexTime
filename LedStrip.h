@@ -939,7 +939,11 @@ protected:
       int sn = _live.brightnessAutoMinNight;      // minimum brightness during the night
       int sm = _live.brightnessMax;               // maximum brightness auto
       int lmin = 0;                               // minimum lux sensitivity allowed
+      // Belt as well as braces: map() divides by (lmax - lmin), so a zero
+      // sensitivity would divide by zero. Every input path clamps it, this
+      // makes the arithmetic safe whatever reaches it.
       int lmax = _live.luxSensitivity * 10;       // maximum lux sensitivity allowed
+      if (lmax <= lmin) lmax = lmin + 1;
 
       int s = sn; // night
 

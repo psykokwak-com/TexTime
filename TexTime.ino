@@ -274,7 +274,7 @@ void setup() {
         if (_server.argName(i) == "animation") _config.animation = _server.arg(i).toInt();
         if (_server.argName(i) == "colorrandom") _config.colorRandom = _server.arg(i).toInt();
         if (_server.argName(i) == "ledconfig") _config.ledConfig = _server.arg(i).toInt();
-        if (_server.argName(i) == "brightnesssensibility") _config.luxSensitivity = _server.arg(i).toInt();
+        if (_server.argName(i) == "brightnesssensibility") _config.luxSensitivity = constrain(_server.arg(i).toInt(), 1, 255);
         if (_server.argName(i) == "animspeed") _config.animSpeed = constrain(_server.arg(i).toInt(), 1, 20);
         if (_server.argName(i) == "animbrightmin") _config.animBrightnessMin = constrain(_server.arg(i).toInt(), 0, 100);
         if (_server.argName(i) == "animbrightmax") _config.animBrightnessMax = constrain(_server.arg(i).toInt(), 0, 100);

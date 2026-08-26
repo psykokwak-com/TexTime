@@ -345,6 +345,10 @@ boolean ReadConfig(){
     if (_config.brightnessMax < 1) _config.brightnessMax = 255;
     _config.ledConfig = EEPROM.read(395);
     _config.luxSensitivity = EEPROM.read(396);
+    // Zero would collapse the automatic brightness range onto a single point and
+    // divide by zero in the map() below. Not reachable from the dashboard, whose
+    // list starts at 10, but reachable by a crafted request or the legacy route.
+    if (_config.luxSensitivity < 1) _config.luxSensitivity = 40;
     _config.language = EEPROM.read(397);
 
     _config.MQTTServer = ReadStringFromEEPROM(512);

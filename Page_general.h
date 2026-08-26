@@ -33,7 +33,7 @@ void send_general_html()
       if (_server.argName(i) == "animation") _config.animation = _server.arg(i).toInt();
       if (_server.argName(i) == "colorrandom") _config.colorRandom = _server.arg(i).toInt();
       if (_server.argName(i) == "ledconfig") _config.ledConfig = _server.arg(i).toInt();
-      if (_server.argName(i) == "brightnesssensibility") _config.luxSensitivity = _server.arg(i).toInt();
+      if (_server.argName(i) == "brightnesssensibility") _config.luxSensitivity = constrain(_server.arg(i).toInt(), 1, 255);
     }
 
 		WriteConfig();
@@ -200,7 +200,7 @@ void send_general_led()
         QTLed.setColorRandom((RandomColorMode)_server.arg(i).toInt());
       }
       if (_server.argName(i) == "brightnesssensibility")
-        _live.luxSensitivity = _server.arg(i).toInt();
+        _live.luxSensitivity = constrain(_server.arg(i).toInt(), 1, 255);
 
       if (_server.argName(i) == "animspeed")
         QTLed.setAnimSpeed(constrain(_server.arg(i).toInt(), 1, 20));
