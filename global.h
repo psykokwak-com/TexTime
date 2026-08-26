@@ -104,16 +104,25 @@ void syncLiveFromConfig()
 // otherwise the pulsing animations end up with a zero amplitude and freeze.
 // The user-supplied max wins and min is pulled underneath it, so moving a
 // single slider never silently resets the other one to a default.
+//
+// Takes a pair rather than reading _config, because the same rule has to hold
+// for the live values the sliders drive and for the locals a scheduler slot
+// arrives in -- it used to be spelled out separately at all three.
+void clampAnimBrightness(byte &lo, byte &hi)
+{
+  if (lo > 100) lo = 10;
+  if (hi > 100) hi = 100;
+
+  if (hi <= lo)
+  {
+    if (hi < 1) hi = 1;
+    lo = hi - 1;
+  }
+}
+
 void validateAnimBrightness()
 {
-  if (_config.animBrightnessMin > 100) _config.animBrightnessMin = 10;
-  if (_config.animBrightnessMax > 100) _config.animBrightnessMax = 100;
-
-  if (_config.animBrightnessMax <= _config.animBrightnessMin)
-  {
-    if (_config.animBrightnessMax < 1) _config.animBrightnessMax = 1;
-    _config.animBrightnessMin = _config.animBrightnessMax - 1;
-  }
+  clampAnimBrightness(_config.animBrightnessMin, _config.animBrightnessMax);
 }
 
 
@@ -361,9 +370,7 @@ boolean ReadConfig(){
     _config.animSpeed = EEPROM.read(776);
     if (_config.animSpeed < 1 || _config.animSpeed > 20) _config.animSpeed = 10;
     _config.animBrightnessMin = EEPROM.read(777);
-    if (_config.animBrightnessMin > 100) _config.animBrightnessMin = 10;
     _config.animBrightnessMax = EEPROM.read(778);
-    if (_config.animBrightnessMax > 100) _config.animBrightnessMax = 100;
     validateAnimBrightness();
 
     syncLiveFromConfig();
@@ -448,14 +455,6 @@ String GetAPMacAddress(){
   sprintf(macStr, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0],  mac[1], mac[2], mac[3], mac[4], mac[5]);
   return  String(macStr);
 }
-
-// h2int() and urldecode() lived here. ESP8266WebServer already url-decodes both
-// key and value when it parses a request, so decoding a second time was not
-// only redundant, it mangled any value containing a per cent sign. The loop
-// also counted with a byte, so an input longer than 255 characters -- a long
-// NTP server name pasted into the field -- never terminated and left the
-// watchdog to reboot the clock.
-
 
 uint64_t millis64() {
   static uint32_t low32, high32;

@@ -151,12 +151,7 @@ void setup() {
   WiFiMgr.tryToConnect(_config.ssid, _config.password, _config.DeviceName);
 
   // Start HTTP Server for configuration
-  // The root used to write configuration straight from URL parameters, routing
-  // to the pre-dashboard handlers. Fetching an address is something a page can
-  // make a browser do without asking, and those handlers predate every check
-  // added since -- one of them cleared the automatic brightness flag before
-  // even looking at the request. Nothing used them: the dashboard posts to the
-  // /admin/save/* endpoints. The root serves the page and nothing else.
+  // Serves the page only; configuration is written through /admin/save/*.
   _server.on("/", []() {
     _server.send_P(200, "text/html", PAGE_index);
   });
@@ -175,8 +170,6 @@ void setup() {
     //Serial.println("favicon.ico");
     _server.send_P(200, "image/png", PAGE_ico, PAGE_ico_size);
   });
-
-  // Obsolete routes removed - using dashboard interface instead
 
   _server.on("/style.css", []() {
     //Serial.println("style.css");
@@ -267,16 +260,10 @@ void setup() {
 
       WriteConfig();
 
-      // The user settings now win over any scheduler slot override still active.
-      syncLiveFromConfig();
       QTLed.begin();
-      QTLed.setAutomaticBrightness(_config.brightnessAuto);
-      if (!_config.brightnessAuto) QTLed.setBrightness(_config.brightness);
-      QTLed.setColor(_config.color[0], _config.color[1], _config.color[2]);
-      QTLed.setColorRandom((RandomColorMode)_config.colorRandom);
-      QTLed.setLanguage(_config.language);
-      QTLed.setMode(_config.mode);
-      QTLed.setAnimation(_config.animation);
+
+      // The user settings now win over any scheduler slot override still active.
+      QTLed.applyUserSettings();
       
       _server.send(200, "text/plain", "OK");
     } else {
@@ -506,13 +493,7 @@ void setup() {
   _mqtt.setServer(_config.MQTTServer.c_str(), _config.MQTTPort);
   _mqtt.setCallback(mqttCallback);
 
-  QTLed.setAutomaticBrightness(_config.brightnessAuto);
-  if (!_config.brightnessAuto) QTLed.setBrightness(_config.brightness);
-  QTLed.setColor(_config.color[0], _config.color[1], _config.color[2]);
-  QTLed.setColorRandom((RandomColorMode)_config.colorRandom);
-  QTLed.setLanguage(_config.language);
-  QTLed.setMode(_config.mode);
-  QTLed.setAnimation(_config.animation);
+  QTLed.applyUserSettings();
 
   Serial.println("Ready");
 

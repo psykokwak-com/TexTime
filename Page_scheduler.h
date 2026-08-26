@@ -35,17 +35,6 @@ void send_scheduler_data() {
   _server.sendContent("");
 }
 
-// Put the display back under the user's own settings, undoing whatever slot
-// override was last applied. Used both when the scheduler is switched off and
-// when a slot boundary lands on an unpainted half-hour.
-void restoreUserSettings() {
-  syncLiveFromConfig();
-  QTLed.setMode(_config.mode);
-  QTLed.setAnimation(_config.animation);
-  QTLed.setColor(_config.color[0], _config.color[1], _config.color[2]);
-  QTLed.setColorRandom((RandomColorMode)_config.colorRandom);
-}
-
 void save_scheduler_enabled() {
   for (uint8_t i = 0; i < _server.args(); i++) {
     if (_server.argName(i) == "enabled") {
@@ -57,7 +46,7 @@ void save_scheduler_enabled() {
       // settings straight away, instead of leaving the last slot override in
       // place until the next reboot.
       if (!enabled)
-        restoreUserSettings();
+        QTLed.applyUserSettings();
     }
   }
   _server.send(200, "text/plain", "OK");
@@ -70,8 +59,11 @@ void save_scheduler_enabled() {
 // to ask for on an ESP8266 that already holds a 4 KB EEPROM buffer. A typical
 // schedule uses a handful of distinct rules and fits in well under 1 KB.
 void save_scheduler_bulk() {
-  String rules = _server.arg("rules");
-  String map   = _server.arg("map");
+  // References, not copies: arg() returns const String& and these are up to
+  // 4 KB and 672 bytes. Copying them doubled the transient heap at the one
+  // moment the EEPROM buffer and the request buffer are both already live.
+  const String &rules = _server.arg("rules");
+  const String &map   = _server.arg("map");
 
   if (map.length() != 336 * 2 || (rules.length() % 16) != 0) {
     _server.send(400, "text/plain", "ERROR");
@@ -123,7 +115,7 @@ void handleScheduler() {
   // A game owns the display while it runs: applying a slot would change the
   // mode under the player's hands. Keep the slot marked as not yet applied so
   // it takes effect as soon as the game stops.
-  if (QTLed.isTetrisActive() || QTLed.isSnakeActive()) {
+  if (QTLed.isGameActive()) {
     _schedLastSlot = 255;
     return;
   }
@@ -144,7 +136,7 @@ void handleScheduler() {
   // behind". Without this, painting a single hour on Monday held its override
   // for the rest of the week.
   if (mode == 0xFF || mode > 7) {
-    restoreUserSettings();
+    QTLed.applyUserSettings();
     return;
   }
 
@@ -158,11 +150,8 @@ void handleScheduler() {
   byte cg = EEPROM.read(addr + 6);
   byte cb = EEPROM.read(addr + 7);
 
-  // Same rule as validateAnimBrightness(): min must stay below max, otherwise
-  // the pulsing animations end up with a zero amplitude. Applied on the live
-  // parameters only -- a slot override must never reach _config/EEPROM.
-  if (animBrightMax < 1) animBrightMax = 1;
-  if (animBrightMin >= animBrightMax) animBrightMin = animBrightMax - 1;
+  // Clamped as locals: a slot override must never reach _config or EEPROM.
+  clampAnimBrightness(animBrightMin, animBrightMax);
 
   _live.animBrightnessMin = animBrightMin;
   _live.animBrightnessMax = animBrightMax;

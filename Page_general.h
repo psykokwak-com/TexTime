@@ -150,9 +150,7 @@ void send_general_led()
         _live.animBrightnessMax = constrain(_server.arg(i).toInt(), 0, 100);
     }
 
-    if (_live.animBrightnessMax < 1) _live.animBrightnessMax = 1;
-    if (_live.animBrightnessMin >= _live.animBrightnessMax)
-      _live.animBrightnessMin = _live.animBrightnessMax - 1;
+    clampAnimBrightness(_live.animBrightnessMin, _live.animBrightnessMax);
   }
   _server.send(200, "text/plain", "OK");
 }

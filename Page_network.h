@@ -1,9 +1,3 @@
-//
-//  HTML PAGE
-//
-// HTML PAGES REMOVED - Now using dashboard in Page_index.h
-// These pages are obsolete and replaced by the dashboard interface
-
 // The names of neighbouring networks are arbitrary text chosen by other people,
 // and the scan list is injected into the dashboard with innerHTML. Anything
 // taken from a beacon has to arrive there as text, not as markup.
@@ -76,7 +70,6 @@ void send_network_configuration_values_html()
 void send_network_connection_values_html()
 {
   String state = "N/A";
-  String networks = "";
   if (WiFi.status() == 0) state = "Idle";
   else if (WiFi.status() == 1) state = "NO SSID AVAILBLE";
   else if (WiFi.status() == 2) state = "SCAN COMPLETED";
@@ -85,14 +78,30 @@ void send_network_connection_values_html()
   else if (WiFi.status() == 5) state = "CONNECTION LOST";
   else if (WiFi.status() == 6) state = "DISCONNECTED";
 
+  // Scan before answering: this blocks for a second or two, and starting the
+  // response first would leave the client holding an open reply meanwhile.
   int n = WiFi.scanNetworks();
+
+  _server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  _server.sendHeader("Pragma", "no-cache");
+  _server.sendHeader("Expires", "-1");
+
+  // The list is written straight to the client rather than assembled first.
+  // Each row is roughly 600 bytes, so fifteen networks used to need one
+  // contiguous 8 KB allocation -- half the free heap -- reached through
+  // hundreds of reallocations. String::concat fails silently when it cannot
+  // grow, so running short showed up as a truncated list rather than an error.
+  _server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+  _server.send(200, "text/plain", "");
+  _server.sendContent("connectionstate|" + state + "|div\n");
+  _server.sendContent("networks|");
 
   // A failed scan returns a negative value (WIFI_SCAN_FAILED is -2). Testing
   // only for zero let that reach "String seenSSIDs[n]" below, where a negative
   // length becomes an enormous unsigned one.
   if (n <= 0)
   {
-    networks = "<div class='loading'>No networks found</div>";
+    _server.sendContent("<div class='loading'>No networks found</div>");
   }
   else
   {
@@ -100,7 +109,6 @@ void send_network_connection_values_html()
     String seenSSIDs[n];
     int uniqueCount = 0;
 
-    networks = "";
     for (int i = 0; i < n; ++i)
     {
       String currentSSID = WiFi.SSID(i);
@@ -122,62 +130,52 @@ void send_network_connection_values_html()
         bool isSecured = (WiFi.encryptionType(i) != ENC_TYPE_NONE);
         bool isConnected = (currentSSID == WiFi.SSID());
 
-        // Generate signal bars
-        int bars = (rssiPercent + 19) / 20; // Convert to 1-5 scale
-        String signalBars = "<div class='signal-bars'>";
+        // Escaped once each: both forms are used twice below.
+        String jsSSID = jsAttrEscape(currentSSID);
+        String htmlSSID = htmlEscape(currentSSID);
+
+        _server.sendContent("<div class='network-item");
+        if (isConnected) _server.sendContent(" connected");
+        _server.sendContent("' onclick=\"selssid('" + jsSSID + "')\">");
+
+        _server.sendContent("<div class='network-info'>");
+        _server.sendContent("<div class='network-name'>" + htmlSSID + "</div>");
+        _server.sendContent("<div class='network-details'>");
+        _server.sendContent("<div class='network-signal'>");
+
+        // Signal bars, 1 to 5
+        int bars = (rssiPercent + 19) / 20;
+        _server.sendContent("<div class='signal-bars'>");
         for (int b = 1; b <= 5; b++) {
-          signalBars += "<div class='signal-bar";
-          if (b <= bars) signalBars += " active";
-          signalBars += "'></div>";
+          _server.sendContent("<div class='signal-bar");
+          if (b <= bars) _server.sendContent(" active");
+          _server.sendContent("'></div>");
         }
-        signalBars += "</div>";
+        _server.sendContent("</div>");
 
-        networks += "<div class='network-item";
-        if (isConnected) networks += " connected";
-        networks += "' onclick=\"selssid('" + jsAttrEscape(currentSSID) + "')\">";
+        _server.sendContent("<span>" + String(rssiPercent) + "%</span>");
+        _server.sendContent("</div>");
+        _server.sendContent("<div class='network-security'>");
+        _server.sendContent("<span class='security-icon'>" + String(isSecured ? "🔒" : "🔓") + "</span>");
+        _server.sendContent("<span>" + String(isSecured ? "Secured" : "Open") + "</span>");
+        _server.sendContent("</div>");
+        _server.sendContent("</div>");
+        _server.sendContent("</div>");
 
-        networks += "<div class='network-info'>";
-        networks += "<div class='network-name'>" + htmlEscape(currentSSID) + "</div>";
-        networks += "<div class='network-details'>";
-        networks += "<div class='network-signal'>";
-        networks += signalBars;
-        networks += "<span>" + String(rssiPercent) + "%</span>";
-        networks += "</div>";
-        networks += "<div class='network-security'>";
-        networks += "<span class='security-icon'>" + String(isSecured ? "🔒" : "🔓") + "</span>";
-        networks += "<span>" + String(isSecured ? "Secured" : "Open") + "</span>";
-        networks += "</div>";
-        networks += "</div>";
-        networks += "</div>";
-
-        networks += "<div class='network-actions'>";
+        _server.sendContent("<div class='network-actions'>");
         if (isConnected) {
-          networks += "<span class='connected-badge'>Connected</span>";
+          _server.sendContent("<span class='connected-badge'>Connected</span>");
         }
         else {
-          networks += "<button class='connect-btn' onclick=\"event.stopPropagation(); selssid('" + jsAttrEscape(currentSSID) + "')\">Connect</button>";
+          _server.sendContent("<button class='connect-btn' onclick=\"event.stopPropagation(); selssid('" + jsSSID + "')\">Connect</button>");
         }
-        networks += "</div>";
+        _server.sendContent("</div>");
 
-        networks += "</div>";
+        _server.sendContent("</div>");
       }
     }
   }
 
-  _server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  _server.sendHeader("Pragma", "no-cache");
-  _server.sendHeader("Expires", "-1");
-
-  // Streamed in pieces rather than concatenated into one more String. The
-  // network list is the largest thing this server builds, and copying it again
-  // meant holding it twice at the moment memory is tightest -- where
-  // String::concat fails silently, so the symptom was a truncated list rather
-  // than an error.
-  _server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-  _server.send(200, "text/plain", "");
-  _server.sendContent("connectionstate|" + state + "|div\n");
-  _server.sendContent("networks|");
-  _server.sendContent(networks);
   _server.sendContent("|div\n");
   _server.sendContent("");
   //Serial.println(__FUNCTION__);

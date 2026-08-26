@@ -20,12 +20,6 @@
 // template argument is NeoGammaNullMethod because NeoPixelBusLg applies gamma
 // correction by default, which would change every colour on the strip; the null
 // method keeps the exact output this project has always had.
-//
-// The one behavioural difference is an improvement: NeoPixelBrightnessBus
-// rescaled the whole pixel buffer in place on every SetBrightness() call, so
-// repeated brightness changes between two redraws slowly degraded the colours.
-// NeoPixelBusLg keeps the pixels at full precision and applies the luminance
-// when writing to the strip.
 //typedef NeoPixelBusLg<NeoGrbFeature, NeoEsp8266AsyncUart1Ws2813Method, NeoGammaNullMethod> MyNeoPixelBrightnessBus;
 typedef NeoPixelBusLg<NeoGrbFeature, NeoEsp8266Uart1Ws2813Method, NeoGammaNullMethod> MyNeoPixelBrightnessBus;
 
@@ -885,6 +879,13 @@ protected:
     if (!_pStrip->CanShow())
       return false;
 
+    // Resolved once. These were re-indexed and re-dispatched inside the inner
+    // loop condition, so once per LED per refresh -- and refresh now also runs
+    // on every luminance step, not only on content changes.
+    LedConfiguration *cfg = _ledConfiguration[_ledConfigurationIndex];
+    const int ledsPerPixel = cfg->ledsByPixelForMatrix();
+    const int ledsPerEdge  = cfg->ledsByPixelForEdges();
+
     // Reset led strip
     _pStrip->ClearTo(RgbColor(0, 0, 0));
 
@@ -892,11 +893,11 @@ protected:
     for (int r = 0; r < NROW; r++) {
       for (int c = 0; c < NCOL; c++) {
         Pixel p = pPixel->pixelsArray.getPixel(r, c);
-        const uint16_t *i = _ledConfiguration[_ledConfigurationIndex]->getLedsMatrixId(r, c);
+        const uint16_t *i = cfg->getLedsMatrixId(r, c);
 
         if (!p.display) continue;
 
-        for (int l = 0; l < _ledConfiguration[_ledConfigurationIndex]->ledsByPixelForMatrix(); l++)
+        for (int l = 0; l < ledsPerPixel; l++)
           _pStrip->SetPixelColor(i[l], p.color);
       }
     }
@@ -904,11 +905,11 @@ protected:
     // Fill leds strip with edge pixels
     for (int e = 0; e < NEDGE; e++) {
       Pixel p = pPixel->pixelsEdge[e];
-      const uint16_t *i = _ledConfiguration[_ledConfigurationIndex]->getLedsEdgeId(e);
+      const uint16_t *i = cfg->getLedsEdgeId(e);
 
       if (!p.display) continue;
 
-      for (int l = 0; l < _ledConfiguration[_ledConfigurationIndex]->ledsByPixelForEdges(); l++)
+      for (int l = 0; l < ledsPerEdge; l++)
         _pStrip->SetPixelColor(i[l], p.color);
     }
 
@@ -1228,6 +1229,27 @@ protected:
     setPixelsColor(pVOID);
   }
 
+  // The animation speed slider scales every animation's own base frame rate,
+  // with 10 meaning "as designed". Every animation used to spell this out in
+  // its begin(), which is exactly how the divisor drifted: eight of them ended
+  // up dividing by 5 instead of 10 and ran at double speed.
+  double scaledFps(double baseFps)
+  {
+    return baseFps * _live.animSpeed / 10.0;
+  }
+
+  // The two animation brightness limits are stored as percentages and used as
+  // 0-255 scale factors. Spelled out at fourteen call sites before this.
+  uint8_t animMax255()
+  {
+    return (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
+  }
+
+  uint8_t animMin255()
+  {
+    return (uint8_t)((uint16_t)_live.animBrightnessMin * 255 / 100);
+  }
+
 public:
   LedStripAnimation(String name, PixelsContainer *pPixelContainerInput, PixelsContainer *pPixelContainerOutput)
     : _name(name)
@@ -1316,7 +1338,7 @@ public:
 
   void begin()
   {
-    _frame.init(50.0 * _live.animSpeed / 10.0);
+    _frame.init(scaledFps(50.0));
 
     initPixelsList();
     clearPixelsColor();
@@ -1354,7 +1376,7 @@ private:
 
   RgbColor generateFireColor()
   {
-    uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
+    uint8_t bMax = animMax255();
     return RgbColor(
       (uint8_t)((uint16_t)(200 + random(55)) * bMax / 255),
       (uint8_t)((uint16_t)(30 + random(120)) * bMax / 255),
@@ -1369,7 +1391,7 @@ public:
 
   void begin()
   {
-    _frame.init(8.0 * _live.animSpeed / 10.0);
+    _frame.init(scaledFps(8.0));
   }
 
   void handle()
@@ -1418,7 +1440,7 @@ public:
 
   void begin()
   {
-    _frame.init(8.0 * _live.animSpeed / 10.0);
+    _frame.init(scaledFps(8.0));
 
     for (int i = 0; i < NCOL; i++) {
       _matrixColumn[i] = -1;
@@ -1445,7 +1467,7 @@ public:
       }
     }
 
-    uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
+    uint8_t bMax = animMax255();
 
     // Update display columns
     for (int c = 0; c < NCOL; c++) {
@@ -1509,7 +1531,7 @@ public:
 
   void begin()
   {
-    _frame.init(10.0 * _live.animSpeed / 10.0);
+    _frame.init(scaledFps(10.0));
   }
 
   void handle()
@@ -1573,7 +1595,7 @@ public:
 
   void begin()
   {
-    _frame.init(4.0 * _live.animSpeed / 10.0);
+    _frame.init(scaledFps(4.0));
 
     for (int i = 0; i < NCOL; i++)
       _matrixColumn[i] = -1;
@@ -1602,7 +1624,7 @@ public:
       if (_matrixColumn[c] == -1)
         continue;
 
-      uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
+      uint8_t bMax = animMax255();
       Pixel green = Pixel(RgbColor(bMax, bMax, bMax));
       for (int r = _matrixColumn[c]; r > _matrixColumn[c] - _matrixColumnSize; r--) {
         _pPixelContainerOutput->pixelsArray.setPixel(green, r, c);
@@ -1648,7 +1670,7 @@ public:
 
   void begin()
   {
-    _frame.init(5.0 * _live.animSpeed / 10.0);
+    _frame.init(scaledFps(5.0));
   }
 
   Pixel generateFire()
@@ -1670,7 +1692,7 @@ public:
 
     if (_dateTime.second / 10 % 2)
     {
-      uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
+      uint8_t bMax = animMax255();
       Pixel white = Pixel(RgbColor(bMax, bMax, bMax));
       Pixel red = Pixel(RgbColor(bMax, 0, 0));
       Pixel brown = Pixel(RgbColor(
@@ -1773,7 +1795,7 @@ public:
 
   void begin()
   {
-    _frame.init(5.0 * _live.animSpeed / 10.0);
+    _frame.init(scaledFps(5.0));
   }
 
   void handle()
@@ -1786,7 +1808,7 @@ public:
     if (_dateTime.second / 10 % 2)
     {
       //Pixel white = Pixel(RgbColor(255, 255, 255));
-      uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
+      uint8_t bMax = animMax255();
       Pixel red = Pixel(RgbColor(bMax, 0, 0));
       Pixel pink = Pixel(RgbColor(
         (uint8_t)((uint16_t)0x69 * bMax / 255),
@@ -1914,7 +1936,7 @@ public:
 
   void begin()
   {
-    _frame.init(8.0 * _live.animSpeed / 10.0);
+    _frame.init(scaledFps(8.0));
     for (int i = 0; i < MAX_RIPPLES; i++)
       _ripples[i].active = false;
 
@@ -2120,7 +2142,7 @@ public:
 
   void begin()
   {
-    _frame.init(15.0 * _live.animSpeed / 10.0); // Slow animation (fps)
+    _frame.init(scaledFps(15.0)); // Slow animation (fps)
     _lastMinute = _dateTime.minute;
     _animationInProgress = false;
 
@@ -2264,7 +2286,7 @@ public:
 
   void begin()
   {
-    _frame.init(20.0 * _live.animSpeed / 10.0);
+    _frame.init(scaledFps(20.0));
     _phase = 0;
   }
 
@@ -2275,8 +2297,8 @@ public:
 
     _phase = (_phase + 3) & 511;
     uint8_t v = (_phase < 256) ? (uint8_t)_phase : (uint8_t)(511 - _phase);
-    uint8_t bMin = (uint8_t)((uint16_t)_live.animBrightnessMin * 255 / 100);
-    uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
+    uint8_t bMin = animMin255();
+    uint8_t bMax = animMax255();
     uint8_t b = (bMax > bMin) ? (bMin + (uint8_t)((uint16_t)v * (bMax - bMin) / 255)) : bMin;
 
     clearPixelsColor();
@@ -2322,7 +2344,7 @@ public:
 
   void begin()
   {
-    _frame.init(15.0 * _live.animSpeed / 10.0);
+    _frame.init(scaledFps(15.0));
     memset(_sparks, 0, sizeof(_sparks));
   }
 
@@ -2383,7 +2405,7 @@ public:
 
   void begin()
   {
-    _frame.init(15.0 * _live.animSpeed / 10.0);
+    _frame.init(scaledFps(15.0));
     _phase = 0;
   }
 
@@ -2394,8 +2416,8 @@ public:
 
     _phase += 2;
 
-    uint8_t bMin = (uint8_t)((uint16_t)_live.animBrightnessMin * 255 / 100);
-    uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
+    uint8_t bMin = animMin255();
+    uint8_t bMax = animMax255();
     uint8_t bRange = (bMax > bMin) ? (bMax - bMin) : 0;
 
     clearPixelsColor();
@@ -2506,7 +2528,7 @@ public:
 
   void begin()
   {
-    _frame.init(30.0 * _live.animSpeed / 10.0);
+    _frame.init(scaledFps(30.0));
     _phase = PAUSE;
     setPauseTimer();
   }
@@ -2517,7 +2539,7 @@ public:
       return;
 
     clearPixelsColor();
-    uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
+    uint8_t bMax = animMax255();
 
     switch (_phase)
     {
@@ -2622,7 +2644,7 @@ public:
       return;
 
     clearPixelsColor();
-    uint8_t bMax = (uint8_t)((uint16_t)_live.animBrightnessMax * 255 / 100);
+    uint8_t bMax = animMax255();
 
     switch (_phase)
     {
@@ -2898,8 +2920,6 @@ public:
     // endpoint still answered "ok".
     if (act == ACT_START) {
       startGame();
-    } else if (_state == STATE_GAME_OVER) {
-      /* nothing else to do while waiting for a restart */
     } else if (_state == STATE_PLAYING) {
       if      (act == ACT_LEFT   && canPlace(_pieceType, _pieceRot, _pieceRow, _pieceCol-1)) _pieceCol--;
       else if (act == ACT_RIGHT  && canPlace(_pieceType, _pieceRot, _pieceRow, _pieceCol+1)) _pieceCol++;
@@ -3058,8 +3078,6 @@ public:
     // endpoint still answered "ok".
     if (act == ACT_START) {
       startGame();
-    } else if (_state == STATE_GAME_OVER) {
-      /* nothing else to do while waiting for a restart */
     } else if (_state == STATE_PLAYING) {
       switch (act) {
         case ACT_UP:    if (_dirY == 0) { _nextDirX=0;  _nextDirY=-1; } break;
@@ -3254,8 +3272,7 @@ public:
     if (!isGameActive()) return;
     if (millis() - _gameLastSeen < GAME_IDLE_MS) return;
 
-    tetrisStop();
-    snakeStop();
+    stopAnyGame();
   }
 
   bool setAnimation(int mode)
@@ -3269,6 +3286,28 @@ public:
     _mqtt.publish(mqttTopicPubLedAnim.topic().c_str(), String(mode).c_str());
 
     return true;
+  }
+
+  // Put the display under the settings the user has saved: after a save, at
+  // boot, and when the scheduler hands control back.
+  //
+  // It exists because those three had drifted into three different subsets of
+  // the same list. The scheduler's copy left out the language and both
+  // brightness settings, which worked only for as long as no slot overrode
+  // them -- the day one did, the failure would have looked like a scheduler
+  // bug rather than a missing line in a copied block.
+  void applyUserSettings()
+  {
+    syncLiveFromConfig();
+
+    setAutomaticBrightness(_config.brightnessAuto);
+    if (!_config.brightnessAuto) setBrightness(_config.brightness);
+
+    setColor(_config.color[0], _config.color[1], _config.color[2]);
+    setColorRandom((RandomColorMode)_config.colorRandom);
+    setLanguage(_config.language);
+    setMode(_config.mode);
+    setAnimation(_config.animation);
   }
 
   void setAnimSpeed(byte speed)
