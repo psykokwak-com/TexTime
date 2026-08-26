@@ -1985,7 +1985,11 @@ const char PAGE_index[] PROGMEM = R"=====(
 
     function saveSchedulerEnabled() {
       var en=document.getElementById('schedulerEnabled').checked?'1':'0';
-      fetch('/admin/save/schedulerenabled',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'enabled='+en});
+      fetch('/admin/save/schedulerenabled',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'enabled='+en})
+        /* Switching off hands the display back at once, so switching on should
+           take effect at once too. Without this the clock waited for the next
+           half-hour boundary before applying the current slot. */
+        .then(function(){if(en==='1')return fetch('/admin/scheduler/apply',{method:'POST'});});
     }
 
     function saveAllScheduler() {
@@ -2012,6 +2016,9 @@ const char PAGE_index[] PROGMEM = R"=====(
         map+=toHex2(seen[hex]);
       }
       fetch('/admin/save/schedulerbulk',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'rules='+rules+'&map='+map})
+        /* The clock rejects a malformed payload; without this check the button
+           went green regardless and the schedule was silently not stored. */
+        .then(function(r){if(!r.ok)throw new Error('rejected');})
         .then(function(){return fetch('/admin/scheduler/apply',{method:'POST'});})
         .then(function(){setSaveButtonState(btn,'success');})
         .catch(function(){setSaveButtonState(btn,'error');});
