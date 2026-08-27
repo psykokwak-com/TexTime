@@ -386,11 +386,9 @@ void send_tetris_state()
     // whether it still owns the display: it may have been ended by the other
     // game, by a mode change or by the idle timeout.
     if (!QTLed.isTetrisActive())
-      s += "status|ENDED
-";
+      s += "status|ENDED\n";
     else if (!QTLed.gameOwnedBy(gameClientId()))
-      s += "status|BUSY
-";|ENDED\n";
+      s += "status|BUSY\n";
     else switch (t->getState()) {
       case LedStripAnimationTetris::STATE_PLAYING:   s += "status|PLAYING\n";   break;
       case LedStripAnimationTetris::STATE_GAME_OVER: s += "status|GAME OVER\n"; break;
