@@ -1403,8 +1403,6 @@ const char PAGE_index[] PROGMEM = R"=====(
       /* Enter in a text field submits a form even when its button is disabled. */
       if (!generalLoaded) return false;
       var form = event.target;
-      /* The submit button sits outside the form in the DOM, so look it up by id
-         rather than by descendant query. */
       var button = document.getElementById('general-save') || event.submitter;
       var formData = new FormData(form);
 

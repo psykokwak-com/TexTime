@@ -1,3 +1,8 @@
+// Whether the display currently carries a programmed slot. Only then is there
+// anything to hand back, so an unpainted half-hour following another one does
+// nothing instead of replaying the user settings over themselves.
+bool _schedOverrideActive = false;
+
 // Slot layout in EEPROM (8 bytes per slot):
 //   [0] mode (0xFF = slot disabled)
 //   [1] animation
@@ -44,8 +49,10 @@ void save_scheduler_enabled() {
       // Turning the scheduler off must hand the display back to the user
       // settings straight away, instead of leaving the last slot override in
       // place until the next reboot.
-      if (!enabled)
+      if (!enabled) {
+        _schedOverrideActive = false;
         QTLed.applyUserSettings();
+      }
     }
   }
   _server.send(200, "text/plain", "OK");
@@ -143,10 +150,20 @@ void handleScheduler() {
   // normal settings" -- not "keep whatever the last programmed slot left
   // behind". Without this, painting a single hour on Monday held its override
   // for the rest of the week.
+  //
+  // Once only, on the way out of a programmed slot: applyUserSettings()
+  // restarts the animation from the beginning, and a schedule is mostly empty
+  // cells, so replaying it every half-hour is a visible jolt twice an hour for
+  // no change at all.
   if (mode == 0xFF || mode > 7) {
-    QTLed.applyUserSettings();
+    if (_schedOverrideActive) {
+      _schedOverrideActive = false;
+      QTLed.applyUserSettings();
+    }
     return;
   }
+
+  _schedOverrideActive = true;
 
   byte animation      = constrain(EEPROM.read(addr + 1), 0, 14);
   byte packed         = EEPROM.read(addr + 2);
