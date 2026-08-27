@@ -210,6 +210,47 @@ body {
   text-align: center;
 }
 
+/* Collapsible group holding the game links. */
+.nav-caret {
+  margin-left: auto;
+  font-size: 0.75rem;
+  transition: transform 0.2s;
+}
+
+.nav-group[aria-expanded="true"] .nav-caret {
+  transform: rotate(90deg);
+}
+
+.nav-submenu {
+  display: none;
+}
+
+.nav-submenu.open {
+  display: block;
+}
+
+.nav-sublink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  /* Indented past the parent's icon so the group reads as one block. */
+  padding: 0.625rem 1.5rem 0.625rem 3rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.nav-sublink:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.nav-sublink .nav-icon {
+  width: 1.25rem;
+  font-size: 1rem;
+}
+
 .overlay {
   display: none;
   position: fixed;

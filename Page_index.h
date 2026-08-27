@@ -47,14 +47,24 @@ const char PAGE_index[] PROGMEM = R"=====(
           <span class="nav-icon">&#x23F0;</span>
           <span data-i18n="nav.scheduler">Scheduler</span>
         </button>
-        <a class="nav-item" href="/tetris.html" style="text-decoration:none;">
+        <!-- The games live on their own pages, so these are links, not
+             sections. Grouped behind a toggle to keep them out of the way of
+             the settings, which is what the sidebar is mostly for. -->
+        <button class="nav-item nav-group" id="gamesToggle" aria-expanded="false" aria-controls="games-submenu">
           <span class="nav-icon">🎮</span>
-          <span>Tetris</span>
-        </a>
-        <a class="nav-item" href="/snake.html" style="text-decoration:none;">
-          <span class="nav-icon">🐍</span>
-          <span>Snake</span>
-        </a>
+          <span data-i18n="nav.games">Games</span>
+          <span class="nav-caret" aria-hidden="true">▸</span>
+        </button>
+        <div class="nav-submenu" id="games-submenu">
+          <a class="nav-sublink" href="/tetris.html">
+            <span class="nav-icon">🧩</span>
+            <span>Tetris</span>
+          </a>
+          <a class="nav-sublink" href="/snake.html">
+            <span class="nav-icon">🐍</span>
+            <span>Snake</span>
+          </a>
+        </div>
       </div>
     </nav>
 
@@ -732,6 +742,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'status.idle': 'Inactif',
         'status.connecting': 'Connexion...',
         'nav.scheduler': 'Programmateur',
+        'nav.games': 'Jeux',
         'card.weekly_schedule': 'Programme hebdomadaire',
         'lbl.scheduler_enable': "Activer le programmateur (s'applique chaque demi-heure, remplace les paramètres généraux)",
         'msg.sched_hint': "Sélectionnez une règle à droite, puis cliquez/glissez pour peindre les cases. Recliquez une case pour l'effacer.",
@@ -850,6 +861,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'status.idle': 'Idle',
         'status.connecting': 'Connecting...',
         'nav.scheduler': 'Scheduler',
+        'nav.games': 'Games',
         'card.weekly_schedule': 'Weekly Schedule',
         'lbl.scheduler_enable': 'Enable scheduler (applies each half-hour, overrides general settings)',
         'msg.sched_hint': 'Select a rule on the right, then click/drag cells to paint them. Click a painted cell again to erase it.',
@@ -1026,6 +1038,28 @@ const char PAGE_index[] PROGMEM = R"=====(
 
       loadSectionData(sectionName);
       closeMobileMenu();
+    }
+
+    // Games submenu. Remembered per browser so the choice survives a reload;
+    // a browser that refuses storage just gets the collapsed default.
+    function setGamesOpen(open) {
+      var toggle = document.getElementById('gamesToggle');
+      var menu = document.getElementById('games-submenu');
+      if (!toggle || !menu) return;
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      menu.classList.toggle('open', open);
+      try { localStorage.setItem('gamesOpen', open ? '1' : '0'); } catch (e) {}
+    }
+
+    function toggleGamesMenu() {
+      var toggle = document.getElementById('gamesToggle');
+      setGamesOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    }
+
+    function loadGamesMenu() {
+      var open = false;
+      try { open = localStorage.getItem('gamesOpen') === '1'; } catch (e) {}
+      setGamesOpen(open);
     }
 
     // Mobile menu functions
@@ -1741,11 +1775,16 @@ const char PAGE_index[] PROGMEM = R"=====(
       load("style.css", "css", function() {
         loadTheme();
 
-        document.querySelectorAll('.nav-item').forEach(function(btn) {
+        // Only the entries that stand for a section. The games group is a
+        // nav-item too, and switching to a section it does not have threw.
+        document.querySelectorAll('.nav-item[data-section]').forEach(function(btn) {
           btn.addEventListener('click', function() {
             switchSection(btn.dataset.section);
           });
         });
+
+        document.getElementById('gamesToggle').addEventListener('click', toggleGamesMenu);
+        loadGamesMenu();
 
         var menuToggle = document.getElementById('menuToggle');
         var overlay = document.getElementById('overlay');
