@@ -388,6 +388,16 @@ void setup() {
   });
   
   _server.on("/admin/save/ntp", HTTP_POST, []() {
+    // Every field here has a harmful default: the timezone list starts at
+    // GMT-12, the server name is empty, and an unticked Daylight saving box is
+    // simply absent. A form submitted before its values arrived carries all
+    // three, and the save is applied to the clock straight away. Only trust it
+    // when the page states it really did fill the form in.
+    if (!_server.hasArg("formready")) {
+      _server.send(400, "text/plain", "NOT_READY");
+      return;
+    }
+
     if (_server.args() > 0) {
       _config.isDayLightSaving = false;
       for (uint8_t i = 0; i < _server.args(); i++) {

@@ -1595,8 +1595,19 @@ const char PAGE_index[] PROGMEM = R"=====(
     }
 
     // NTP Settings functions
+    /* Every field on this form has a harmful default -- the timezone list
+       starts at GMT-12 and the server name is empty -- so the firmware refuses
+       a save that does not carry the marker below. It is set here, once the
+       values have actually arrived, and nowhere else. */
+    var ntpLoaded = false;
+
     function loadNtpSettings() {
-      setValues("/admin/ntpfieldsvalues");
+      ntpLoaded = false;
+      return setValues("/admin/ntpfieldsvalues")
+        .then(function() { ntpLoaded = true; })
+        /* Swallowed on purpose: the marker simply stays unset, and a save
+           attempted on the half-filled form comes back refused. */
+        .catch(function() {});
     }
 
     function saveNtpSettings(event) {
@@ -1604,6 +1615,7 @@ const char PAGE_index[] PROGMEM = R"=====(
       var form = event.target;
       var button = form.querySelector('button[type="submit"]') || form.querySelector('button') || event.submitter;
       var formData = new FormData(form);
+      if (ntpLoaded) formData.append('formready', '1');
 
       setSaveButtonState(button, 'saving');
 
