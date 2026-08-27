@@ -1639,12 +1639,27 @@ const char PAGE_index[] PROGMEM = R"=====(
     }
 
     // MQTT Settings functions
+    /* A form that never loaded holds an empty broker address, a port of 0 and
+       an interval of 0 -- saving it wipes the broker configuration silently.
+       The firmware refuses a save without this marker, set here once the values
+       have actually arrived, and nowhere else. */
+    var mqttLoaded = false;
+
     function loadMqttSettings() {
-      setValues("/admin/mqttfieldsvalues")
+      mqttLoaded = false;
+      return setValues("/admin/mqttfieldsvalues")
         .then(function() {
+          mqttLoaded = true;
+          /* Saving reloads while the tab stays open, and only a section change
+             clears these. Drop the previous poller or each save leaves one
+             behind, all of them still hitting a single-threaded device. */
+          if (updateIntervals.mqtt) clearInterval(updateIntervals.mqtt);
           getMqttState();
           updateIntervals.mqtt = setInterval(getMqttState, 3000);
-        });
+        })
+        /* Swallowed on purpose: the marker stays unset, and a save attempted on
+           the half-filled form comes back refused. */
+        .catch(function() {});
     }
 
     function getMqttState() {
@@ -1679,6 +1694,7 @@ const char PAGE_index[] PROGMEM = R"=====(
       var form = event.target;
       var button = form.querySelector('button[type="submit"]') || form.querySelector('button') || event.submitter;
       var formData = new FormData(form);
+      if (mqttLoaded) formData.append('formready', '1');
 
       setSaveButtonState(button, 'saving');
 

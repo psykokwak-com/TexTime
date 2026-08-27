@@ -416,11 +416,21 @@ void setup() {
   });
   
   _server.on("/admin/save/mqtt", HTTP_POST, []() {
+    // An empty broker address and a port of 0 are what a form submitted before
+    // its values arrived carries, and saving them stops MQTT without a word.
+    // Only trust the form when the page states it really did fill it in.
+    if (!_server.hasArg("formready")) {
+      _server.send(400, "text/plain", "NOT_READY");
+      return;
+    }
+
     if (_server.args() > 0) {
       for (uint8_t i = 0; i < _server.args(); i++) {
         if (_server.argName(i) == "host") _config.MQTTServer = _server.arg(i);
         if (_server.argName(i) == "port") _config.MQTTPort = _server.arg(i).toInt();
         if (_server.argName(i) == "login") _config.MQTTLogin = _server.arg(i);
+        // Unlike the WiFi one, this password is sent back to the page, so the
+        // field arrives filled and an empty one means the user cleared it.
         if (_server.argName(i) == "mqttpassword") _config.MQTTPassword = _server.arg(i);
         if (_server.argName(i) == "interval") _config.MQTTPubInterval = _server.arg(i).toInt();
       }
