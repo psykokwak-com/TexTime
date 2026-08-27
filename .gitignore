@@ -164,3 +164,7 @@ battery.db
 .map
 *.err
 Makefile-genegis.properties
+
+# Visual Studio / Visual Micro per-machine state
+.vs/
+__vm/
