@@ -49,7 +49,12 @@ void save_scheduler_enabled() {
       // Turning the scheduler off must hand the display back to the user
       // settings straight away, instead of leaving the last slot override in
       // place until the next reboot.
-      if (!enabled) {
+      //
+      // Not over a running game, for the reason handleScheduler() gives: the
+      // handback repaints the board and can end the game outright. Leave the
+      // flag set instead and handleScheduler() settles it once the game is
+      // over.
+      if (!enabled && !QTLed.isGameActive()) {
         _schedOverrideActive = false;
         QTLed.applyUserSettings();
       }
@@ -125,7 +130,16 @@ void apply_scheduler_now() {
 
 // Called from loop() every iteration — runs at most once per half-hour (or immediately after apply_scheduler_now)
 void handleScheduler() {
-  if (EEPROM.read(SCHEDULER_EEPROM_BASE) != 1) return;
+  if (EEPROM.read(SCHEDULER_EEPROM_BASE) != 1) {
+    // Switched off while a game held the display, so the handback was left to
+    // us. Nothing else would do it: the slot override survives the game, and
+    // this is the only place still looking once the scheduler is off.
+    if (_schedOverrideActive && !QTLed.isGameActive()) {
+      _schedOverrideActive = false;
+      QTLed.applyUserSettings();
+    }
+    return;
+  }
 
   // A game owns the display while it runs: applying a slot would change the
   // mode under the player's hands. Keep the slot marked as not yet applied so
