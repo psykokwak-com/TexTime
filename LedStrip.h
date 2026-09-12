@@ -16,12 +16,93 @@
 #define pBLUE  Pixel(RgbColor(0  , 0  , 255))
 #define pWHITE Pixel(RgbColor(255, 255, 255))
 
+// NeoPixelBus fixes the LED protocol and the colour order at compile time, in
+// its template arguments. The LED type is a setting here, so the strip is
+// driven through this small interface and each supported type is one
+// instantiation of NeoPixelBusLg behind it. Only one exists at a time.
+class LedBus
+{
+public:
+  virtual ~LedBus() {}
+  virtual void Begin() = 0;
+  virtual void Show() = 0;
+  virtual bool CanShow() = 0;
+  virtual uint16_t PixelCount() = 0;
+  virtual void ClearTo(const RgbColor &color) = 0;
+  virtual void SetPixelColor(uint16_t index, const RgbColor &color) = 0;
+  virtual void SetLuminance(uint8_t luminance) = 0;
+  virtual uint8_t GetLuminance() = 0;
+};
+
 // NeoPixelBrightnessBus is deprecated in favour of NeoPixelBusLg. The third
 // template argument is NeoGammaNullMethod because NeoPixelBusLg applies gamma
 // correction by default, which would change every colour on the strip; the null
 // method keeps the exact output this project has always had.
-//typedef NeoPixelBusLg<NeoGrbFeature, NeoEsp8266AsyncUart1Ws2813Method, NeoGammaNullMethod> MyNeoPixelBrightnessBus;
-typedef NeoPixelBusLg<NeoGrbFeature, NeoEsp8266Uart1Ws2813Method, NeoGammaNullMethod> MyNeoPixelBrightnessBus;
+template<typename T_FEATURE, typename T_METHOD>
+class LedBusImpl : public LedBus
+{
+private:
+  // The feature's colour object: RgbColor on an RGB strip, RgbwColor on an
+  // RGBW one. The whole program thinks in RgbColor, and RgbwColor converts
+  // from it with the white channel left at zero, so a colour comes out the
+  // same whichever strip is fitted.
+  typedef typename T_FEATURE::ColorObject BusColor;
+
+  NeoPixelBusLg<T_FEATURE, T_METHOD, NeoGammaNullMethod> _bus;
+
+public:
+  LedBusImpl(uint16_t countPixels, uint8_t pin)
+    : _bus(countPixels, pin)
+  {
+  }
+
+  void Begin() { _bus.Begin(); }
+  void Show() { _bus.Show(); }
+  bool CanShow() { return _bus.CanShow(); }
+  uint16_t PixelCount() { return _bus.PixelCount(); }
+  void ClearTo(const RgbColor &color) { _bus.ClearTo(BusColor(color)); }
+  void SetPixelColor(uint16_t index, const RgbColor &color) { _bus.SetPixelColor(index, BusColor(color)); }
+  void SetLuminance(uint8_t luminance) { _bus.SetLuminance(luminance); }
+  uint8_t GetLuminance() { return _bus.GetLuminance(); }
+};
+
+template<typename T_FEATURE, typename T_METHOD>
+LedBus *createLedBus(uint16_t countPixels, uint8_t pin)
+{
+  return new LedBusImpl<T_FEATURE, T_METHOD>(countPixels, pin);
+}
+
+// The LED types the configuration page offers. The index into this table is
+// what the EEPROM stores, so entries are only ever appended: reordering or
+// removing one would silently change the strip type of every clock out there.
+// Entry 0 is what every clock built so far runs on, and what an EEPROM that
+// predates the setting falls back to (LED_TYPE_DEFAULT in global.h).
+//
+// All of them go through UART1 on D4: DMA would need GPIO3, which the USB
+// serial bridge already owns.
+struct LedType
+{
+  const char *name;
+  LedBus *(*create)(uint16_t countPixels, uint8_t pin);
+};
+
+static const LedType LED_TYPES[] = {
+  { "WS2812 / WS2813 (GRB)", createLedBus<NeoGrbFeature,  NeoEsp8266Uart1Ws2813Method> },
+  { "WS2812 / WS2813 (RGB)", createLedBus<NeoRgbFeature,  NeoEsp8266Uart1Ws2813Method> },
+  { "SK6812 (GRB)",          createLedBus<NeoGrbFeature,  NeoEsp8266Uart1Sk6812Method> },
+  { "SK6812 (GRBW)",         createLedBus<NeoGrbwFeature, NeoEsp8266Uart1Sk6812Method> },
+  { "SK6812 (RGBW)",         createLedBus<NeoRgbwFeature, NeoEsp8266Uart1Sk6812Method> },
+  { "WS2811 (RGB)",          createLedBus<NeoRgbFeature,  NeoEsp8266Uart1Ws2811Method> },
+  { "WS2811 (BRG)",          createLedBus<NeoBrgFeature,  NeoEsp8266Uart1Ws2811Method> },
+  { "APA106 (RGB)",          createLedBus<NeoRgbFeature,  NeoEsp8266Uart1Apa106Method> },
+};
+
+// Declared in global.h, so the config code can range-check a stored index
+// without seeing the table.
+int ledTypesCount()
+{
+  return sizeof(LED_TYPES) / sizeof(LED_TYPES[0]);
+}
 
 
 class Pixel
@@ -810,12 +891,12 @@ public:
 class LedStripModeTestStrip : public LedStripMode
 {
 private:
-  MyNeoPixelBrightnessBus **_ppStrip;
+  LedBus **_ppStrip;
   Frame _frame;
   int _index;
 
 public:
-  LedStripModeTestStrip(PixelsContainer *pPixelContainer, MyNeoPixelBrightnessBus **ppStrip)
+  LedStripModeTestStrip(PixelsContainer *pPixelContainer, LedBus **ppStrip)
     : LedStripMode("Test Strip", pPixelContainer)
     , _ppStrip(ppStrip)
     , _index(0)
@@ -860,7 +941,7 @@ public:
 class MyLedStrip
 {
 protected:
-  MyNeoPixelBrightnessBus *_pStrip;
+  LedBus *_pStrip;
   cl_Lst<LedConfiguration *> _ledConfiguration;
   int _ledConfigurationIndex;
   PixelsContainer _pixels;
@@ -1051,16 +1132,27 @@ public:
     return &_ledConfiguration;
   }
 
+  int getLedTypesCount()
+  {
+    return ledTypesCount();
+  }
+
+  String getLedTypeName(int i)
+  {
+    if (i < 0 || i >= ledTypesCount()) return String();
+    return String(LED_TYPES[i].name);
+  }
+
   void begin()
   {
     end();
 
     if (!_pStrip)
-    { 
+    {
       _ledConfigurationIndex = _config.ledConfig;
-      
+
       // Cannot use DMA because DMA GPIO is already used by serial/USB bridge :(
-      _pStrip = new MyNeoPixelBrightnessBus(_ledConfiguration[_ledConfigurationIndex]->ledsNumber(), D4);
+      _pStrip = LED_TYPES[sanitizeLedType(_config.ledType)].create(_ledConfiguration[_ledConfigurationIndex]->ledsNumber(), D4);
       _pStrip->Begin();
     }
 

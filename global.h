@@ -57,7 +57,8 @@ struct strConfig {
   byte ledConfig;                       // 1 Byte - EEPROM 395
   byte luxSensitivity;                  // 1 Byte - EEPROM 396
   byte language;                        // 1 Byte - EEPROM 397
-  byte brightnessMax;                   // 1 Byte - EEPROM 398  
+  byte brightnessMax;                   // 1 Byte - EEPROM 398
+  byte ledType;                         // 1 Byte - EEPROM 399  (index into LED_TYPES, LedStrip.h)
 
 
   String MQTTServer;                    // up to 64 Byte - EEPROM 512
@@ -128,6 +129,22 @@ void clampAnimBrightness(byte &lo, byte &hi)
 void validateAnimBrightness()
 {
   clampAnimBrightness(_config.animBrightnessMin, _config.animBrightnessMax);
+}
+
+// The LED type is an index into LED_TYPES in LedStrip.h, which is included
+// after this file; the count is all the config code needs from it.
+int ledTypesCount();
+
+// Entry 0 of LED_TYPES: WS2812 / WS2813, the strip every clock was built with
+// before the type became a setting.
+#define LED_TYPE_DEFAULT 0
+
+// An EEPROM written before the setting existed holds 0xFF at its address, and
+// a crafted request can carry anything: both land on the default rather than
+// on an entry past the end of the table.
+inline byte sanitizeLedType(int v)
+{
+  return (v < 0 || v >= ledTypesCount()) ? LED_TYPE_DEFAULT : v;
 }
 
 
@@ -293,7 +310,8 @@ void WriteConfig(){
   EEPROM.write(395, _config.ledConfig);
   EEPROM.write(396, _config.luxSensitivity);
   EEPROM.write(397, _config.language);
-  EEPROM.write(398, _config.brightnessMax);  
+  EEPROM.write(398, _config.brightnessMax);
+  EEPROM.write(399, _config.ledType);
 
   WriteStringToEEPROM(512, _config.MQTTServer);
   WriteStringToEEPROM(576, _config.MQTTLogin);
@@ -363,6 +381,9 @@ boolean ReadConfig(){
     // list starts at 10, but reachable by a crafted request or the legacy route.
     if (_config.luxSensitivity < 1) _config.luxSensitivity = 40;
     _config.language = EEPROM.read(397);
+    // Byte 399 was never written before the LED type existed, so a clock
+    // upgraded in place reads 0xFF here and keeps its WS2812 / WS2813 strip.
+    _config.ledType = sanitizeLedType(EEPROM.read(399));
 
     _config.MQTTServer = ReadStringFromEEPROM(512);
     _config.MQTTLogin = ReadStringFromEEPROM(576);
@@ -423,6 +444,7 @@ void printConfig(){
   Serial.printf("Minimum brightness auto during the night:%d\n", _config.brightnessAutoMinNight);
   Serial.printf("Max brightness:%d\n", _config.brightnessMax);
   Serial.printf("Led Configuration:%d\n", _config.ledConfig);
+  Serial.printf("Led Type:%d\n", _config.ledType);
 }
 
 

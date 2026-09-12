@@ -7,6 +7,7 @@ The clock displays time using illuminated words rather than traditional digits, 
 - MQTT support
 - Automatic NTP time synchronization with timezone and daylight saving
 - Multiple matrix configurations (40x40, 100x100 variants)
+- Selectable LED type: WS2812/WS2813 (default), SK6812 RGB and RGBW, WS2811, APA106
 - Animation effects: Blink, Fire, Matrix, Rainbow, and more
 - Color randomization modes
 - Automatic brightness based on ambient light

@@ -15,6 +15,7 @@ void send_general_configuration_values_html()
   values += "animation|" + (String)_config.animation + "|input\n";
   values += "colorrandom|" + (String)_config.colorRandom + "|input\n";
   values += "ledconfig|" + (String)_config.ledConfig + "|input\n";
+  values += "ledtype|" + (String)_config.ledType + "|input\n";
   values += "brightnesssensibility|" + (String)_config.luxSensitivity + "|input\n";
   values += "animspeed|" + (String)_config.animSpeed + "|input\n";
   values += "animbrightmin|" + (String)_config.animBrightnessMin + "|input\n";
@@ -31,6 +32,15 @@ void send_general_ledconfig_values_html()
   String values = "";
   for (int i = 0; i < pl->size(); i++)
     values += "ledconfig|" + (*pl)[i]->getName() + "|select\n";
+
+  _server.send(200, "text/plain", values);
+}
+
+void send_general_ledtype_values_html()
+{
+  String values = "";
+  for (int i = 0; i < QTLed.getLedTypesCount(); i++)
+    values += "ledtype|" + QTLed.getLedTypeName(i) + "|select\n";
 
   _server.send(200, "text/plain", values);
 }

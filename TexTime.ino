@@ -106,6 +106,7 @@ void setup() {
     _config.animBrightnessMin = 10;
     _config.animBrightnessMax = 100;
     _config.ledConfig = 0;
+    _config.ledType = LED_TYPE_DEFAULT; // WS2812 / WS2813
     _config.luxSensitivity = 40;
     _config.language = 0;
 
@@ -198,6 +199,7 @@ void setup() {
   _server.on("/admin/generalmodesvalues", send_general_modes_values_html);
   _server.on("/admin/generalanimationsvalues", send_general_animations_values_html);
   _server.on("/admin/generalledconfigvalues", send_general_ledconfig_values_html);
+  _server.on("/admin/generalledtypevalues", send_general_ledtype_values_html);
 
   _server.on("/admin/langvalue", send_lang_value_html);
   _server.on("/admin/led", send_general_led);
@@ -248,6 +250,7 @@ void setup() {
         if (_server.argName(i) == "animation") _config.animation = _server.arg(i).toInt();
         if (_server.argName(i) == "colorrandom") _config.colorRandom = _server.arg(i).toInt();
         if (_server.argName(i) == "ledconfig") _config.ledConfig = _server.arg(i).toInt();
+        if (_server.argName(i) == "ledtype") _config.ledType = sanitizeLedType(_server.arg(i).toInt());
         if (_server.argName(i) == "brightnesssensibility") _config.luxSensitivity = constrain(_server.arg(i).toInt(), 1, 255);
         if (_server.argName(i) == "animspeed") _config.animSpeed = constrain(_server.arg(i).toInt(), 1, 20);
         if (_server.argName(i) == "animbrightmin") _config.animBrightnessMin = constrain(_server.arg(i).toInt(), 0, 100);

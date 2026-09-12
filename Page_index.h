@@ -228,6 +228,12 @@ const char PAGE_index[] PROGMEM = R"=====(
                 </select>
               </div>
 
+              <div class="form-group">
+                <label for="ledtype" class="form-label" data-i18n="lbl.led_type">LED type</label>
+                <select id="ledtype" name="ledtype" class="form-control">
+                </select>
+              </div>
+
             <div class="form-group">
               <label class="form-label" data-i18n="lbl.color">Color</label>
               <div style="display:flex;gap:0.75rem;align-items:center">
@@ -674,6 +680,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'lbl.max_brightness': 'Luminosité automatique maximum',
         'card.display_config': 'Configuration affichage',
         'lbl.clock_type': "Type d'horloge",
+        'lbl.led_type': 'Type de LED',
         'lbl.color': 'Couleur',
         'lbl.color_random': 'Couleur aléatoire',
         'opt.no_random': 'Aucun',
@@ -793,6 +800,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         'lbl.max_brightness': 'Maximum automatic brightness',
         'card.display_config': 'Display Configuration',
         'lbl.clock_type': 'Clock type',
+        'lbl.led_type': 'LED type',
         'lbl.color': 'Color',
         'lbl.color_random': 'Color randomization',
         'opt.no_random': 'No Random',
@@ -1538,7 +1546,7 @@ const char PAGE_index[] PROGMEM = R"=====(
       }
     }
 
-    /* The stored values arrive on the last of five chained requests. Until
+    /* The stored values arrive on the last of six chained requests. Until
        that lands the form holds defaults, and saving it would write them:
        an unticked Automatic brightness box is simply absent from the POST,
        and an empty colour field parses as black. Keep Save out of reach until
@@ -1554,6 +1562,7 @@ const char PAGE_index[] PROGMEM = R"=====(
     function loadGeneralSettings() {
       setGeneralSaveEnabled(false);
       setValues("/admin/generalledconfigvalues")
+        .then(function() { return setValues("/admin/generalledtypevalues"); })
         .then(function() { return setValues("/admin/generallangsvalues"); })
         .then(function() { return setValues("/admin/generalmodesvalues"); })
         .then(function() { return setValues("/admin/generalanimationsvalues"); })
@@ -1561,6 +1570,7 @@ const char PAGE_index[] PROGMEM = R"=====(
         .then(function() {
           validatebrightnessauto();
           removeDuplicateOptions(document.getElementById('ledconfig'));
+          removeDuplicateOptions(document.getElementById('ledtype'));
           removeDuplicateOptions(document.getElementById('lang'));
           removeDuplicateOptions(document.getElementById('mode'));
           removeDuplicateOptions(document.getElementById('animation'));
