@@ -635,7 +635,7 @@ const char PAGE_index[] PROGMEM = R"=====(
        and the main column, and this is exactly where the browser already put
        the footer when the main closing tag was missing. -->
   <div class="footer">
-    <a href="https://github.com/psykokwak-com/TexTime">By Psykokwak</a>
+    <a href="https://github.com/psykokwak-com/TexTime">TexTime</a>
   </div>
 
   <!-- Mobile overlay -->

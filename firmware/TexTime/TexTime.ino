@@ -503,9 +503,9 @@ void setup() {
   SSDP.setURL("index.html");
   SSDP.setModelName("TexTime");
   SSDP.setModelNumber("Build : " + printDateTime(RtcDateTime(__DATE__, __TIME__)));
-  SSDP.setModelURL("http://www.psykokwak.com/blog/index.php/2017/04/04/64");
-  SSDP.setManufacturer("Psykokwak");
-  SSDP.setManufacturerURL("http://www.psykokwak.com");
+  SSDP.setModelURL("https://github.com/psykokwak-com/TexTime");
+  SSDP.setManufacturer("TexTime");
+  SSDP.setManufacturerURL("https://github.com/psykokwak-com/TexTime");
   SSDP.setDeviceType("upnp:rootdevice");
   SSDP.begin();
 
