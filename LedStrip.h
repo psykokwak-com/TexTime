@@ -34,6 +34,36 @@ public:
   virtual uint8_t GetLuminance() = 0;
 };
 
+// The whole program thinks in RgbColor; this is where a colour becomes what
+// the strip actually takes. On an RGB strip that is the colour itself.
+template<typename T_COLOR>
+struct BusColorFrom
+{
+  static T_COLOR convert(const RgbColor &c)
+  {
+    return T_COLOR(c);
+  }
+};
+
+// On an RGBW strip the part the three colours have in common is white, and
+// the strip has a LED made for that: it is moved onto the white channel and
+// taken out of the other three. Pure white text lights only the white LED --
+// cleaner, brighter, and cheaper in current than mixing it from red, green
+// and blue. Anything left over after the move is the tint, and stays on the
+// colour LEDs. (RgbwColor's own conversion would leave W at zero.)
+template<>
+struct BusColorFrom<RgbwColor>
+{
+  static RgbwColor convert(const RgbColor &c)
+  {
+    uint8_t w = c.R;
+    if (c.G < w) w = c.G;
+    if (c.B < w) w = c.B;
+
+    return RgbwColor(c.R - w, c.G - w, c.B - w, w);
+  }
+};
+
 // NeoPixelBrightnessBus is deprecated in favour of NeoPixelBusLg. The third
 // template argument is NeoGammaNullMethod because NeoPixelBusLg applies gamma
 // correction by default, which would change every colour on the strip; the null
@@ -43,10 +73,9 @@ class LedBusImpl : public LedBus
 {
 private:
   // The feature's colour object: RgbColor on an RGB strip, RgbwColor on an
-  // RGBW one. The whole program thinks in RgbColor, and RgbwColor converts
-  // from it with the white channel left at zero, so a colour comes out the
-  // same whichever strip is fitted.
+  // RGBW one. BusColorFrom does the conversion, white extraction included.
   typedef typename T_FEATURE::ColorObject BusColor;
+  typedef BusColorFrom<BusColor> Convert;
 
   NeoPixelBusLg<T_FEATURE, T_METHOD, NeoGammaNullMethod> _bus;
 
@@ -60,8 +89,8 @@ public:
   void Show() { _bus.Show(); }
   bool CanShow() { return _bus.CanShow(); }
   uint16_t PixelCount() { return _bus.PixelCount(); }
-  void ClearTo(const RgbColor &color) { _bus.ClearTo(BusColor(color)); }
-  void SetPixelColor(uint16_t index, const RgbColor &color) { _bus.SetPixelColor(index, BusColor(color)); }
+  void ClearTo(const RgbColor &color) { _bus.ClearTo(Convert::convert(color)); }
+  void SetPixelColor(uint16_t index, const RgbColor &color) { _bus.SetPixelColor(index, Convert::convert(color)); }
   void SetLuminance(uint8_t luminance) { _bus.SetLuminance(luminance); }
   uint8_t GetLuminance() { return _bus.GetLuminance(); }
 };
